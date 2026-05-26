@@ -3,23 +3,28 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Support\PhoneNumber;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $adminPhone = PhoneNumber::normalize(config('admin.phone'));
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        User::query()->updateOrCreate(
+            ['phone_number' => $adminPhone],
+            [
+                'name' => config('admin.name'),
+                'email' => config('admin.email'),
+                'password' => Hash::make(config('admin.password')),
+                'device_limit' => config('admin.device_limit'),
+                'is_admin' => true,
+                'wallet_balance' => 0,
+            ]
+        );
+
+        $this->call(DataPackageSeeder::class);
     }
 }

@@ -1,76 +1,49 @@
-# TesNet - Reliable Internet Solutions
+# TesNet — Hostel Mini-ISP (Ayeduase / KNUST)
 
-TesNet is a custom-built network infrastructure and billing system designed to manage and monetize internet access in hostel environments. This project serves as a student-led initiative to provide affordable, reliable connectivity in the Ayeduase and KNUST area of Kumasi, Ghana.
+TesNet is a Laravel captive-portal and billing stack for student Wi‑Fi: **phone + password** login, **FreeRADIUS**, **MikroTik** hotspot, **Paystack** payments, and separate **student** vs **admin** hubs.
 
-**Project Lead:** [Darko Kwaku Agyemang]
+**Application code:** [`TesNet/`](TesNet/) (Laravel 13)
 
-## 🚀 System Overview
+## Architecture
 
-The system utilizes Edge Intelligence and the MikroTik API to automate student authentication and payment processing via Paystack. It bridges the digital divide by offering a seamless, automated "pay-as-you-go" internet experience.
+| Layer | Role |
+| :--- | :--- |
+| **MikroTik** (`192.168.88.1`) | Hotspot, DHCP, walled garden |
+| **Ubuntu / HP ProBook** (`192.168.88.2`) | Laravel, MariaDB, FreeRADIUS |
+| **Students** | Portal login → buy data → connect Wi‑Fi |
 
-## 🏗️ System Architecture
+Auth is **not** MAC-based: RADIUS uses the normalized phone number as username (`233…`). Laravel syncs `radcheck` / `radreply` on user and package changes.
 
-The network operates on a **"Three-Tier"** logic:
+## Quick start (development)
 
-- **Gatekeeper (MikroTik hAP ac lite):** Manages physical connections, DHCP, and the Hotspot firewall.
-- **Brain (Ubuntu Server on HP ProBook):** Hosts the PHPNuxBill dashboard and MySQL database.
-- **Bridge (The Handshake):** Configured to bypass the Hotspot for the server, allowing constant, uninterrupted communication with the RouterOS API.
-
-## 🛠️ Technical Stack
-
-### Hardware
-
-- **Router:** MikroTik hAP ac lite
-- **Server:** HP ProBook (Running Ubuntu 24.04 LTS)
-- **Backhaul:** MTN TurboNet (4G LTE)
-
-### Software & Core Stack
-
-- **Billing Engine:** PHPNuxBill (PHP/MySQL)
-- **Integration:** MikroTik RouterOS API
-- **HTML5**: Semantic structure.
-- **Tailwind CSS**: Utility-first styling via CDN.
-
-## 🌐 Network Map
-
-| Device          | Interface    | IP Address   | Role               |
-| :-------------- | :----------- | :----------- | :----------------- |
-| MTN TurboNet    | ether1 (WAN) | Dynamic      | Internet Source    |
-| MikroTik Router | bridge-local | 192.168.88.1 | Gateway & Hotspot  |
-| Ubuntu ProBook  | ether2 (LAN) | 192.168.88.2 | Billing & Database |
-| Access Point    | ether3 (LAN) | DHCP Pool    | Student Connection |
-
-## 🔧 Installation & Setup
-
-### 1. Server Configuration (Netplan)
-
-The Ubuntu server requires a static IP to maintain a persistent API connection with the MikroTik router:
-
-```yaml
-network:
-  version: 2
-  renderer: networkd
-  ethernets:
-    enp1s0:
-      addresses: [192.168.88.2/24]
-      routes: [{ to: default, via: 192.168.88.1 }]
-      nameservers: { addresses: [8.8.8.8, 8.8.4.4] }
+```bash
+cd TesNet
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate --seed
+npm install && npm run build:offline
+php artisan serve --host=0.0.0.0 --port=8080
 ```
 
-### 2. MikroTik Integration
+| URL | Purpose |
+| :--- | :--- |
+| `/portal/login` | Student login / register |
+| `/portal/forgot-password` | Phone-based password reset |
+| `/admin/login` | Admin hub (packages, students, announcements) |
 
-The router uses a custom `login.html` redirect located in `flash/hotspot/` to push unauthorized users to the PHPNuxBill portal.
+Default seeded admin (change in `.env` then `php artisan db:seed`): phone `0550000001`, password from `ADMIN_PASSWORD`.
 
-## ✨ Key Features
+## Documentation
 
-- **Walled Garden:** Allows students to access the payment portal and landing page without an active data plan.
-- **API Automation:** PHPNuxBill automatically creates and removes users in RouterOS upon voucher activation.
-- **4G Optimization:** Custom Mangle rules are applied to adjust MSS, ensuring stable performance on 4G LTE backhaul.
-- **Optimized Pricing Table:** Streamlined data packages (600MB to 60GB) with "POPULAR" and "BEST VALUE" badges.
+- **[Hotspot HTML & MikroTik redirect](docs/HOTSPOT.md)** — replace legacy `login.html` with Laravel
+- **[Paystack live + HTTPS webhook](docs/PAYSTACK.md)** — production keys, `APP_URL`, webhook URL
+- **[Laravel app README](TesNet/README.md)** — env vars, RADIUS, offline assets (if present)
 
+## Legacy files
 
-## 📝 License & Credits
+Root `login.html` and copies under `flash/hotspot/` are **PHPNuxBill-era** redirects. Production should point the hotspot login URL at the Laravel portal (see `docs/HOTSPOT.md`).
 
-This is a **Student Initiative Project**.
-© 2026 TesNet. All rights reserved.
-Built with ❤️ in Kumasi.
+## License
+
+Student initiative project — © 2026 TesNet.

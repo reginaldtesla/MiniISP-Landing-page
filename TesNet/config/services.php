@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    'paystack' => [
+        'public_key' => env('PAYSTACK_PUBLIC_KEY'),
+        'secret_key' => env('PAYSTACK_SECRET_KEY'),
+    ],
+
+    'mikrotik' => [
+        'login_url' => env('MIKROTIK_LOGIN_URL', 'http://192.168.88.1/login'),
+        'api_enabled' => env('MIKROTIK_API_ENABLED', false),
+    ],
+
 ];
