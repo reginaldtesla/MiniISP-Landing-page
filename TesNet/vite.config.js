@@ -10,6 +10,7 @@ export default defineConfig({
                 'resources/js/portal-theme.js',
                 'resources/js/portal-announcements.js',
                 'resources/js/portal-custom-calculator.js',
+                'resources/js/portal-plan-countdown.js',
             ],
             refresh: true,
         }),

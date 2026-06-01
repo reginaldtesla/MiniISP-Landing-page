@@ -15,6 +15,7 @@
     $isBuyData = str_starts_with($routeName, 'portal.packages') || str_starts_with($routeName, 'portal.payments');
     $isAbout = str_starts_with($routeName, 'portal.about');
     $isSupport = str_starts_with($routeName, 'portal.support');
+    $isDevices = str_starts_with($routeName, 'portal.devices');
     $user = auth()->user();
     $sidebarName = $user->name && $user->name !== $user->phone_number && ! str_contains($user->name, '@')
         ? explode(' ', trim($user->name))[0]
@@ -57,6 +58,9 @@
         <a href="{{ route('portal.packages') }}" class="{{ $isBuyData ? $navActive : $navIdle }}">
             <span class="material-symbols-outlined">bolt</span><span>Buy Data</span>
         </a>
+        <a href="{{ route('portal.devices.index') }}" class="{{ $isDevices ? $navActive : $navIdle }}">
+            <span class="material-symbols-outlined">devices</span><span>Devices</span>
+        </a>
         <a href="{{ route('portal.support.index') }}" class="{{ $isSupport ? $navActive : $navIdle }}">
             <span class="material-symbols-outlined">support_agent</span><span>Support</span>
         </a>
@@ -91,6 +95,7 @@
 </nav>
 
 <main class="flex-1 w-full min-w-0 overflow-y-auto overflow-x-hidden pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:ml-64 md:h-[100dvh] md:pb-8">
+    @include('portal.partials.outage-banner')
     @include('portal.partials.alerts')
     @yield('content')
 </main>

@@ -3,6 +3,8 @@
     $minAmount = $calcConfig['minAmount'] ?? 1;
     $maxAmount = $calcConfig['maxAmount'] ?? 100;
     $speedMbps = $calcConfig['speedMbps'] ?? 60;
+    $purchasesBlocked = $purchasesBlocked ?? \App\Support\PortalStatus::shouldBlockPurchases();
+    $paystackReady = config('paystack.secret_key') && ! $purchasesBlocked;
 @endphp
 
 <div id="custom-data-calculator"
@@ -57,10 +59,14 @@
             <form method="POST" action="{{ route('portal.payments.custom') }}" class="mt-5">
                 @csrf
                 <input type="hidden" name="amount" data-custom-form-amount value="{{ old('amount', $minAmount) }}"/>
-                <button type="submit" data-custom-pay @disabled(! config('paystack.secret_key'))
+                <button type="submit" data-custom-pay @disabled(! $paystackReady)
                     class="w-full min-h-[48px] bg-secondary text-on-secondary dark:bg-secondary-fixed-dim dark:text-inverse-surface rounded-lg font-label-sm text-label-sm flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50 transition-colors active:scale-[0.98]">
                     <span class="material-symbols-outlined text-[20px]">payments</span>
-                    Pay custom amount
+                    @if ($purchasesBlocked)
+                        Purchases disabled
+                    @else
+                        Pay custom amount
+                    @endif
                 </button>
             </form>
         </div>

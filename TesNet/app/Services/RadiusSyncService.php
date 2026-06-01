@@ -18,6 +18,7 @@ class RadiusSyncService
 
         $this->upsertCheck($username, 'Cleartext-Password', ':=', $plainPassword);
         $this->upsertCheck($username, 'Simultaneous-Use', ':=', (string) $user->device_limit);
+        $this->syncSuspension($user);
     }
 
     public function updatePassword(User $user, string $plainPassword): void
@@ -28,6 +29,11 @@ class RadiusSyncService
     public function updateDeviceLimit(User $user): void
     {
         $this->upsertCheck($user->phone_number, 'Simultaneous-Use', ':=', (string) $user->device_limit);
+    }
+
+    public function updateSuspension(User $user): void
+    {
+        $this->syncSuspension($user);
     }
 
     public function applyPackageLimits(User $user, ?int $speedMbps, ?int $dataLimitMb): void
@@ -79,5 +85,24 @@ class RadiusSyncService
             ['username' => $username, 'attribute' => $attribute],
             ['op' => $op, 'value' => $value]
         );
+    }
+
+    protected function syncSuspension(User $user): void
+    {
+        $username = $user->phone_number;
+
+        if (! $username) {
+            return;
+        }
+
+        if ($user->is_suspended) {
+            $this->upsertCheck($username, 'Auth-Type', ':=', 'Reject');
+        } else {
+            RadCheck::query()
+                ->where('username', $username)
+                ->where('attribute', 'Auth-Type')
+                ->where('value', 'Reject')
+                ->delete();
+        }
     }
 }

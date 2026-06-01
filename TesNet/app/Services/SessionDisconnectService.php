@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\RadAcct;
+use App\Support\SessionDisconnectResult;
 use Illuminate\Support\Facades\Log;
 
 class SessionDisconnectService
@@ -11,29 +12,43 @@ class SessionDisconnectService
         protected MikrotikApiService $mikrotik,
     ) {}
 
-    public function forceDisconnect(RadAcct $session): bool
+    public function forceDisconnect(RadAcct $session): SessionDisconnectResult
     {
         $username = $session->username;
-        $routerOk = false;
+        $mac = $session->callingstationid ?: null;
+        $ip = $session->framedipaddress ?: null;
+        $routerAttempted = $this->mikrotik->isEnabled() && ($mac || $ip);
+        $routerKicked = false;
 
-        if ($this->mikrotik->isEnabled()) {
+        if ($routerAttempted) {
             try {
-                $routerOk = $this->mikrotik->disconnectHotspotUser($username);
+                $routerKicked = $this->mikrotik->disconnectHotspotSession($username, $mac, $ip);
             } catch (\Throwable $exception) {
                 Log::error('MikroTik disconnect failed', [
                     'username' => $username,
                     'error' => $exception->getMessage(),
                 ]);
             }
-        }
-
-        if ($session->acctstoptime === null) {
-            $session->update([
-                'acctstoptime' => now(),
-                'acctterminatecause' => 'Admin-Reset',
+        } elseif ($this->mikrotik->isEnabled()) {
+            Log::warning('Session disconnect missing MAC/IP; skipping MikroTik kick', [
+                'username' => $username,
+                'radacctid' => $session->radacctid,
             ]);
         }
 
-        return $routerOk || $session->acctstoptime !== null;
+        $accountingClosed = false;
+
+        if (! $routerAttempted || $routerKicked) {
+            if ($session->acctstoptime === null) {
+                $session->update([
+                    'acctstoptime' => now(),
+                    'acctterminatecause' => 'Admin-Reset',
+                ]);
+            }
+
+            $accountingClosed = true;
+        }
+
+        return new SessionDisconnectResult($accountingClosed, $routerKicked, $routerAttempted);
     }
 }

@@ -65,12 +65,14 @@
                 </div>
                 <div class="space-y-4 mb-6 sm:mb-8 p-4 bg-surface-container-low dark:bg-inverse-surface/50 border border-outline-variant/20 rounded-lg">
                     <label class="flex items-start gap-3 cursor-pointer group min-h-[44px]">
-                        <input type="checkbox" name="is_global" value="1" checked
+                        <input type="hidden" name="is_global" value="0"/>
+                        <input type="checkbox" name="is_global" value="1" {{ old('is_global', true) ? 'checked' : '' }}
                             class="mt-1 w-5 h-5 rounded border-outline text-primary focus:ring-primary dark:focus:ring-primary-fixed-dim"/>
                         <span class="font-body-md text-body-md admin-card-strong group-hover:text-primary dark:group-hover:text-primary-fixed-dim transition-colors">Show to Everyone (Global Broadcast)</span>
                     </label>
                     <label class="flex items-start gap-3 cursor-pointer group min-h-[44px]">
-                        <input type="checkbox" name="expire_24_hours" value="1" checked
+                        <input type="hidden" name="expire_24_hours" value="0"/>
+                        <input type="checkbox" name="expire_24_hours" value="1" {{ old('expire_24_hours', true) ? 'checked' : '' }}
                             class="mt-1 w-5 h-5 rounded border-outline text-primary focus:ring-primary dark:focus:ring-primary-fixed-dim"/>
                         <span class="font-body-md text-body-md admin-card-strong group-hover:text-primary dark:group-hover:text-primary-fixed-dim transition-colors">Show for 24 hours only</span>
                     </label>
@@ -83,7 +85,7 @@
                     </div>
                 </div>
                 <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 sm:gap-4">
-                    <button type="button" onclick="document.getElementById('announcement-form').reset(); document.getElementById('message-title').dispatchEvent(new Event('input'));"
+                    <button type="button" onclick="document.getElementById('announcement-form').reset();"
                         class="min-h-[48px] px-6 py-3 rounded-xl bg-transparent border-2 border-secondary dark:border-secondary-fixed-dim text-secondary dark:text-secondary-fixed-dim font-body-md font-medium hover:bg-secondary/5 transition-colors">
                         Clear
                     </button>
@@ -95,83 +97,5 @@
             </form>
         </div>
     </section>
-
-    {{-- Live Preview --}}
-    <aside class="hidden xl:flex w-80 2xl:w-96 bg-surface-container-low dark:bg-inverse-surface border-l border-outline-variant/30 flex-col items-center py-8 px-4 shrink-0 overflow-y-auto">
-        <div class="mb-6 text-center">
-            <h3 class="font-title-md text-title-md admin-card-strong mb-1">Live Preview</h3>
-            <p class="font-body-md text-body-md admin-card-muted text-sm">How it appears on a student's phone</p>
-        </div>
-        <div class="w-[280px] 2xl:w-[300px] h-[580px] 2xl:h-[620px] admin-card rounded-[36px] border-[6px] border-surface-variant dark:border-outline-variant/40 shadow-xl relative overflow-hidden flex flex-col shrink-0">
-            <div class="h-6 w-full flex justify-between items-center px-4 pt-2 text-[10px] admin-card-muted bg-surface dark:bg-inverse-surface">
-                <span>9:41</span>
-                <div class="flex gap-0.5">
-                    <span class="material-symbols-outlined text-[12px]">signal_cellular_4_bar</span>
-                    <span class="material-symbols-outlined text-[12px]">wifi</span>
-                    <span class="material-symbols-outlined text-[12px]">battery_full</span>
-                </div>
-            </div>
-            <div class="flex-1 bg-surface dark:bg-inverse-surface p-3 relative pt-8">
-                <h2 class="font-title-md text-title-md font-bold text-primary dark:text-primary-fixed-dim mb-4 text-sm">Home</h2>
-                <div class="bg-primary/5 dark:bg-primary-fixed-dim/10 rounded-xl p-3 mb-3 h-24 border border-primary/10"></div>
-                <div class="bg-surface-container-low dark:bg-admin-elevated-high/50 rounded-xl p-3 h-16 mb-3"></div>
-                <div class="bg-surface-container-low dark:bg-admin-elevated-high/50 rounded-xl p-3 h-16"></div>
-                <div class="absolute bottom-4 left-3 right-3 admin-card rounded-2xl p-4 shadow-lg border border-primary/10 dark:border-outline-variant/20">
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="w-9 h-9 rounded-full bg-primary-container/30 dark:bg-primary-container/40 flex items-center justify-center text-primary dark:text-primary-fixed-dim">
-                            <span class="material-symbols-outlined fill text-[20px]">campaign</span>
-                        </div>
-                        <span class="material-symbols-outlined text-outline text-[18px]">close</span>
-                    </div>
-                    <h4 id="preview-title" class="font-body-md text-body-md font-medium admin-card-strong mb-1 line-clamp-2">Quick Maintenance Update</h4>
-                    <p id="preview-body" class="font-body-md text-body-md admin-card-muted text-xs line-clamp-3">What do students need to know? Keep it friendly and clear...</p>
-                    <button type="button" class="mt-3 w-full py-2 bg-primary/10 dark:bg-primary-fixed-dim/20 text-primary dark:text-primary-fixed-dim font-body-md text-sm font-medium rounded-lg">Got it</button>
-                </div>
-            </div>
-            <div class="h-1 w-1/3 bg-outline rounded-full absolute bottom-2 left-1/2 -translate-x-1/2"></div>
-        </div>
-    </aside>
-</div>
-
-{{-- Mobile inline preview --}}
-<div class="xl:hidden px-4 pb-4 bg-surface-container-low dark:bg-inverse-surface border-t border-outline-variant/30">
-    <p class="font-label-sm text-label-sm admin-card-muted text-center py-3">Mobile preview</p>
-    <div class="max-w-sm mx-auto admin-card rounded-2xl p-4 soft-shadow border border-primary/10">
-        <div class="flex gap-3 mb-2">
-            <div class="w-9 h-9 rounded-full bg-primary-container/30 flex items-center justify-center text-primary shrink-0">
-                <span class="material-symbols-outlined fill text-[18px]">campaign</span>
-            </div>
-            <div class="min-w-0 flex-1">
-                <h4 id="preview-title-mobile" class="font-body-md font-medium admin-card-strong truncate">Quick Maintenance Update</h4>
-                <p id="preview-body-mobile" class="font-body-md text-sm admin-card-muted line-clamp-2">What do students need to know?</p>
-            </div>
-        </div>
-        <button type="button" class="w-full py-2 bg-primary/10 text-primary text-sm font-medium rounded-lg">Got it</button>
-    </div>
 </div>
 @endsection
-
-@push('scripts')
-<script>
-(function () {
-    const titleInput = document.getElementById('message-title');
-    const bodyInput = document.getElementById('message-body');
-    const previews = [
-        { title: document.getElementById('preview-title'), body: document.getElementById('preview-body') },
-        { title: document.getElementById('preview-title-mobile'), body: document.getElementById('preview-body-mobile') },
-    ].filter(p => p.title && p.body);
-
-    function sync() {
-        const t = titleInput?.value?.trim() || 'Announcement Title';
-        const b = bodyInput?.value?.trim() || 'What do students need to know? Keep it friendly and clear...';
-        previews.forEach(p => {
-            p.title.textContent = t;
-            p.body.textContent = b;
-        });
-    }
-    titleInput?.addEventListener('input', sync);
-    bodyInput?.addEventListener('input', sync);
-    sync();
-})();
-</script>
-@endpush

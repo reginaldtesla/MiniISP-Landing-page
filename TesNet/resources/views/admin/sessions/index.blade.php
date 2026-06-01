@@ -26,7 +26,7 @@
         <table class="w-full text-sm font-body-md">
             <thead class="bg-surface-container-high dark:bg-admin-elevated-high admin-card-muted">
                 <tr>
-                    <th class="p-3 text-left">Phone</th><th class="p-3 text-left">Started</th><th class="p-3 text-left">Data</th><th class="p-3 text-left">IP</th><th class="p-3"></th>
+                    <th class="p-3 text-left">Phone</th><th class="p-3 text-left">Started</th><th class="p-3 text-left">Data</th><th class="p-3 text-left">IP</th><th class="p-3 text-left">MAC</th><th class="p-3"></th>
                 </tr>
             </thead>
             <tbody>
@@ -36,6 +36,7 @@
                         <td class="p-3">{{ $s->acctstarttime?->format('M j, H:i') }}</td>
                         <td class="p-3">{{ $s->formattedDataUsed() }}</td>
                         <td class="p-3">{{ $s->framedipaddress ?: '—' }}</td>
+                        <td class="p-3 font-mono text-xs">{{ $s->callingstationid ?: '—' }}</td>
                         <td class="p-3">
                             <form method="POST" action="{{ route('admin.sessions.disconnect', $s) }}" onsubmit="return confirm('Disconnect?')">@csrf
                                 <button class="text-error font-label-sm hover:underline">Disconnect</button>

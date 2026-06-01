@@ -1,6 +1,7 @@
 @php
     $highlighted = $highlighted ?? false;
-    $paystackReady = config('paystack.secret_key');
+    $purchasesBlocked = $purchasesBlocked ?? \App\Support\PortalStatus::shouldBlockPurchases();
+    $paystackReady = config('paystack.secret_key') && ! $purchasesBlocked;
 @endphp
 
 @if ($highlighted)
@@ -25,7 +26,11 @@
             <input type="hidden" name="package" value="{{ $package->slug }}">
             <button type="submit" @disabled(! $paystackReady) class="special-offer-btn">
                 <span class="material-symbols-outlined text-[20px]">payments</span>
-                Grab this offer
+                @if ($purchasesBlocked)
+                    Purchases disabled
+                @else
+                    Grab this offer
+                @endif
             </button>
         </form>
     </div>
@@ -46,7 +51,11 @@
             <button type="submit" @disabled(! $paystackReady)
                 class="w-full min-h-[48px] bg-primary text-on-primary dark:bg-primary-fixed-dim dark:text-on-primary-fixed rounded-lg font-label-sm text-label-sm flex items-center justify-center gap-2 hover:bg-primary/90 dark:hover:bg-primary-fixed-dim/90 disabled:opacity-50 transition-colors active:scale-[0.98]">
                 <span class="material-symbols-outlined text-[20px]">payments</span>
-                Pay with Paystack
+                @if ($purchasesBlocked)
+                    Purchases disabled
+                @else
+                    Pay with Paystack
+                @endif
             </button>
         </form>
     </div>

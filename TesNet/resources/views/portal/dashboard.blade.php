@@ -18,14 +18,25 @@
                     <span class="material-symbols-outlined fill text-[18px] sm:text-[20px]">check_circle</span>
                     <span class="font-label-sm text-label-sm">You're connected</span>
                 </div>
-            @elseif ($hasActivePlan)
+            @elseif ($hasActivePlan && ! ($blockConnect ?? false))
                 <form method="POST" action="{{ route('portal.connect-wifi') }}" class="w-full sm:w-auto shrink-0">@csrf
                     <button type="submit" class="w-full sm:w-auto flex items-center justify-center gap-2 min-h-[44px] px-5 py-2.5 rounded-full font-label-sm text-label-sm font-semibold bg-primary text-on-primary dark:bg-primary-fixed-dim dark:text-on-primary-fixed shadow-md ring-2 ring-white/30 dark:ring-white/25 hover:bg-primary/90 dark:hover:bg-primary-fixed-dim/90 transition-colors active:scale-[0.98]">
                         <span class="material-symbols-outlined text-[22px]" aria-hidden="true">wifi</span>
                         Connect to Internet
                     </button>
                 </form>
+            @elseif ($hasActivePlan && ($blockConnect ?? false))
+                <button type="button" disabled aria-disabled="true"
+                    class="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 min-h-[44px] px-5 py-2.5 rounded-full font-label-sm text-label-sm font-semibold bg-primary/40 text-on-primary/70 dark:bg-primary-fixed-dim/40 dark:text-on-primary-fixed/70 cursor-not-allowed opacity-60">
+                    <span class="material-symbols-outlined text-[22px]" aria-hidden="true">wifi</span>
+                    Connect unavailable
+                </button>
             @else
+                <button type="button" disabled aria-disabled="true"
+                    class="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 min-h-[44px] px-5 py-2.5 rounded-full font-label-sm text-label-sm font-semibold bg-primary/40 text-on-primary/70 dark:bg-primary-fixed-dim/40 dark:text-on-primary-fixed/70 cursor-not-allowed opacity-60">
+                    <span class="material-symbols-outlined text-[22px]" aria-hidden="true">wifi</span>
+                    Connect to Internet
+                </button>
                 <a href="{{ route('portal.packages') }}"
                    class="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 min-h-[44px] px-5 py-2.5 rounded-full font-label-sm text-label-sm font-semibold bg-tertiary text-on-tertiary dark:bg-tertiary-fixed-dim dark:text-on-tertiary-container shadow-md ring-2 ring-white/20 hover:opacity-90 transition-opacity active:scale-[0.98]">
                     <span class="material-symbols-outlined text-[22px]" aria-hidden="true">bolt</span>
@@ -79,6 +90,16 @@
                     <span class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">Validity</span>
                     <span class="font-label-sm text-label-sm text-on-background dark:text-inverse-on-surface shrink-0 text-right">{{ $hasActivePlan ? $validityLabel : '—' }}</span>
                 </div>
+                @if ($hasActivePlan && $planExpiresAt)
+                    <div class="flex justify-between items-center gap-2 mt-2 pt-2 border-t border-outline-variant/20 dark:border-outline/20">
+                        <span class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">Time left</span>
+                        <span id="plan-countdown"
+                              class="font-label-sm text-label-sm font-semibold text-primary dark:text-primary-fixed-dim shrink-0 text-right tabular-nums"
+                              data-expires-at="{{ $planExpiresAt->toIso8601String() }}">
+                            <span id="plan-countdown-value">Calculating…</span>
+                        </span>
+                    </div>
+                @endif
             </div>
             <a href="{{ route('portal.packages') }}"
                class="w-full md:max-w-sm min-h-[48px] sm:min-h-[56px] bg-primary text-on-primary dark:bg-primary-fixed-dim dark:text-on-primary-fixed rounded-lg font-label-sm text-label-sm flex items-center justify-center gap-2 hover:bg-primary/90 dark:hover:bg-primary-fixed-dim/90 transition-colors active:scale-[0.98] shadow-sm">
@@ -137,9 +158,8 @@
 @endsection
 
 @push('scripts')
-@if (file_exists(public_path('assets/portal/portal-announcements.js')))
-    <script src="{{ asset('assets/portal/portal-announcements.js') }}" defer></script>
-@elseif (file_exists(public_path('build/manifest.json')))
-    @vite(['resources/js/portal-announcements.js'])
-@endif
+    @include('portal.partials.portal-script', ['file' => 'portal-announcements.js'])
+    @if ($hasActivePlan && $planExpiresAt)
+        @include('portal.partials.portal-script', ['file' => 'portal-plan-countdown.js'])
+    @endif
 @endpush

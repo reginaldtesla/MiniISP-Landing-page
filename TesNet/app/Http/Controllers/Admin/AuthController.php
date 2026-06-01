@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\AdminIdleTimeout;
 use App\Models\User;
 use App\Support\PhoneNumber;
 use Illuminate\Http\RedirectResponse;
@@ -74,12 +75,15 @@ class AuthController extends Controller
             ]);
         }
 
+        $request->session()->put(AdminIdleTimeout::SESSION_KEY, now()->timestamp);
+
         return redirect()->intended(route('admin.dashboard'));
     }
 
     public function logout(Request $request): RedirectResponse
     {
         Auth::logout();
+        $request->session()->forget(AdminIdleTimeout::SESSION_KEY);
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

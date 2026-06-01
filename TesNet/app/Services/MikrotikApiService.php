@@ -30,14 +30,98 @@ class MikrotikApiService
         }
     }
 
+    /**
+     * @return array{ok: bool, message: string}
+     */
+    public function testConnection(): array
+    {
+        if (! $this->isEnabled()) {
+            return [
+                'ok' => false,
+                'message' => 'MIKROTIK_API_ENABLED=false or API password missing.',
+            ];
+        }
+
+        $host = config('mikrotik.api.host');
+        $port = config('mikrotik.api.port');
+
+        if (! $this->connect()) {
+            return [
+                'ok' => false,
+                'message' => "Could not reach MikroTik API at {$host}:{$port}. Check host, port, firewall, and API service.",
+            ];
+        }
+
+        try {
+            $identity = $this->command('/system/identity/print');
+
+            if ($this->responseFailed($identity)) {
+                return [
+                    'ok' => false,
+                    'message' => 'MikroTik login failed — check MIKROTIK_API_USER and MIKROTIK_API_PASSWORD.',
+                ];
+            }
+
+            $routerName = $identity[0]['name'] ?? 'router';
+            $activeSessions = $this->filterHotspotSessions('');
+
+            return [
+                'ok' => true,
+                'message' => 'API login OK on "'.$routerName.'" · '.count($activeSessions).' active hotspot session(s).',
+            ];
+        } catch (\Throwable $exception) {
+            return [
+                'ok' => false,
+                'message' => 'MikroTik API error: '.$exception->getMessage(),
+            ];
+        } finally {
+            $this->disconnect();
+        }
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $response
+     */
+    protected function responseFailed(array $response): bool
+    {
+        foreach ($response as $row) {
+            if (($row['!type'] ?? null) === '!trap' || ($row['!type'] ?? null) === '!fatal') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function disconnectHotspotUser(string $username): bool
     {
+        return $this->disconnectHotspotSession($username);
+    }
+
+    public function disconnectHotspotSession(
+        string $username,
+        ?string $macAddress = null,
+        ?string $ipAddress = null,
+    ): bool {
         if (! $this->connect()) {
             return false;
         }
 
         try {
-            $sessions = $this->command('/ip/hotspot/active/print', ['?user' => $username]);
+            $sessions = $this->filterHotspotSessions($username, $macAddress, null);
+
+            if ($sessions === [] && $ipAddress !== null) {
+                $sessions = $this->filterHotspotSessions($username, null, $ipAddress);
+            }
+
+            if ($sessions === [] && $macAddress === null && $ipAddress === null) {
+                $sessions = $this->filterHotspotSessions($username);
+            }
+
+            if ($sessions === []) {
+                return false;
+            }
+
             $removed = false;
 
             foreach ($sessions as $session) {
@@ -51,6 +135,62 @@ class MikrotikApiService
         } finally {
             $this->disconnect();
         }
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    protected function filterHotspotSessions(
+        string $username,
+        ?string $macAddress = null,
+        ?string $ipAddress = null,
+    ): array {
+        $arguments = $username !== '' ? ['?user' => $username] : [];
+        $sessions = $this->command('/ip/hotspot/active/print', $arguments);
+        $targetMac = $this->normalizeMac($macAddress);
+        $targetIp = $this->normalizeIp($ipAddress);
+
+        $matches = [];
+
+        foreach ($sessions as $session) {
+            if (isset($session['!type'])) {
+                continue;
+            }
+
+            if ($targetMac !== null) {
+                if ($this->normalizeMac($session['mac-address'] ?? null) !== $targetMac) {
+                    continue;
+                }
+            } elseif ($targetIp !== null) {
+                if ($this->normalizeIp($session['address'] ?? null) !== $targetIp) {
+                    continue;
+                }
+            }
+
+            $matches[] = $session;
+        }
+
+        return $matches;
+    }
+
+    protected function normalizeMac(?string $mac): ?string
+    {
+        if ($mac === null || $mac === '') {
+            return null;
+        }
+
+        $clean = strtoupper(preg_replace('/[^0-9A-F]/', '', $mac) ?? '');
+
+        return strlen($clean) === 12 ? $clean : null;
+    }
+
+    protected function normalizeIp(?string $ip): ?string
+    {
+        if ($ip === null || $ip === '') {
+            return null;
+        }
+
+        return filter_var($ip, FILTER_VALIDATE_IP) ? $ip : null;
     }
 
     protected function connect(): bool

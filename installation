@@ -1,0 +1,820 @@
+# TesNet — Production installation guide
+
+This guide covers a **fresh Ubuntu Server** install on an **HP ProBook** (billing + RADIUS + database) and **MikroTik hAP²** (hotspot + Wi‑Fi) for the TesNet student ISP stack.
+
+For Paystack HTTPS/webhooks and hotspot HTML details, also read:
+
+- [`docs/HOTSPOT.md`](docs/HOTSPOT.md)
+- [`docs/PAYSTACK.md`](docs/PAYSTACK.md)
+
+---
+
+## 1. Network layout (recommended)
+
+| Device | Role | IP (example) |
+|--------|------|----------------|
+| **MikroTik hAP²** | Gateway, DHCP, hotspot, Wi‑Fi AP | `192.168.88.1/24` |
+| **HP ProBook (Ubuntu)** | Laravel portal, MariaDB, FreeRADIUS | `192.168.88.2/24` |
+| **Students (Wi‑Fi)** | Hotspot clients | `192.168.88.0/24` (DHCP) |
+
+Physical wiring:
+
+1. **ISP / upstream** → MikroTik **WAN** port (ether1 on most hAP models).
+2. **HP ProBook Ethernet** → MikroTik **LAN** port (bridge member, e.g. ether2).
+3. Leave the ProBook on **AC power**; treat it as an always-on server (UPS recommended).
+
+```text
+[ Internet ] ──► [ MikroTik hAP² 192.168.88.1 ] ──► Wi‑Fi clients
+                      │
+                      └── ether2 ──► [ HP ProBook 192.168.88.2 ]
+                                         Laravel + MariaDB + FreeRADIUS
+```
+
+---
+
+## 2. HP ProBook — fresh Ubuntu Server
+
+### 2.1 Install Ubuntu
+
+1. Download **Ubuntu Server 24.04 LTS** (64-bit) from [ubuntu.com/download/server](https://ubuntu.com/download/server).
+2. Create a bootable USB (Rufus on Windows, or `dd` on Linux).
+3. Boot the ProBook from USB → **Install Ubuntu Server**.
+4. During install:
+   - Hostname: `tesnet-server`
+   - Create user: e.g. `tesnet` (note the password).
+   - Enable **OpenSSH server**.
+   - Optional: guided LVM with most of the disk for `/`.
+5. Reboot, log in, run updates:
+
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo reboot
+```
+
+### 2.2 Static IP (Netplan)
+
+Edit netplan (interface name may be `enp0s31f6`, `eno1`, etc. — check with `ip link`):
+
+```bash
+ip link
+sudo nano /etc/netplan/00-installer-config.yaml
+```
+
+Example (adjust `enp0s31f6` to your interface):
+
+```yaml
+network:
+  version: 2
+  ethernets:
+    enp0s31f6:
+      dhcp4: no
+      addresses:
+        - 192.168.88.2/24
+      routes:
+        - to: default
+          via: 192.168.88.1
+      nameservers:
+        addresses:
+          - 192.168.88.1
+          - 8.8.8.8
+```
+
+Apply:
+
+```bash
+sudo netplan apply
+ip a
+ping -c 3 192.168.88.1
+```
+
+### 2.3 Firewall (UFW)
+
+Allow SSH, HTTP/S, and RADIUS from the MikroTik only:
+
+```bash
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow OpenSSH
+sudo ufw allow from 192.168.88.0/24 to any port 80,443 proto tcp
+sudo ufw allow from 192.168.88.1 to any port 1812,1813 proto udp
+sudo ufw enable
+sudo ufw status
+```
+
+### 2.4 Install software stack
+
+```bash
+sudo apt install -y software-properties-common curl git unzip \
+  apache2 mariadb-server mariadb-client \
+  freeradius freeradius-mysql freeradius-utils \
+  php8.3 php8.3-cli php8.3-fpm php8.3-mysql php8.3-xml php8.3-mbstring \
+  php8.3-curl php8.3-zip php8.3-bcmath php8.3-intl libapache2-mod-php8.3
+```
+
+Install **Composer**:
+
+```bash
+curl -sS https://getcomposer.org/installer | php
+sudo mv composer.phar /usr/local/bin/composer
+composer --version
+```
+
+Install **Node.js 20** (for building portal assets):
+
+```bash
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+node --version
+npm --version
+```
+
+Enable Apache modules:
+
+```bash
+sudo a2enmod rewrite ssl headers
+sudo systemctl enable --now apache2 mariadb
+```
+
+---
+
+## 3. MariaDB — shared database for Laravel + FreeRADIUS
+
+### 3.1 Secure MariaDB and create database
+
+```bash
+sudo mysql_secure_installation
+```
+
+Create DB and user (replace `STRONG_DB_PASSWORD`):
+
+```bash
+sudo mysql
+```
+
+```sql
+CREATE DATABASE tesnet CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'tesnet'@'localhost' IDENTIFIED BY 'STRONG_DB_PASSWORD';
+GRANT ALL PRIVILEGES ON tesnet.* TO 'tesnet'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
+
+### 3.2 FreeRADIUS → SQL (same `tesnet` database)
+
+Edit SQL module:
+
+```bash
+sudo nano /etc/freeradius/3.0/mods-available/sql
+```
+
+Set (inside the `sql { ... }` block):
+
+```conf
+dialect = "mysql"
+driver = "rlm_sql_mysql"
+server = "localhost"
+port = 3306
+login = "tesnet"
+password = "STRONG_DB_PASSWORD"
+radius_db = "tesnet"
+```
+
+Enable SQL and disable default file auth for production:
+
+```bash
+sudo ln -sf /etc/freeradius/3.0/mods-available/sql /etc/freeradius/3.0/mods-enabled/sql
+sudo rm -f /etc/freeradius/3.0/mods-enabled/eap
+```
+
+Edit the default site to use SQL for authorize/accounting:
+
+```bash
+sudo nano /etc/freeradius/3.0/sites-available/default
+```
+
+In **`authorize`** section, ensure `sql` is present (uncomment if needed):
+
+```conf
+authorize {
+    ...
+    sql
+    ...
+}
+```
+
+In **`accounting`** section:
+
+```conf
+accounting {
+    ...
+    sql
+    ...
+}
+```
+
+In **`post-auth`** section (optional but recommended):
+
+```conf
+post-auth {
+    ...
+    sql
+    ...
+}
+```
+
+### 3.3 RADIUS client — MikroTik NAS
+
+Pick a long shared secret (same value goes on the router later):
+
+```bash
+sudo nano /etc/freeradius/3.0/clients.conf
+```
+
+Add at the end:
+
+```conf
+client mikrotik-hap {
+    ipaddr          = 192.168.88.1
+    secret          = "CHANGE_ME_RADIUS_SECRET"
+    require_message_authenticator = no
+    nas_type        = other
+}
+```
+
+Test config and start RADIUS:
+
+```bash
+sudo freeradius -CX
+sudo systemctl enable --now freeradius
+sudo systemctl status freeradius
+```
+
+---
+
+## 4. Deploy TesNet (Laravel)
+
+### 4.1 Copy application files
+
+From your dev machine, clone or copy the repo to the server, e.g.:
+
+```bash
+sudo mkdir -p /var/www
+sudo chown $USER:$USER /var/www
+cd /var/www
+git clone <your-repo-url> tesnet
+cd tesnet/TesNet
+```
+
+Or upload the `TesNet/` folder with `scp` / WinSCP to `/var/www/tesnet/TesNet`.
+
+### 4.2 Install PHP dependencies and build assets
+
+```bash
+cd /var/www/tesnet/TesNet
+composer install --no-dev --optimize-autoloader
+cp .env.example .env
+php artisan key:generate
+```
+
+Edit `.env` for production (minimum):
+
+```env
+APP_NAME=TesNet
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://portal.tesnet.local
+APP_FORCE_HTTPS=true
+
+DB_CONNECTION=mariadb
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=tesnet
+DB_USERNAME=tesnet
+DB_PASSWORD=STRONG_DB_PASSWORD
+
+ADMIN_PHONE=0550000001
+ADMIN_PASSWORD=ChangeThisAdminPassword
+ADMIN_EMAIL=admin@tesnet.local
+
+MIKROTIK_LOGIN_URL=http://192.168.88.1/login
+
+PAYSTACK_PUBLIC_KEY=pk_live_...
+PAYSTACK_SECRET_KEY=sk_live_...
+PAYSTACK_CUSTOMER_EMAIL_DOMAIN=billing.yourdomain.com
+
+SUPPORT_PHONE=0551234567
+SUPPORT_EMAIL=support@yourdomain.com
+SUPPORT_HOURS="Monday–Friday, 8:00 AM – 5:00 PM"
+```
+
+Run migrations (creates Laravel tables **and** `radcheck` / `radreply` / `radacct`):
+
+```bash
+php artisan migrate --force
+php artisan db:seed --force
+npm install
+npm run build:offline
+```
+
+Set permissions:
+
+```bash
+sudo chown -R www-data:www-data /var/www/tesnet/TesNet/storage /var/www/tesnet/TesNet/bootstrap/cache
+sudo chmod -R 775 /var/www/tesnet/TesNet/storage /var/www/tesnet/TesNet/bootstrap/cache
+```
+
+**Offline UI assets (fonts + icons):** `build:offline` writes self-contained files to `public/assets/portal/`:
+
+| File / folder | Contents |
+|---------------|----------|
+| `portal.css` | Tailwind + all styles |
+| `fonts/` | Inter, Hanken Grotesk, JetBrains Mono, Material Symbols (icons) |
+| `portal-theme.js` | Dark / light mode |
+| `portal-announcements.js` | Dashboard announcement modal |
+| `portal-custom-calculator.js` | Buy Data custom amount slider |
+
+Keep `PORTAL_USE_OFFLINE_ASSETS=true` in `.env` (default). The portal and admin hub then **never** load Google Fonts, CDNs, or the Vite dev server — only your Apache host.
+
+Re-run `npm run build:offline` after any CSS, JS, or Blade style change before deploying.
+
+### 4.3 Apache virtual host
+
+```bash
+sudo nano /etc/apache2/sites-available/tesnet.conf
+```
+
+```apache
+<VirtualHost *:80>
+    ServerName portal.tesnet.local
+    DocumentRoot /var/www/tesnet/TesNet/public
+
+    <Directory /var/www/tesnet/TesNet/public>
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/tesnet-error.log
+    CustomLog ${APACHE_LOG_DIR}/tesnet-access.log combined
+</VirtualHost>
+```
+
+Enable site:
+
+```bash
+sudo a2ensite tesnet.conf
+sudo a2dissite 000-default.conf
+sudo systemctl reload apache2
+```
+
+For **HTTPS** (required for Paystack live webhooks), use Let’s Encrypt if you have a public domain, or an internal CA / self-signed cert for LAN-only testing:
+
+```bash
+sudo apt install -y certbot python3-certbot-apache
+sudo certbot --apache -d portal.yourdomain.com
+```
+
+Set `APP_URL` to the exact HTTPS URL students use. Webhook URL:
+
+```text
+https://portal.yourdomain.com/portal/payments/webhook
+```
+
+See [`docs/PAYSTACK.md`](docs/PAYSTACK.md).
+
+### 4.4 Cron (Laravel scheduler)
+
+```bash
+sudo crontab -u www-data -e
+```
+
+Add:
+
+```cron
+* * * * * cd /var/www/tesnet/TesNet && php artisan schedule:run >> /dev/null 2>&1
+```
+
+This runs scheduled tasks defined in `routes/console.php`:
+
+| Command | Schedule | Purpose |
+|---------|----------|---------|
+| `tesnet:backup-database` | Daily 02:30 | MariaDB dump → `storage/backups/` |
+| `tesnet:monitor` | Every 5 min | Health checks → `storage/logs/monitor.log` |
+
+Manual test: `php artisan tesnet:monitor` and `php artisan tesnet:backup-database`.
+
+Set `LOG_CHANNEL=daily` in production for Laravel log rotation. See [`docs/PRODUCTION_CHECKLIST.md`](docs/PRODUCTION_CHECKLIST.md) and [`docs/DAILY_OPERATIONS.md`](docs/DAILY_OPERATIONS.md).
+
+---
+
+## 5. MikroTik hAP² — initial setup
+
+Use **Winbox** ([mikrotik.com/download](https://mikrotik.com/download)) or SSH. Default IP is often `192.168.88.1` / user `admin` (no password on first boot — set one immediately).
+
+### 5.1 Reset (optional, factory-fresh router)
+
+In Winbox: **System → Reset Configuration** → check **No Default Configuration** if you want a clean slate, then reset. Reconnect at `192.168.88.1`.
+
+### 5.2 Identity and password
+
+```routeros
+/system identity set name=TesNet-HAP
+/user set admin password="STRONG_ROUTER_PASSWORD"
+```
+
+### 5.3 Bridge + LAN ports + Wi‑Fi
+
+Typical hAP² layout: **ether1 = WAN**, **ether2–ether5 + wlan = LAN bridge**.
+
+```routeros
+/interface bridge add name=bridge-lan
+/interface bridge port add bridge=bridge-lan interface=ether2
+/interface bridge port add bridge=bridge-lan interface=ether3
+/interface bridge port add bridge=bridge-lan interface=ether4
+/interface bridge port add bridge=bridge-lan interface=ether5
+/interface bridge port add bridge=bridge-lan interface=wlan1
+
+/ip address add address=192.168.88.1/24 interface=bridge-lan
+```
+
+Configure **WAN** (adjust for your ISP — DHCP example):
+
+```routeros
+/ip dhcp-client add interface=ether1 disabled=no
+/ip firewall nat add chain=srcnat out-interface=ether1 action=masquerade
+```
+
+Wi‑Fi (2.4 GHz example — set SSID and WPA2 password):
+
+```routeros
+/interface wireless security-profiles add name=tesnet-wpa mode=dynamic-keys \
+    authentication-types=wpa2-psk wpa2-pre-shared-key="WIFI_PASSPHRASE"
+
+/interface wireless set wlan1 mode=ap-bridge ssid=TesNet-Student \
+    security-profile=tesnet-wpa disabled=no
+```
+
+### 5.4 DHCP for hotspot clients
+
+```routeros
+/ip pool add name=hotspot-pool ranges=192.168.88.10-192.168.88.254
+/ip dhcp-server add name=dhcp-hotspot interface=bridge-lan address-pool=hotspot-pool disabled=no
+/ip dhcp-server network add address=192.168.88.0/24 gateway=192.168.88.1 \
+    dns-server=192.168.88.1
+/ip dns set allow-remote-requests=yes servers=8.8.8.8,1.1.1.1
+```
+
+### 5.5 Hotspot profile + server
+
+Create profile (portal URL = your Laravel `APP_URL`):
+
+```routeros
+/ip hotspot profile add name=tesnet-profile \
+    html-directory=hotspot \
+    login-by=http-chap,cookie \
+    http-cookie-lifetime=1d \
+    use-radius=yes
+
+/ip hotspot add name=tesnet-hotspot interface=bridge-lan address-pool=hotspot-pool \
+    profile=tesnet-profile disabled=no
+```
+
+Upload a minimal **`login.html`** to the router’s `hotspot` folder (Winbox → **Files**) that sends users to Laravel:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="refresh" content="0;url=https://portal.yourdomain.com/portal/login">
+  <title>TesNet</title>
+</head>
+<body>
+  <p>Redirecting to TesNet portal…</p>
+  <p><a href="https://portal.yourdomain.com/portal/login">Continue</a></p>
+</body>
+</html>
+```
+
+Replace `portal.yourdomain.com` with your real `APP_URL` host.
+
+### 5.6 RADIUS on MikroTik (must match FreeRADIUS `clients.conf`)
+
+```routeros
+/radius add service=hotspot address=192.168.88.2 secret="CHANGE_ME_RADIUS_SECRET" timeout=3s
+/ip hotspot profile set tesnet-profile use-radius=yes radius-accounting=yes
+/ip hotspot set tesnet-hotspot radius=default
+```
+
+Accounting must be enabled so TesNet can track data usage in `radacct`.
+
+### 5.7 Configure walled garden (allow Paystack, block free internet)
+
+Unauthenticated clients must **only** reach your portal and Paystack. Everything else stays blocked until RADIUS accepts them after **Connect to Internet**.
+
+Follow these steps **in order** on the hAP² (Winbox terminal or SSH).
+
+#### Step 1 — Clear old / unsafe rules
+
+```routeros
+/ip hotspot walled-garden ip print
+/ip hotspot walled-garden ip remove [find]
+/ip hotspot walled-garden print
+/ip hotspot walled-garden remove [find]
+```
+
+Never leave rules like `0.0.0.0/0`, whole subnets, or “allow all HTTPS”.
+
+#### Step 2 — Add the minimum allow list
+
+Replace `portal.yourdomain.com` with the hostname from Laravel `APP_URL`.
+
+**Portal on LAN only** (`192.168.88.2`, no public hostname):
+
+```routeros
+/ip hotspot walled-garden ip add dst-address=192.168.88.2 action=accept comment="TesNet portal server"
+```
+
+**Portal via hostname** (HTTPS / production):
+
+```routeros
+/ip hotspot walled-garden ip add dst-host=portal.yourdomain.com action=accept comment="TesNet portal"
+```
+
+**Paystack** (checkout before hotspot login):
+
+```routeros
+/ip hotspot walled-garden ip add dst-host=paystack.com action=accept comment="Paystack"
+/ip hotspot walled-garden ip add dst-host=*.paystack.com action=accept comment="Paystack subdomains"
+/ip hotspot walled-garden ip add dst-host=checkout.paystack.com action=accept
+/ip hotspot walled-garden ip add dst-host=standard.paystack.co action=accept
+```
+
+**Cloudflare Tunnel** (only if `APP_URL` uses it):
+
+```routeros
+/ip hotspot walled-garden ip add dst-host=your-tunnel.cfargotunnel.com action=accept comment="CF tunnel"
+```
+
+Verify — you should see **only** 5–8 rows, nothing with `dst-address=0.0.0.0/0`:
+
+```routeros
+/ip hotspot walled-garden ip print
+```
+
+Do **not** add `8.8.8.8`, `1.1.1.1`, or `0.0.0.0/0` to the garden.
+
+| Never add | Why |
+|-----------|-----|
+| `dst-address=0.0.0.0/0` | Full free internet before login |
+| Allow all port 443 | Same leak |
+| VPN/proxy hosts | Bypass hotspot |
+| Hotspot trial user | Free access without payment |
+
+#### Step 3 — Disable trial and local hotspot users
+
+```routeros
+/ip hotspot profile set tesnet-profile \
+    trial-uptime=0s \
+    trial-uptime-limit=0s \
+    trial-user-profile="" \
+    open-status-page=http-login \
+    use-radius=yes \
+    radius-accounting=yes
+
+/ip hotspot user print
+/ip hotspot user remove [find name!="admin"]
+```
+
+Students authenticate via **RADIUS only** (TesNet `radcheck`) — no `/ip hotspot user` entries in production.
+
+#### Step 4 — Remove bypass bindings
+
+Bypass bindings give full internet without login.
+
+```routeros
+/ip hotspot ip-binding print
+/ip hotspot ip-binding remove [find type=bypassed]
+```
+
+Never set student phones to `type=bypassed`.
+
+#### Step 5 — No firewall shortcut around hotspot
+
+All Wi‑Fi clients must use the hotspot server:
+
+```routeros
+/ip hotspot print
+/ip hotspot profile print
+```
+
+Check custom forward rules that leak traffic:
+
+```routeros
+/ip firewall filter print where chain=forward
+```
+
+Remove any rule that accepts `src-address=192.168.88.0/24` to WAN without hotspot authentication.
+
+#### Step 6 — Lock router admin away from students
+
+```routeros
+/ip service set winbox address=192.168.88.2/32 disabled=no
+/ip service set api address=192.168.88.2/32 disabled=no
+/ip service set www address=192.168.88.2/32 disabled=no
+/ip service set ssh address=192.168.88.2/32 disabled=no
+/ip service disable telnet
+/ip service disable ftp
+```
+
+Use your management IP if not the billing server — but **never** `192.168.88.0/24` for Winbox/API.
+
+#### Step 7 — Test for leaks (required)
+
+Phone on **TesNet-Student** Wi‑Fi, **do not** click Connect yet:
+
+| Test | Must result |
+|------|-------------|
+| Portal login URL | Works |
+| Paystack checkout | Works |
+| `https://google.com` | **Blocked** |
+| `https://youtube.com` | **Blocked** |
+
+After payment, **before** Connect: `google.com` still **blocked**.
+
+After **Connect to Internet**: browsing works (within plan).
+
+If Google works before Connect, repeat Steps 1–6.
+
+```routeros
+/log print where topics~"hotspot"
+/ip hotspot active print
+```
+
+### 5.8 How TesNet avoids a payment → free-internet loop
+
+**§5.7** stops leaks on the router. TesNet adds a second layer in software:
+
+```text
+Paystack verified  →  plan in DB + RADIUS  →  still no hotspot session
+Connect button     →  MikroTik /login       →  browsing allowed
+```
+
+Payment is verified server-side before fulfillment. `connectToWifi` blocks users with no active plan. Portal login ≠ hotspot login.
+
+No extra router commands needed for this — configure **§5.7** correctly.
+
+See [`docs/HOTSPOT.md`](docs/HOTSPOT.md).
+### 5.9 Optional — MikroTik API (admin session disconnect)
+
+In `.env` on the server:
+
+```env
+MIKROTIK_API_ENABLED=true
+MIKROTIK_API_HOST=192.168.88.1
+MIKROTIK_API_PORT=8728
+MIKROTIK_API_USER=admin
+MIKROTIK_API_PASSWORD=STRONG_ROUTER_PASSWORD
+MIKROTIK_API_SSL=false
+```
+
+On MikroTik, restrict API access to the billing server only:
+
+```routeros
+/ip service set api address=192.168.88.2/32 disabled=no
+/ip service set winbox address=192.168.88.2/32 disabled=no
+```
+
+---
+
+## 6. End-to-end verification
+
+### 6.1 RADIUS
+
+On Ubuntu, watch auth attempts:
+
+```bash
+sudo tail -f /var/log/freeradius/radius.log
+```
+
+Create a student in **Admin → Settings → Users** or register on `/portal/register`. Confirm rows appear in MariaDB:
+
+```bash
+sudo mysql tesnet -e "SELECT username, attribute, value FROM radcheck LIMIT 5;"
+```
+
+From MikroTik, a test login should show **Access-Accept** in the log when credentials match.
+
+### 6.2 Portal flow
+
+1. Phone connects to **TesNet-Student** Wi‑Fi.
+2. Hotspot opens → redirects to `/portal/login`.
+3. Student registers / logs in, buys a package (Paystack test or live keys).
+4. Dashboard **Connect to Internet** redirects to `MIKROTIK_LOGIN_URL?username=233…&password=…`.
+5. Hotspot authenticates via RADIUS; browsing works within plan limits.
+
+### 6.3 Data limits
+
+After payment, Laravel writes RADIUS reply attributes:
+
+| Attribute | Purpose |
+|-----------|---------|
+| `Mikrotik-Rate-Limit` | Speed cap (e.g. `10M/10M`) |
+| `Mikrotik-Total-Limit` | Data cap in bytes |
+
+Verify:
+
+```bash
+sudo mysql tesnet -e "SELECT username, attribute, value FROM radreply;"
+```
+
+Usage is summed from `radacct` (`acctinputoctets` + `acctoutputoctets`).
+
+### 6.4 Leak test (copy from §5.7 Step 7)
+
+Before opening the network to students, confirm from an unauthenticated phone:
+
+```text
+Portal + Paystack  →  OK
+google.com         →  BLOCKED (before Connect)
+After payment      →  google.com still BLOCKED
+After Connect      →  browsing OK
+```
+
+If any step fails, rework **§5.7 Steps 1–6** — do not go live.
+
+---
+
+## 7. Production checklist
+
+**HP ProBook (Ubuntu)**
+
+- [ ] Static IP `192.168.88.2`, gateway `192.168.88.1`
+- [ ] MariaDB `tesnet` database, strong passwords
+- [ ] FreeRADIUS running, SQL enabled, MikroTik client configured
+- [ ] Laravel `.env` production values, `php artisan migrate --seed`
+- [ ] Apache (or nginx) + **HTTPS** + correct `APP_URL`
+- [ ] Paystack webhook URL registered ([`docs/PAYSTACK.md`](docs/PAYSTACK.md))
+- [ ] `npm run build:offline` run; `public/assets/portal/portal.css` and `fonts/` present on server
+- [ ] `PORTAL_USE_OFFLINE_ASSETS=true` in `.env`
+- [ ] Backups scheduled for MariaDB (`mysqldump tesnet`)
+
+**MikroTik hAP²**
+
+- [ ] WAN on ether1, NAT masquerade
+- [ ] Bridge LAN + Wi‑Fi AP, DHCP pool `192.168.88.10–254`
+- [ ] Hotspot on bridge, `use-radius=yes`, accounting on
+- [ ] RADIUS → `192.168.88.2`, secret matches `clients.conf`
+- [ ] Anti-leak config done: §5.7 Steps 1–7 (walled garden, no trial, no bypass bindings)
+- [ ] Router admin (Winbox/API) **not** open to whole hotspot LAN (§5.7 Step 6)
+- [ ] `login.html` redirects to Laravel portal (not legacy PHPNuxBill)
+- [ ] Router admin / Winbox / API restricted to management IPs
+
+**TesNet app**
+
+- [ ] `MIKROTIK_LOGIN_URL=http://192.168.88.1/login` (or your hotspot login path)
+- [ ] Admin password changed from seed default
+- [ ] Packages created with correct data, speed, and validity type
+- [ ] Support phone/email set in `.env`
+
+---
+
+## 8. Troubleshooting
+
+| Symptom | Check |
+|---------|--------|
+| Free internet before Connect | §5.7: remove broad walled-garden rules; disable trial; remove `ip-binding bypassed`; check firewall forward rules |
+| Portal not loading on phone | Walled garden; DNS; `APP_URL` reachable from Wi‑Fi |
+| RADIUS reject | `radius.log`, secret match, username = phone `233…` in `radcheck` |
+| Login OK but no internet | Hotspot authorized; NAT rule; upstream WAN |
+| Paystack works but no data | Webhook HTTPS; `transactions.status=success`; `package_purchases` row |
+| Wrong speed/data cap | `radreply` rows; reconnect Wi‑Fi after purchase |
+| FreeRADIUS won’t start | `freeradius -CX`; SQL password; `mods-enabled/sql` |
+
+Useful commands:
+
+```bash
+# Ubuntu
+sudo systemctl status freeradius apache2 mariadb
+sudo journalctl -u freeradius -n 50
+sudo tail -f /var/www/tesnet/TesNet/storage/logs/laravel.log
+
+# MikroTik
+/log print where topics~"hotspot"
+/radius monitor 0
+/ip hotspot active print
+```
+
+---
+
+## 9. Reference — default URLs
+
+| Service | URL |
+|---------|-----|
+| Student portal | `https://<APP_URL>/portal/login` |
+| Admin hub | `https://<APP_URL>/admin/login` |
+| Paystack webhook | `https://<APP_URL>/portal/payments/webhook` |
+| MikroTik login (after portal) | `http://192.168.88.1/login` → set as `MIKROTIK_LOGIN_URL` |
+
+---
+
+*TesNet © 2026 — Ayeduase / KNUST hostel mini-ISP.*

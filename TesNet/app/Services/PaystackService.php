@@ -166,6 +166,64 @@ class PaystackService
     }
 
     /**
+     * @return array{ok: bool, configured: bool, message: string}
+     */
+    public function testConnection(): array
+    {
+        $public = config('paystack.public_key');
+        $secret = config('paystack.secret_key');
+
+        if (! $public || ! $secret) {
+            return [
+                'ok' => false,
+                'configured' => false,
+                'message' => 'Missing PAYSTACK keys — use manual payments or set PAYSTACK_PUBLIC_KEY and PAYSTACK_SECRET_KEY.',
+            ];
+        }
+
+        try {
+            $url = rtrim((string) config('paystack.base_url'), '/').'/balance';
+
+            $response = Http::withToken($secret)
+                ->acceptJson()
+                ->timeout(10)
+                ->get($url);
+
+            if ($response->status() === 401) {
+                return [
+                    'ok' => false,
+                    'configured' => true,
+                    'message' => 'Paystack rejected the secret key (401 Unauthorized).',
+                ];
+            }
+
+            $json = $response->json() ?? [];
+
+            if (! ($json['status'] ?? false)) {
+                return [
+                    'ok' => false,
+                    'configured' => true,
+                    'message' => (string) ($json['message'] ?? 'Paystack API returned an error.'),
+                ];
+            }
+
+            $currency = $json['data'][0]['currency'] ?? 'GHS';
+
+            return [
+                'ok' => true,
+                'configured' => true,
+                'message' => 'Paystack API reachable — balance check OK ('.$currency.').',
+            ];
+        } catch (\Throwable $exception) {
+            return [
+                'ok' => false,
+                'configured' => true,
+                'message' => 'Paystack API unreachable: '.$exception->getMessage(),
+            ];
+        }
+    }
+
+    /**
      * @param  array<string, mixed>  $body
      * @return array<string, mixed>
      */

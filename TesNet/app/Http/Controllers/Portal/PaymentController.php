@@ -8,6 +8,9 @@ use App\Models\Transaction;
 use App\Services\PaymentFulfillmentService;
 use App\Services\PaystackService;
 use App\Support\CustomDataCalculator;
+use App\Support\PaymentCompletionResult;
+use App\Support\PortalStatus;
+use App\Exceptions\PaymentFulfillmentException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -40,11 +43,17 @@ class PaymentController extends Controller
             'specialPackages' => $specialPackages,
             'paystackPublicKey' => config('paystack.public_key'),
             'customDataConfig' => CustomDataCalculator::frontendConfig(),
+            'purchasesBlocked' => PortalStatus::shouldBlockPurchases(),
         ]);
     }
 
     public function initializeCustomData(Request $request): RedirectResponse
     {
+        if (PortalStatus::shouldBlockPurchases()) {
+            return redirect()->route('portal.manual-payments.create')
+                ->withErrors(['payment' => 'Purchases are temporarily disabled. Submit a manual payment request or contact support.']);
+        }
+
         $validated = $request->validate([
             'amount' => ['required', 'numeric', 'min:1', 'max:5000'],
         ]);
@@ -76,6 +85,11 @@ class PaymentController extends Controller
 
     public function initializePackage(Request $request): RedirectResponse
     {
+        if (PortalStatus::shouldBlockPurchases()) {
+            return redirect()->route('portal.manual-payments.create')
+                ->withErrors(['payment' => 'Purchases are temporarily disabled. Submit a manual payment request or contact support.']);
+        }
+
         $validated = $request->validate([
             'package' => ['required', 'string'],
         ]);
@@ -120,7 +134,15 @@ class PaymentController extends Controller
                 ->withErrors(['payment' => 'Missing payment reference.']);
         }
 
-        return $this->completePayment($reference, $request->user()?->id);
+        $result = $this->processPayment($reference, $request->user()?->id);
+
+        if ($result->success) {
+            return redirect()->route('portal.dashboard')
+                ->with('status', $result->message);
+        }
+
+        return redirect()->route('portal.dashboard')
+            ->withErrors(['payment' => $result->message]);
     }
 
     public function webhook(Request $request): Response
@@ -139,13 +161,15 @@ class PaymentController extends Controller
             $reference = $data['reference'] ?? null;
 
             if ($reference) {
-                try {
-                    $this->completePayment($reference);
-                } catch (\Throwable $exception) {
+                $result = $this->processPayment($reference);
+
+                if (! $result->success && ! $result->alreadyFulfilled) {
                     Log::error('Paystack webhook fulfillment failed', [
                         'reference' => $reference,
-                        'error' => $exception->getMessage(),
+                        'message' => $result->message,
                     ]);
+
+                    return response($result->message, 500);
                 }
             }
         }
@@ -164,25 +188,27 @@ class PaymentController extends Controller
         return view('portal.payments.history', compact('transactions'));
     }
 
-    protected function completePayment(string $reference, ?int $expectedUserId = null): RedirectResponse
+    protected function processPayment(string $reference, ?int $expectedUserId = null): PaymentCompletionResult
     {
         $transaction = Transaction::query()
             ->where('paystack_reference', $reference)
             ->first();
 
         if (! $transaction) {
-            return redirect()->route('portal.dashboard')
-                ->withErrors(['payment' => 'Payment record not found.']);
+            return new PaymentCompletionResult(false, 'Payment record not found.');
         }
 
         if ($expectedUserId !== null && $transaction->user_id !== $expectedUserId) {
-            return redirect()->route('portal.dashboard')
-                ->withErrors(['payment' => 'Payment does not belong to your account.']);
+            return new PaymentCompletionResult(false, 'Payment does not belong to your account.');
         }
 
         if ($transaction->status === 'success') {
-            return redirect()->route('portal.dashboard')
-                ->with('status', 'Payment already confirmed. Your data plan is active.');
+            return new PaymentCompletionResult(
+                true,
+                'Payment already confirmed. Your data plan is active.',
+                $transaction,
+                alreadyFulfilled: true,
+            );
         }
 
         try {
@@ -190,13 +216,11 @@ class PaymentController extends Controller
         } catch (\Throwable $exception) {
             Log::error('Paystack verify failed', ['reference' => $reference, 'error' => $exception->getMessage()]);
 
-            return redirect()->route('portal.dashboard')
-                ->withErrors(['payment' => 'Could not verify payment. Contact support if you were charged.']);
+            return new PaymentCompletionResult(false, 'Could not verify payment. Contact support if you were charged.');
         }
 
         if (! ($verify['status'] ?? false)) {
-            return redirect()->route('portal.dashboard')
-                ->withErrors(['payment' => $verify['message'] ?? 'Payment verification failed.']);
+            return new PaymentCompletionResult(false, $verify['message'] ?? 'Payment verification failed.');
         }
 
         $data = $verify['data'] ?? [];
@@ -204,8 +228,7 @@ class PaymentController extends Controller
         if (($data['status'] ?? '') !== 'success') {
             $transaction->update(['status' => 'failed', 'paystack_response' => $verify]);
 
-            return redirect()->route('portal.dashboard')
-                ->withErrors(['payment' => 'Payment was not successful.']);
+            return new PaymentCompletionResult(false, 'Payment was not successful.');
         }
 
         if ((int) ($data['amount'] ?? 0) !== $transaction->amount_pesewas) {
@@ -215,18 +238,37 @@ class PaymentController extends Controller
                 'received' => $data['amount'] ?? null,
             ]);
 
-            return redirect()->route('portal.dashboard')
-                ->withErrors(['payment' => 'Payment amount mismatch. Contact support.']);
+            return new PaymentCompletionResult(false, 'Payment amount mismatch. Contact support.');
         }
 
         if (! in_array($transaction->type, ['package', 'custom_data'], true)) {
-            return redirect()->route('portal.packages')
-                ->withErrors(['payment' => 'Only data package payments are accepted. Contact support if you were charged.']);
+            return new PaymentCompletionResult(false, 'Only data package payments are accepted. Contact support if you were charged.');
         }
 
-        $this->fulfillment->fulfill($transaction, $data);
+        try {
+            $this->fulfillment->fulfill($transaction, $data);
+        } catch (PaymentFulfillmentException $exception) {
+            Log::error('Payment fulfillment failed', [
+                'reference' => $reference,
+                'transaction_id' => $transaction->id,
+                'error' => $exception->getMessage(),
+            ]);
 
-        return redirect()->route('portal.dashboard')
-            ->with('status', 'Package purchased successfully. Connect to Wi‑Fi from your dashboard.');
+            return new PaymentCompletionResult(false, $exception->getMessage().' Contact support if you were charged.');
+        } catch (\Throwable $exception) {
+            Log::error('Payment fulfillment error', [
+                'reference' => $reference,
+                'transaction_id' => $transaction->id,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return new PaymentCompletionResult(false, 'Could not activate your plan. Contact support if you were charged.');
+        }
+
+        return new PaymentCompletionResult(
+            true,
+            'Package purchased successfully. Connect to Wi‑Fi from your dashboard.',
+            $transaction->fresh(),
+        );
     }
 }

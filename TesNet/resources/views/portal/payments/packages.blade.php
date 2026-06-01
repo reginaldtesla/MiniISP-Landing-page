@@ -9,6 +9,22 @@
     <h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-background dark:text-inverse-on-surface mb-2">Buy Data</h1>
     <p class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant mb-6 sm:mb-8">Pay for a package with Paystack (Mobile Money & card). Your internet starts as soon as payment succeeds.</p>
 
+    @if (\App\Support\PortalStatus::shouldBlockPurchases() || ! config('paystack.secret_key'))
+        <div class="mb-6 rounded-lg border border-tertiary-fixed dark:border-tertiary-fixed-dim/40 bg-tertiary-fixed/50 dark:bg-tertiary-fixed-dim/10 px-4 py-3 font-body-md text-tertiary dark:text-tertiary-fixed-dim text-sm flex flex-wrap items-center justify-between gap-2">
+            <span>
+                @if (\App\Support\PortalStatus::shouldBlockPurchases())
+                    Purchases are temporarily disabled. You can submit a manual payment request.
+                @else
+                    Paystack is not configured. You can submit a manual payment request.
+                @endif
+            </span>
+            <a href="{{ route('portal.manual-payments.create') }}" class="min-h-[40px] px-4 py-2 rounded-lg bg-primary text-on-primary dark:bg-primary-fixed-dim dark:text-on-primary-fixed font-label-sm text-label-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px]">payments</span>
+                Manual payment
+            </a>
+        </div>
+    @endif
+
     @if (! config('paystack.secret_key'))
         <div class="mb-6 rounded-lg border border-tertiary-fixed dark:border-tertiary-fixed-dim/40 bg-tertiary-fixed/50 dark:bg-tertiary-fixed-dim/10 px-4 py-3 font-body-md text-tertiary dark:text-tertiary-fixed-dim text-sm">
             Paystack is not configured. Set PAYSTACK keys in your .env file.
@@ -28,7 +44,7 @@
             </div>
             <div class="relative z-[1] grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach ($specialPackages as $package)
-                    @include('portal.partials.package-card', ['package' => $package, 'card' => $card, 'highlighted' => true])
+                    @include('portal.partials.package-card', ['package' => $package, 'card' => $card, 'highlighted' => true, 'purchasesBlocked' => $purchasesBlocked ?? false])
                 @endforeach
             </div>
         </section>
@@ -41,6 +57,7 @@
     @include('portal.partials.custom-data-calculator', [
         'card' => $card,
         'hasSpecialOffers' => $specialPackages->isNotEmpty(),
+        'purchasesBlocked' => $purchasesBlocked ?? false,
     ])
 
     @if ($packages->isEmpty() && $specialPackages->isEmpty())
@@ -52,7 +69,7 @@
             <h2 class="font-title-md text-title-md text-on-background dark:text-inverse-on-surface mb-4">Standard packages</h2>
             <div class="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach ($packages as $package)
-                    @include('portal.partials.package-card', ['package' => $package, 'card' => $card, 'highlighted' => false])
+                    @include('portal.partials.package-card', ['package' => $package, 'card' => $card, 'highlighted' => false, 'purchasesBlocked' => $purchasesBlocked ?? false])
                 @endforeach
             </div>
         </section>
@@ -61,9 +78,5 @@
 @endsection
 
 @push('scripts')
-@if (file_exists(public_path('assets/portal/portal-custom-calculator.js')))
-    <script src="{{ asset('assets/portal/portal-custom-calculator.js') }}" defer></script>
-@elseif (file_exists(public_path('build/manifest.json')))
-    @vite(['resources/js/portal-custom-calculator.js'])
-@endif
+    @include('portal.partials.portal-script', ['file' => 'portal-custom-calculator.js'])
 @endpush

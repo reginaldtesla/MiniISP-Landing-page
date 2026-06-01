@@ -40,7 +40,7 @@ class NotificationController extends Controller
             'title' => $validated['title'],
             'message' => $validated['message'],
             'type' => $validated['type'] ?? 'info',
-            'is_global' => $request->boolean('is_global', true),
+            'is_global' => $request->boolean('is_global'),
             'expires_at' => $expiresAt,
         ]);
 

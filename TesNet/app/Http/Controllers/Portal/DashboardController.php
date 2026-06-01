@@ -66,11 +66,15 @@ class DashboardController extends Controller
             ->first();
 
         $validityLabel = $activePackage?->validityLabel() ?? '—';
+        $planExpiresAt = $activePackage?->expires_at;
+        $blockConnect = \App\Support\PortalStatus::shouldBlockConnect();
 
         return view('portal.dashboard', [
             'user' => $user,
             'activePackage' => $activePackage,
             'validityLabel' => $validityLabel,
+            'planExpiresAt' => $planExpiresAt,
+            'blockConnect' => $blockConnect,
             'activeSessions' => $activeSessions,
             'isConnected' => $isConnected,
             'announcement' => $announcement,

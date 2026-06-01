@@ -26,8 +26,12 @@ class SessionController extends Controller
 
     public function disconnect(RadAcct $session, SessionDisconnectService $disconnectService): RedirectResponse
     {
-        $disconnectService->forceDisconnect($session);
+        $result = $disconnectService->forceDisconnect($session);
 
-        return back()->with('status', 'Session for '.$session->username.' has been disconnected.');
+        if ($result->succeeded()) {
+            return back()->with('status', $result->userMessage('Session for '.$session->username.' has been disconnected.'));
+        }
+
+        return back()->withErrors(['session' => $result->userMessage()]);
     }
 }

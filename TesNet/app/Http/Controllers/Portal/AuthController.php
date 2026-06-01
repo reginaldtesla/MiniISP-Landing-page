@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\PaystackCustomerEmail;
 use App\Support\PhoneNumber;
+use App\Support\PortalStatus;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\View\View;
 
 class AuthController extends Controller
@@ -53,7 +55,7 @@ class AuthController extends Controller
         User::setPlainPasswordForRadius(null);
 
         Auth::login($user);
-        $request->session()->put('portal_wifi_password', $validated['password']);
+        $this->storeWifiPassword($request, $validated['password']);
 
         return redirect()->route('portal.dashboard')
             ->with('status', 'Account created. Buy a data plan to get online.');
@@ -87,9 +89,15 @@ class AuthController extends Controller
             ]);
         }
 
+        if ($account && $account->is_suspended) {
+            return back()->withInput()->withErrors([
+                'phone_number' => 'Your account is suspended. Contact support.',
+            ]);
+        }
+
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
-            $request->session()->put('portal_wifi_password', $request->input('password'));
+            $this->storeWifiPassword($request, (string) $request->input('password'));
 
             return redirect()->intended(route('portal.dashboard'));
         }
@@ -108,10 +116,15 @@ class AuthController extends Controller
         return redirect()->route('portal.login');
     }
 
-    public function connectToWifi(Request $request): RedirectResponse
+    public function connectToWifi(Request $request): RedirectResponse|View
     {
+        if (PortalStatus::shouldBlockConnect()) {
+            return redirect()->route('portal.dashboard')
+                ->withErrors(['wifi' => 'Connect is temporarily disabled. Please check the service notice or contact support.']);
+        }
+
         $user = $request->user();
-        $password = $request->session()->get('portal_wifi_password');
+        $password = $this->wifiPasswordFromSession($request);
 
         if (! $password) {
             return redirect()->route('portal.dashboard')
@@ -125,12 +138,30 @@ class AuthController extends Controller
                 ->withErrors(['wifi' => 'Purchase a data package before connecting to Wi‑Fi.']);
         }
 
-        $loginUrl = config('mikrotik.login_url');
-        $query = http_build_query([
+        return view('portal.auth.hotspot-login', [
+            'loginUrl' => config('mikrotik.login_url'),
             'username' => $user->phone_number,
             'password' => $password,
         ]);
+    }
 
-        return redirect()->away(rtrim($loginUrl, '?').'?'.$query);
+    protected function storeWifiPassword(Request $request, string $password): void
+    {
+        $request->session()->put('portal_wifi_password', Crypt::encryptString($password));
+    }
+
+    protected function wifiPasswordFromSession(Request $request): ?string
+    {
+        $stored = $request->session()->get('portal_wifi_password');
+
+        if (! is_string($stored) || $stored === '') {
+            return null;
+        }
+
+        try {
+            return Crypt::decryptString($stored);
+        } catch (\Throwable) {
+            return $stored;
+        }
     }
 }

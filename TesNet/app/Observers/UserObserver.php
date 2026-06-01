@@ -37,6 +37,10 @@ class UserObserver
         if ($user->wasChanged('device_limit')) {
             $this->radius->updateDeviceLimit($user);
         }
+
+        if ($user->wasChanged('is_suspended')) {
+            $this->radius->updateSuspension($user);
+        }
     }
 
     public function deleted(User $user): void

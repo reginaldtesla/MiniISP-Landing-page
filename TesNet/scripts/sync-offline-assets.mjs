@@ -15,42 +15,43 @@ if (!fs.existsSync(manifestPath)) {
 
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 const cssEntry = manifest['resources/css/portal.css']?.file;
-const jsEntry = manifest['resources/js/portal-theme.js']?.file;
-const announcementsEntry = manifest['resources/js/portal-announcements.js']?.file;
-const customCalculatorEntry = manifest['resources/js/portal-custom-calculator.js']?.file;
+const jsEntries = {
+    'portal-theme.js': manifest['resources/js/portal-theme.js']?.file,
+    'portal-announcements.js': manifest['resources/js/portal-announcements.js']?.file,
+    'portal-custom-calculator.js': manifest['resources/js/portal-custom-calculator.js']?.file,
+    'portal-plan-countdown.js': manifest['resources/js/portal-plan-countdown.js']?.file,
+};
 
-if (!cssEntry || !jsEntry) {
+if (!cssEntry || !jsEntries['portal-theme.js']) {
     console.error('Portal entries not found in Vite manifest.');
     process.exit(1);
 }
 
 fs.mkdirSync(fontsDir, { recursive: true });
 
+/** Copy every font file Vite emitted (Inter, Hanken, JetBrains, Material Symbols). */
 for (const file of fs.readdirSync(buildAssetsDir)) {
-    if (/\.(woff2?|ttf|eot)$/i.test(file)) {
+    if (/\.(woff2?|ttf|eot|otf)$/i.test(file)) {
         fs.copyFileSync(path.join(buildAssetsDir, file), path.join(fontsDir, file));
     }
 }
 
 let css = fs.readFileSync(path.join(root, 'public/build', cssEntry), 'utf8');
 css = css.replace(/url\(\/build\/assets\//g, 'url(fonts/');
+css = css.replace(/url\(["']?\.\/([^"')]+\.(woff2?|ttf))["']?\)/gi, 'url(fonts/$1)');
 fs.writeFileSync(path.join(targetDir, 'portal.css'), css);
 
-fs.copyFileSync(path.join(root, 'public/build', jsEntry), path.join(targetDir, 'portal-theme.js'));
-
-if (announcementsEntry) {
+for (const [targetName, sourceName] of Object.entries(jsEntries)) {
+    if (!sourceName) {
+        continue;
+    }
     fs.copyFileSync(
-        path.join(root, 'public/build', announcementsEntry),
-        path.join(targetDir, 'portal-announcements.js'),
+        path.join(root, 'public/build', sourceName),
+        path.join(targetDir, targetName),
     );
 }
 
-if (customCalculatorEntry) {
-    fs.copyFileSync(
-        path.join(root, 'public/build', customCalculatorEntry),
-        path.join(targetDir, 'portal-custom-calculator.js'),
-    );
-}
-
+const fontCount = fs.readdirSync(fontsDir).length;
 console.log(`Offline bundle ready: ${targetDir}`);
-console.log(`Fonts copied: ${fs.readdirSync(fontsDir).length} files`);
+console.log(`  portal.css + ${Object.keys(jsEntries).filter((k) => jsEntries[k]).length} JS files`);
+console.log(`  fonts/: ${fontCount} files (text + Material Symbols icons)`);

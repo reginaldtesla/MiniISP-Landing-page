@@ -26,6 +26,8 @@ npm install && npm run build:offline
 php artisan serve --host=0.0.0.0 --port=8080
 ```
 
+`npm run build:offline` copies fonts, Material Symbols icons, CSS, and JS into `public/assets/portal/` so the UI works without CDN or Vite (needed on the hotspot).
+
 | URL | Purpose |
 | :--- | :--- |
 | `/portal/login` | Student login / register |
@@ -36,8 +38,11 @@ Default seeded admin (change in `.env` then `php artisan db:seed`): phone `05500
 
 ## Documentation
 
+- **[Installation — HP ProBook + MikroTik hAP²](installation)** — Ubuntu server, FreeRADIUS, Laravel, hotspot router setup
 - **[Hotspot HTML & MikroTik redirect](docs/HOTSPOT.md)** — replace legacy `login.html` with Laravel
 - **[Paystack live + HTTPS webhook](docs/PAYSTACK.md)** — production keys, `APP_URL`, webhook URL
+- **[Production checklist](docs/PRODUCTION_CHECKLIST.md)** — go-live verification (MikroTik, RADIUS, Paystack)
+- **[Daily operations](docs/DAILY_OPERATIONS.md)** — outages, manual payments, sessions, backups
 - **[Laravel app README](TesNet/README.md)** — env vars, RADIUS, offline assets (if present)
 
 ## Legacy files

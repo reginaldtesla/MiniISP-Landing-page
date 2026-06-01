@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Middleware\AdminIdleTimeout;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureStudent;
+use App\Http\Middleware\RestrictAdminByIp;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -17,6 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => EnsureAdmin::class,
             'student' => EnsureStudent::class,
+            'admin.ip' => RestrictAdminByIp::class,
+            'admin.idle' => AdminIdleTimeout::class,
         ]);
 
         $middleware->redirectGuestsTo(function (Request $request) {

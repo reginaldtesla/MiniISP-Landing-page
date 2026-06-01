@@ -15,7 +15,14 @@
     $isDashboard = str_contains($routeName, 'admin.dashboard');
     $isPackages = str_contains($routeName, 'admin.packages');
     $isAnnouncements = str_contains($routeName, 'admin.notifications');
-    $isSettings = str_contains($routeName, 'admin.users') || str_contains($routeName, 'admin.sessions');
+    $isAnalytics = str_contains($routeName, 'admin.analytics');
+    $isSystemHealth = str_contains($routeName, 'admin.system-health');
+    $isManualPayments = str_contains($routeName, 'admin.manual-payments');
+    $isTickets = str_contains($routeName, 'admin.tickets');
+    $isStudents = str_contains($routeName, 'admin.users');
+    $isSessions = str_contains($routeName, 'admin.sessions');
+    $isPortalSettings = str_contains($routeName, 'admin.portal-settings');
+    $isSettings = $isPortalSettings || $isSessions;
     $navActive = 'flex items-center gap-3 px-4 py-3 rounded-lg text-primary dark:text-primary-fixed-dim font-bold border-r-4 border-primary dark:border-primary-fixed-dim bg-primary-container/20 dark:bg-primary-container/30';
     $navIdle = 'flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant dark:text-outline-variant border-r-4 border-transparent hover:bg-surface-container-highest dark:hover:bg-admin-elevated-high';
 @endphp
@@ -54,15 +61,35 @@
             <span class="material-symbols-outlined">grid_view</span>
             <span class="font-body-md text-body-md font-medium">Dashboard</span>
         </a>
+        <a href="{{ route('admin.analytics.index') }}" class="{{ $isAnalytics ? $navActive : $navIdle }}">
+            <span class="material-symbols-outlined">query_stats</span>
+            <span class="font-body-md text-body-md font-medium">Analytics</span>
+        </a>
+        <a href="{{ route('admin.system-health.index') }}" class="{{ $isSystemHealth ? $navActive : $navIdle }}">
+            <span class="material-symbols-outlined">health_and_safety</span>
+            <span class="font-body-md text-body-md font-medium">Health</span>
+        </a>
         <a href="{{ route('admin.packages.index') }}" class="{{ $isPackages ? $navActive : $navIdle }}">
             <span class="material-symbols-outlined">inventory_2</span>
             <span class="font-body-md text-body-md font-medium">Packages</span>
+        </a>
+        <a href="{{ route('admin.users.index') }}" class="{{ $isStudents ? $navActive : $navIdle }}">
+            <span class="material-symbols-outlined">group</span>
+            <span class="font-body-md text-body-md font-medium">Students</span>
         </a>
         <a href="{{ route('admin.notifications.index') }}" class="{{ $isAnnouncements ? $navActive : $navIdle }}">
             <span class="material-symbols-outlined {{ $isAnnouncements ? 'fill' : '' }}">campaign</span>
             <span class="font-body-md text-body-md font-medium">Announcements</span>
         </a>
-        <a href="{{ route('admin.users.index') }}" class="{{ $isSettings ? $navActive : $navIdle }} mt-auto">
+        <a href="{{ route('admin.manual-payments.index') }}" class="{{ $isManualPayments ? $navActive : $navIdle }}">
+            <span class="material-symbols-outlined">payments</span>
+            <span class="font-body-md text-body-md font-medium">Manual Pay</span>
+        </a>
+        <a href="{{ route('admin.tickets.index') }}" class="{{ $isTickets ? $navActive : $navIdle }}">
+            <span class="material-symbols-outlined">support_agent</span>
+            <span class="font-body-md text-body-md font-medium">Tickets</span>
+        </a>
+        <a href="{{ route('admin.portal-settings.edit') }}" class="{{ $isPortalSettings ? $navActive : $navIdle }} mt-auto">
             <span class="material-symbols-outlined">settings</span>
             <span class="font-body-md text-body-md font-medium">Settings</span>
         </a>
@@ -77,6 +104,7 @@
 </nav>
 
 <div class="flex flex-1 flex-col min-h-0 min-h-[calc(100dvh-3.5rem)] w-full overflow-hidden pt-14 pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:ml-64 md:h-[100dvh] md:overflow-y-auto md:pt-0 md:pb-0">
+    @include('portal.partials.outage-banner')
     @if (session('status'))
         <div class="shrink-0 mx-4 mt-3 md:mx-6 md:mt-4 rounded-lg border border-secondary-container bg-secondary-container/30 dark:bg-secondary-container/10 px-4 py-2.5 text-secondary dark:text-secondary-fixed-dim font-body-md text-sm flex items-center gap-2">
             <span class="material-symbols-outlined fill text-[18px]">check_circle</span>
@@ -100,11 +128,31 @@
         <span class="material-symbols-outlined text-[22px]">grid_view</span>
         <span class="font-label-sm text-[11px] mt-0.5">Home</span>
     </a>
+    <a href="{{ route('admin.analytics.index') }}" class="{{ $isAnalytics ? $mobActive : $mobIdle }}">
+        <span class="material-symbols-outlined text-[22px]">query_stats</span>
+        <span class="font-label-sm text-[11px] mt-0.5">Stats</span>
+    </a>
+    <a href="{{ route('admin.packages.index') }}" class="{{ $isPackages ? $mobActive : $mobIdle }}">
+        <span class="material-symbols-outlined text-[22px]">inventory_2</span>
+        <span class="font-label-sm text-[11px] mt-0.5">Packages</span>
+    </a>
+    <a href="{{ route('admin.users.index') }}" class="{{ $isStudents ? $mobActive : $mobIdle }}">
+        <span class="material-symbols-outlined text-[22px]">group</span>
+        <span class="font-label-sm text-[11px] mt-0.5">Students</span>
+    </a>
     <a href="{{ route('admin.notifications.index') }}" class="{{ $isAnnouncements ? $mobActive : $mobIdle }}">
         <span class="material-symbols-outlined text-[22px] {{ $isAnnouncements ? 'fill' : '' }}">campaign</span>
         <span class="font-label-sm text-[11px] mt-0.5">Announce</span>
     </a>
-    <a href="{{ route('admin.users.index') }}" class="{{ $isSettings ? $mobActive : $mobIdle }}">
+    <a href="{{ route('admin.manual-payments.index') }}" class="{{ $isManualPayments ? $mobActive : $mobIdle }}">
+        <span class="material-symbols-outlined text-[22px]">payments</span>
+        <span class="font-label-sm text-[11px] mt-0.5">Manual</span>
+    </a>
+    <a href="{{ route('admin.tickets.index') }}" class="{{ $isTickets ? $mobActive : $mobIdle }}">
+        <span class="material-symbols-outlined text-[22px]">support_agent</span>
+        <span class="font-label-sm text-[11px] mt-0.5">Tickets</span>
+    </a>
+    <a href="{{ route('admin.portal-settings.edit') }}" class="{{ $isPortalSettings ? $mobActive : $mobIdle }}">
         <span class="material-symbols-outlined text-[22px]">settings</span>
         <span class="font-label-sm text-[11px] mt-0.5">Settings</span>
     </a>
@@ -118,5 +166,6 @@
 </nav>
 
 @stack('scripts')
+@include('admin.partials.idle-logout')
 </body>
 </html>

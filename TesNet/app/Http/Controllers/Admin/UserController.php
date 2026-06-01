@@ -80,6 +80,7 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'device_limit' => ['required', 'integer', 'min:1', 'max:10'],
+            'is_suspended' => ['nullable', 'boolean'],
             'password' => ['nullable', 'string', 'min:6', 'confirmed'],
         ]);
 
@@ -90,10 +91,13 @@ class UserController extends Controller
         }
 
         $user->device_limit = $validated['device_limit'];
+        $user->is_suspended = (bool) ($validated['is_suspended'] ?? false);
         $user->save();
 
         return redirect()->route('admin.users.index')
-            ->with('status', 'User '.$user->phone_number.' updated.');
+            ->with('status', ! empty($validated['password'])
+                ? 'Password updated for '.$user->phone_number.'.'
+                : 'User '.$user->phone_number.' updated.');
     }
 
     public function destroy(User $user): RedirectResponse
