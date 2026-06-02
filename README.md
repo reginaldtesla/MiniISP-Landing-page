@@ -38,7 +38,8 @@ Default seeded admin (change in `.env` then `php artisan db:seed`): phone `05500
 
 ## Documentation
 
-- **[Installation — HP ProBook + MikroTik hAP²](installation)** — Ubuntu server, FreeRADIUS, Laravel, hotspot router setup
+- **[Full setup — ProBook + MikroTik (from factory reset)](docs/PROBOOK_MIKROTIK_FULL_SETUP.md)** — **start here for production**
+- **[Installation — HP ProBook + MikroTik hAP²](installation)** — same topics, reference format
 - **[Hotspot HTML & MikroTik redirect](docs/HOTSPOT.md)** — replace legacy `login.html` with Laravel
 - **[Paystack live + HTTPS webhook](docs/PAYSTACK.md)** — production keys, `APP_URL`, webhook URL
 - **[Production checklist](docs/PRODUCTION_CHECKLIST.md)** — go-live verification (MikroTik, RADIUS, Paystack)

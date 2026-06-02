@@ -1,5 +1,8 @@
 # TesNet — Production installation guide
 
+> **Start here for a full walkthrough (factory-reset ProBook + MikroTik):**  
+> **[`docs/PROBOOK_MIKROTIK_FULL_SETUP.md`](docs/PROBOOK_MIKROTIK_FULL_SETUP.md)** — step-by-step from zero, including `http-pap`, certificates/HTTPS, power-off & reboot recovery, leak tests, and troubleshooting.
+
 This guide covers a **fresh Ubuntu Server** install on an **HP ProBook** (billing + RADIUS + database) and **MikroTik hAP²** (hotspot + Wi‑Fi) for the TesNet student ISP stack.
 
 For Paystack HTTPS/webhooks and hotspot HTML details, also read:
@@ -470,9 +473,10 @@ Create profile (portal URL = your Laravel `APP_URL`):
 ```routeros
 /ip hotspot profile add name=tesnet-profile \
     html-directory=hotspot \
-    login-by=http-chap,cookie \
+    login-by=http-pap,cookie \
     http-cookie-lifetime=1d \
-    use-radius=yes
+    use-radius=yes \
+    ssl-certificate=none
 
 /ip hotspot add name=tesnet-hotspot interface=bridge-lan address-pool=hotspot-pool \
     profile=tesnet-profile disabled=no
@@ -485,17 +489,18 @@ Upload a minimal **`login.html`** to the router’s `hotspot` folder (Winbox →
 <html>
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="refresh" content="0;url=https://portal.yourdomain.com/portal/login">
+  <meta http-equiv="refresh" content="0;url=http://192.168.88.2/portal/login">
   <title>TesNet</title>
+  <script>location.replace("http://192.168.88.2/portal/login");</script>
 </head>
 <body>
   <p>Redirecting to TesNet portal…</p>
-  <p><a href="https://portal.yourdomain.com/portal/login">Continue</a></p>
+  <p><a href="http://192.168.88.2/portal/login">Continue</a></p>
 </body>
 </html>
 ```
 
-Replace `portal.yourdomain.com` with your real `APP_URL` host.
+Use your Laravel `APP_URL` (LAN: `http://192.168.88.2`; production HTTPS: `https://portal.yourdomain.com`). See [`docs/PROBOOK_MIKROTIK_FULL_SETUP.md`](docs/PROBOOK_MIKROTIK_FULL_SETUP.md).
 
 ### 5.6 RADIUS on MikroTik (must match FreeRADIUS `clients.conf`)
 
@@ -709,8 +714,8 @@ From MikroTik, a test login should show **Access-Accept** in the log when creden
 1. Phone connects to **TesNet-Student** Wi‑Fi.
 2. Hotspot opens → redirects to `/portal/login`.
 3. Student registers / logs in, buys a package (Paystack test or live keys).
-4. Dashboard **Connect to Internet** redirects to `MIKROTIK_LOGIN_URL?username=233…&password=…`.
-5. Hotspot authenticates via RADIUS; browsing works within plan limits.
+4. Dashboard **Connect to Internet** POSTs username/password to `MIKROTIK_LOGIN_URL` (auto-submit form).
+5. Hotspot authenticates via RADIUS (PAP); browsing works within plan limits.
 
 ### 6.3 Data limits
 
