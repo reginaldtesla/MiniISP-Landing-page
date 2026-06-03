@@ -118,7 +118,7 @@ class PackageUsage
             return;
         }
 
-        $purchase = self::consolidateActivePurchases($user);
+        $purchase = self::consolidateActivePurchases($user, touchRouter: false);
 
         if (! $purchase) {
             return;
@@ -140,7 +140,7 @@ class PackageUsage
     /**
      * Keep a single active purchase; retire and supersede stale actives (fixes duplicate quota / Connect).
      */
-    public static function consolidateActivePurchases(User $user): ?PackagePurchase
+    public static function consolidateActivePurchases(User $user, bool $touchRouter = false): ?PackagePurchase
     {
         $actives = PackagePurchase::query()
             ->where('user_id', $user->id)
@@ -158,11 +158,10 @@ class PackageUsage
         }
 
         $keeper = $actives->first();
-        $hotspot = app(HotspotPurchaseService::class);
 
         foreach ($actives->skip(1) as $stale) {
-            if (filled($stale->mikrotik_username)) {
-                $hotspot->retire($stale, removeFromRouter: true);
+            if ($touchRouter && filled($stale->mikrotik_username)) {
+                app(HotspotPurchaseService::class)->retire($stale, removeFromRouter: true);
             }
 
             $stale->update(['status' => 'superseded']);
@@ -467,7 +466,7 @@ class PackageUsage
     {
         $phone = $user->phone_number;
 
-        self::consolidateActivePurchases($user);
+        self::consolidateActivePurchases($user, touchRouter: false);
 
         $candidates = PackagePurchase::query()
             ->where('user_id', $user->id)

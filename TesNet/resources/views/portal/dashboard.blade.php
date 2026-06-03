@@ -61,16 +61,16 @@
             <div class="data-ring-size relative w-36 h-36 sm:w-48 sm:h-48 mb-4 sm:mb-6 flex items-center justify-center shrink-0">
                 <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100" aria-hidden="true">
                     <circle class="text-surface-variant dark:text-surface-container-highest" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-linecap="round" stroke-width="12"></circle>
-                    <circle id="data-ring-progress" class="text-primary dark:text-primary-fixed-dim transition-all duration-700 ease-out" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor"
+                    <circle class="text-primary dark:text-primary-fixed-dim transition-all duration-1000 ease-out" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor"
                         stroke-dasharray="251.2" stroke-dashoffset="{{ $hasActivePlan ? $chartStrokeOffset : 251.2 }}" stroke-linecap="round" stroke-width="12"></circle>
                 </svg>
                 <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-2">
                     @if ($hasActivePlan)
                         @if ($isUnlimitedData ?? false)
-                            <span id="data-remaining-display" class="font-title-md sm:font-headline-lg text-title-md sm:text-headline-lg-mobile text-primary dark:text-primary-fixed-dim">∞</span>
+                            <span class="font-title-md sm:font-headline-lg text-title-md sm:text-headline-lg-mobile text-primary dark:text-primary-fixed-dim">∞</span>
                             <span class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">Unlimited</span>
                         @else
-                            <span id="data-remaining-display" class="data-display-text font-display-mobile sm:font-display-lg text-display-mobile sm:text-display-lg text-primary dark:text-primary-fixed-dim">{{ $dataRemainingGb }}</span>
+                            <span class="data-display-text font-display-mobile sm:font-display-lg text-display-mobile sm:text-display-lg text-primary dark:text-primary-fixed-dim">{{ $dataRemainingGb }}</span>
                             <span class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">GB left</span>
                         @endif
                     @else
@@ -81,57 +81,10 @@
             </div>
         </div>
         <div class="flex-1 flex flex-col items-stretch md:items-end justify-center z-10 w-full min-w-0">
-            @if ($hasActivePlan)
-                <div id="live-usage-panel"
-                     class="bg-surface-container-high dark:bg-on-background/50 p-3 sm:p-4 rounded-xl mb-4 w-full md:max-w-sm border border-primary/10 dark:border-primary-fixed-dim/20"
-                     data-live-usage-url="{{ route('portal.dashboard.live-usage') }}"
-                     data-poll-seconds="{{ $liveUsagePollSeconds }}">
-                    @if ($liveUsage)
-                        <script type="application/json" id="live-usage-initial">@json($liveUsage)</script>
-                    @endif
-                    <div class="flex items-center justify-between gap-2 mb-3">
-                        <span class="font-label-sm text-label-sm font-semibold text-on-background dark:text-inverse-on-surface">Live usage</span>
-                        <span id="live-usage-badge" class="inline-flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">
-                            <span id="live-usage-dot" class="w-2 h-2 rounded-full bg-outline-variant dark:bg-outline"></span>
-                            <span id="live-usage-status">Updating…</span>
-                        </span>
-                    </div>
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-center gap-2">
-                            <span class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">Downloaded</span>
-                            <span id="live-bytes-in" class="font-label-sm text-label-sm text-on-background dark:text-inverse-on-surface shrink-0 tabular-nums">—</span>
-                        </div>
-                        <div class="flex justify-between items-center gap-2">
-                            <span class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">Uploaded</span>
-                            <span id="live-bytes-out" class="font-label-sm text-label-sm text-on-background dark:text-inverse-on-surface shrink-0 tabular-nums">—</span>
-                        </div>
-                        <div class="flex justify-between items-center gap-2">
-                            <span class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">Connected for</span>
-                            <span id="live-uptime" class="font-label-sm text-label-sm text-on-background dark:text-inverse-on-surface shrink-0 tabular-nums">—</span>
-                        </div>
-                        <div id="live-remain-row" class="flex justify-between items-center gap-2 hidden">
-                            <span class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">Session left</span>
-                            <span id="live-remain" class="font-label-sm text-label-sm font-semibold text-primary dark:text-primary-fixed-dim shrink-0 tabular-nums">—</span>
-                        </div>
-                    </div>
-                    <div id="live-usage-bar-wrap" class="mt-3 hidden">
-                        <div class="flex justify-between mb-1 gap-2">
-                            <span class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">Session used</span>
-                            <span id="live-usage-percent" class="font-label-sm text-label-sm text-on-background dark:text-inverse-on-surface tabular-nums">0%</span>
-                        </div>
-                        <div class="h-2 rounded-full bg-surface-variant/40 dark:bg-outline/30 overflow-hidden">
-                            <div id="live-usage-bar" class="h-full rounded-full bg-primary dark:bg-primary-fixed-dim transition-all duration-500" style="width: 0%"></div>
-                        </div>
-                    </div>
-                    <p id="live-usage-hint" class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant mt-3">
-                        Readings come from the MikroTik router (API). Connect to campus Wi‑Fi, tap <strong>Connect to Internet</strong>, then this panel updates every few seconds.
-                    </p>
-                </div>
-            @endif
             <div class="bg-surface-container-high dark:bg-on-background/50 p-3 sm:p-4 rounded-xl mb-4 w-full md:max-w-sm">
                 <div class="flex justify-between items-center mb-2 gap-2">
                     <span class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">Total Plan</span>
-                    <span id="plan-total-gb" class="font-label-sm text-label-sm text-on-background dark:text-inverse-on-surface shrink-0">{{ $hasActivePlan ? (($isUnlimitedData ?? false) ? 'Unlimited' : $totalPlanGb.' GB') : '—' }}</span>
+                    <span class="font-label-sm text-label-sm text-on-background dark:text-inverse-on-surface shrink-0">{{ $hasActivePlan ? (($isUnlimitedData ?? false) ? 'Unlimited' : $totalPlanGb.' GB') : '—' }}</span>
                 </div>
                 <div class="flex justify-between items-center gap-2">
                     <span class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">Validity</span>
@@ -206,9 +159,6 @@
 
 @push('scripts')
     @include('portal.partials.portal-script', ['file' => 'portal-announcements.js'])
-    @if ($hasActivePlan)
-        @include('portal.partials.portal-script', ['file' => 'portal-live-usage.js'])
-    @endif
     @if ($hasActivePlan && $planExpiresAt)
         @include('portal.partials.portal-script', ['file' => 'portal-plan-countdown.js'])
     @endif

@@ -593,7 +593,7 @@ Phones usually show **Sign in to network** — one tap is normal; this file remo
 
 Also upload **`TesNet/mikrotik/status.html`** to the same **hotspot** folder (redirects to `/portal/dashboard`). The large **`status.html` at the repo root** (`C:\Apache24\htdocs\TesNet\status.html`) is a legacy MikroTik template for Winbox editing only — **do not** open it in a browser on the ProBook or point `.env` at a `C:\...` path. Students should never see a `file://` or `C:\` URL; after **Connect**, they should land on `http://192.168.88.2/portal/dashboard` (portal sends MikroTik a `dst=` URL when `MIKROTIK_POST_LOGIN_URL` is set).
 
-The portal **dashboard** polls **`/portal/dashboard/live-usage`** every 15s (configurable via `TESNET_LIVE_USAGE_POLL_SECONDS`) and reads the same counters as MikroTik status — **downloaded**, **uploaded**, **session remaining**, **uptime** — from the router API when `MIKROTIK_API_ENABLED=true`, with `radacct` as fallback.
+The portal **dashboard** shows **GB left** from the database and RADIUS accounting (fast load). Full router sync runs on **Connect**, after **payment**, and via **cron** (`php artisan schedule:run`).
 
 ### B.7 RADIUS on MikroTik (must match ProBook)
 

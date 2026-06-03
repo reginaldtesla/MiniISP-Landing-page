@@ -143,24 +143,23 @@ class AuthController extends Controller
                 ->withErrors(['wifi' => 'Please log out and log in again to connect (session credentials expired).']);
         }
 
-        PackageUsage::consolidateActivePurchases($user);
+        PackageUsage::consolidateActivePurchases($user, touchRouter: false);
 
-        $activePurchase = $quota->syncForUser($user, force: true);
+        $activePurchase = PackageUsage::activePurchaseForDisplay($user);
+        $usageUser = $activePurchase
+            ? HotspotIdentity::usageUsernameFor($user, $activePurchase)
+            : null;
 
-        if (! $activePurchase) {
-            return redirect()->route('portal.packages')
-                ->withErrors(['wifi' => 'Your data is used up or no active plan. Buy a new package to connect.']);
-        }
+        if (! $activePurchase || ! PackageUsage::hasDataRemaining($activePurchase, $usageUser)) {
+            $activePurchase = $quota->syncForUser($user, force: true);
+            $usageUser = $activePurchase
+                ? HotspotIdentity::usageUsernameFor($user, $activePurchase)
+                : null;
 
-        $usageUser = HotspotIdentity::usageUsernameFor($user, $activePurchase);
-        $remaining = PackageUsage::bytesRemainingWithRouter($activePurchase, $usageUser) ?? 0;
-
-        if ($remaining < 1) {
-            PackageUsage::markDepleted($activePurchase);
-            $quota->syncForUser($user, force: true);
-
-            return redirect()->route('portal.packages')
-                ->withErrors(['wifi' => 'Your data is used up. Buy a new package to connect.']);
+            if (! $activePurchase || ! PackageUsage::hasDataRemaining($activePurchase, $usageUser)) {
+                return redirect()->route('portal.packages')
+                    ->withErrors(['wifi' => 'Your data is used up or no active plan. Buy a new package to connect.']);
+            }
         }
 
         app(SingleDeviceGuard::class)->disconnectOtherHotspotSessions($user);

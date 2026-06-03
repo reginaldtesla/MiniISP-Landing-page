@@ -6,10 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\PortalNotification;
 use App\Models\RadAcct;
 use App\Models\User;
-use App\Services\LiveHotspotUsageService;
 use App\Support\HotspotIdentity;
 use App\Support\PackageUsage;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -19,7 +17,8 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        // Fast path: no MikroTik API or RADIUS writes (those run on Connect + cron).
+        PackageUsage::consolidateActivePurchases($user, touchRouter: false);
+
         $activePackage = PackageUsage::activePurchaseForDisplay($user);
 
         $usernames = $user->phone_number
@@ -37,6 +36,7 @@ class DashboardController extends Controller
                 ->active()
                 ->whereIn('username', $usernames)
                 ->orderByDesc('acctstarttime')
+                ->limit(1)
                 ->get();
 
         $isConnected = $activeSessions->isNotEmpty();
@@ -88,17 +88,12 @@ class DashboardController extends Controller
         $planExpiresAt = $activePackage?->expires_at;
         $blockConnect = \App\Support\PortalStatus::shouldBlockConnect();
 
-        $liveUsage = $activePackage !== null
-            ? app(LiveHotspotUsageService::class)->snapshot($user)
-            : null;
-
         return view('portal.dashboard', [
             'user' => $user,
             'activePackage' => $activePackage,
             'validityLabel' => $validityLabel,
             'planExpiresAt' => $planExpiresAt,
             'blockConnect' => $blockConnect,
-            'activeSessions' => $activeSessions,
             'isConnected' => $isConnected,
             'announcement' => $announcement,
             'displayName' => $displayName,
@@ -108,14 +103,7 @@ class DashboardController extends Controller
             'isUnlimitedData' => $isUnlimitedData,
             'chartStrokeOffset' => $chartStrokeOffset,
             'wifiSpeedMbps' => $wifiSpeedMbps,
-            'liveUsage' => $liveUsage,
-            'liveUsagePollSeconds' => (int) config('tesnet.portal_live_usage_poll_seconds', 15),
         ]);
-    }
-
-    public function liveUsage(Request $request, LiveHotspotUsageService $live): JsonResponse
-    {
-        return response()->json($live->snapshot($request->user()));
     }
 
     public function aboutHotspot(Request $request): View

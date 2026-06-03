@@ -49,7 +49,7 @@ class PackageQuotaService
 
     protected function performSync(User $user): ?PackagePurchase
     {
-        PackageUsage::consolidateActivePurchases($user);
+        PackageUsage::consolidateActivePurchases($user, touchRouter: true);
         PackageUsage::syncConsumptionForUser($user, includeMikrotik: true);
 
         $purchase = PackageUsage::activePurchaseFor($user);
@@ -100,7 +100,6 @@ class PackageQuotaService
 
         $this->radius->clearHotspotDataLimits($user);
         $this->radius->setPhoneHotspotLoginAllowed($user, false);
-        $this->hotspotPurchase->purgeLegacyPhoneHotspot($user);
 
         if (PackageValidity::isUnlimited($purchase)) {
             $this->hotspotPurchase->ensureProvisioned($purchase, $user);
@@ -108,7 +107,7 @@ class PackageQuotaService
             return $purchase;
         }
 
-        $remaining = PackageUsage::bytesRemainingWithRouter($purchase, $usageUser) ?? 0;
+        $remaining = PackageUsage::bytesRemaining($purchase, $usageUser) ?? 0;
 
         if ($remaining < 1) {
             PackageUsage::markDepleted($purchase);
@@ -118,7 +117,7 @@ class PackageQuotaService
             return null;
         }
 
-        $this->hotspotPurchase->ensureProvisioned($purchase, $user, force: true);
+        $this->hotspotPurchase->ensureProvisioned($purchase, $user);
 
         return $purchase->fresh();
     }
