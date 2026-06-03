@@ -85,7 +85,8 @@ class PaymentFulfillmentService
     protected function activatePackagePurchase(User $user, Transaction $transaction, array $attributes): void
     {
         if (HotspotIdentity::perPurchaseEnabled()) {
-            $this->hotspotPurchase->retireActivePurchasesFor($user);
+            $this->hotspotPurchase->retireActivePurchasesFor($user, removeFromRouter: true);
+            $this->hotspotPurchase->purgeLegacyPhoneHotspot($user);
         }
 
         PackagePurchase::query()

@@ -143,6 +143,8 @@ class AuthController extends Controller
                 ->withErrors(['wifi' => 'Please log out and log in again to connect (session credentials expired).']);
         }
 
+        PackageUsage::consolidateActivePurchases($user);
+
         $activePurchase = $quota->syncForUser($user, force: true);
 
         if (! $activePurchase) {
@@ -151,7 +153,7 @@ class AuthController extends Controller
         }
 
         $usageUser = HotspotIdentity::usageUsernameFor($user, $activePurchase);
-        $remaining = PackageUsage::bytesRemaining($activePurchase, $usageUser) ?? 0;
+        $remaining = PackageUsage::bytesRemainingWithRouter($activePurchase, $usageUser) ?? 0;
 
         if ($remaining < 1) {
             PackageUsage::markDepleted($activePurchase);

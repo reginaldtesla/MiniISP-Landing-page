@@ -118,24 +118,63 @@ class PackageUsage
             return;
         }
 
-        if ($includeMikrotik) {
-            self::ingestPeakActiveSessionBytes($user, $phone);
+        $purchase = self::consolidateActivePurchases($user);
+
+        if (! $purchase) {
+            return;
         }
 
-        $purchases = PackagePurchase::query()
+        if ($includeMikrotik) {
+            self::ingestPeakActiveSessionBytes($user, $phone, $purchase);
+        }
+
+        $usageUser = HotspotIdentity::usageUsername($purchase, $phone) ?? $phone;
+
+        self::refreshConsumption($purchase, $usageUser);
+
+        if (self::isQuotaExhausted($purchase, $usageUser)) {
+            self::markDepleted($purchase);
+        }
+    }
+
+    /**
+     * Keep a single active purchase; retire and supersede stale actives (fixes duplicate quota / Connect).
+     */
+    public static function consolidateActivePurchases(User $user): ?PackagePurchase
+    {
+        $actives = PackagePurchase::query()
             ->where('user_id', $user->id)
             ->where('status', 'active')
+            ->orderByDesc('activated_at')
+            ->orderByDesc('id')
             ->get();
 
-        foreach ($purchases as $purchase) {
-            $usageUser = HotspotIdentity::usageUsername($purchase, $phone) ?? $phone;
-
-            self::refreshConsumption($purchase, $usageUser);
-
-            if (self::isQuotaExhausted($purchase, $usageUser)) {
-                self::markDepleted($purchase);
-            }
+        if ($actives->isEmpty()) {
+            return null;
         }
+
+        if ($actives->count() === 1) {
+            return $actives->first();
+        }
+
+        $keeper = $actives->first();
+        $hotspot = app(HotspotPurchaseService::class);
+
+        foreach ($actives->skip(1) as $stale) {
+            if (filled($stale->mikrotik_username)) {
+                $hotspot->retire($stale, removeFromRouter: true);
+            }
+
+            $stale->update(['status' => 'superseded']);
+        }
+
+        Log::warning('Consolidated duplicate active package purchases', [
+            'user_id' => $user->id,
+            'kept_purchase_id' => $keeper->id,
+            'superseded_count' => $actives->count() - 1,
+        ]);
+
+        return $keeper->fresh();
     }
 
     public static function markDepleted(PackagePurchase $purchase): void
@@ -152,13 +191,16 @@ class PackageUsage
         }
     }
 
-    public static function ingestPeakActiveSessionBytes(User $user, string $phoneNumber): void
-    {
+    public static function ingestPeakActiveSessionBytes(
+        User $user,
+        string $phoneNumber,
+        ?PackagePurchase $purchase = null,
+    ): void {
         if (! self::$queryMikrotik) {
             return;
         }
 
-        $purchase = PackagePurchase::query()
+        $purchase ??= PackagePurchase::query()
             ->where('user_id', $user->id)
             ->where('status', 'active')
             ->latest('activated_at')
@@ -425,6 +467,8 @@ class PackageUsage
     {
         $phone = $user->phone_number;
 
+        self::consolidateActivePurchases($user);
+
         $candidates = PackagePurchase::query()
             ->where('user_id', $user->id)
             ->where('status', 'active')
@@ -471,7 +515,15 @@ class PackageUsage
             $activatedAt = $purchase->activated_at?->copy()->subSecond() ?? now()->subYear();
             $total = 0;
 
-            foreach (self::usernameLookupVariants($phoneNumber) as $username) {
+            $usernames = HotspotIdentity::usesPerPurchase($purchase)
+                ? array_filter([$purchase->mikrotik_username])
+                : self::usernameLookupVariants($phoneNumber);
+
+            foreach ($usernames as $username) {
+                if (! $username) {
+                    continue;
+                }
+
                 $total = max($total, (int) RadAcct::query()
                     ->where('username', $username)
                     ->where('acctstarttime', '>=', $activatedAt)
@@ -493,6 +545,14 @@ class PackageUsage
     ): ?int {
         if (! $phoneNumber || ! self::$queryMikrotik || ($purchase && self::isFreshPurchase($purchase))) {
             return null;
+        }
+
+        if ($purchase && HotspotIdentity::usesPerPurchase($purchase)) {
+            $phoneNumber = $purchase->mikrotik_username ?? $phoneNumber;
+
+            if (! str_starts_with($phoneNumber, 'tn-')) {
+                return null;
+            }
         }
 
         try {

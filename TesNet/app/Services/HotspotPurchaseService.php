@@ -71,6 +71,25 @@ class HotspotPurchaseService
             ->each(fn (PackagePurchase $purchase) => $this->retire($purchase, $removeFromRouter));
     }
 
+    /**
+     * Stop legacy phone-number hotspot logins (Model A uses tn-{purchase_id} only).
+     */
+    public function purgeLegacyPhoneHotspot(User $user): void
+    {
+        $phone = $user->phone_number;
+
+        if (! $phone || ! HotspotIdentity::perPurchaseEnabled()) {
+            return;
+        }
+
+        if ($this->mikrotik->isEnabled()) {
+            foreach (PackageUsage::usernameVariantsFor($phone) as $username) {
+                $this->mikrotik->disconnectHotspotUser($username);
+                $this->mikrotik->resetHotspotUsageForUser($username);
+            }
+        }
+    }
+
     public function provision(PackagePurchase $purchase, User $user): bool
     {
         if (! HotspotIdentity::perPurchaseEnabled()) {
@@ -114,6 +133,8 @@ class HotspotPurchaseService
 
         $this->radius->syncPurchaseUser($purchase, $password);
         $this->radius->clearHotspotDataLimits($user);
+        $this->radius->setPhoneHotspotLoginAllowed($user, false);
+        $this->purgeLegacyPhoneHotspot($user);
 
         if ($routerOk || ! $this->mikrotik->isEnabled()) {
             $purchase->update(['mikrotik_synced_at' => now()]);

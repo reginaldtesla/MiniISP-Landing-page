@@ -30,6 +30,7 @@ beforeEach(function () {
         $mock->shouldReceive('disconnectHotspotUser')->andReturn(true);
         $mock->shouldReceive('setHotspotUserDisabled')->andReturn(true);
         $mock->shouldReceive('removeHotspotUser')->andReturnNull();
+        $mock->shouldReceive('resetHotspotUsageForUser')->andReturnNull();
     });
 });
 

@@ -49,6 +49,7 @@ class PackageQuotaService
 
     protected function performSync(User $user): ?PackagePurchase
     {
+        PackageUsage::consolidateActivePurchases($user);
         PackageUsage::syncConsumptionForUser($user, includeMikrotik: true);
 
         $purchase = PackageUsage::activePurchaseFor($user);
@@ -97,28 +98,27 @@ class PackageQuotaService
     {
         $usageUser = HotspotIdentity::usageUsernameFor($user, $purchase);
 
+        $this->radius->clearHotspotDataLimits($user);
+        $this->radius->setPhoneHotspotLoginAllowed($user, false);
+        $this->hotspotPurchase->purgeLegacyPhoneHotspot($user);
+
         if (PackageValidity::isUnlimited($purchase)) {
-            $this->radius->clearHotspotDataLimits($user);
-            $this->radius->setHotspotDataAllowed($user, true);
             $this->hotspotPurchase->ensureProvisioned($purchase, $user);
 
             return $purchase;
         }
 
-        $remaining = PackageUsage::bytesRemaining($purchase, $usageUser) ?? 0;
+        $remaining = PackageUsage::bytesRemainingWithRouter($purchase, $usageUser) ?? 0;
 
         if ($remaining < 1) {
             PackageUsage::markDepleted($purchase);
             $this->disconnectPurchaseSessions($purchase, $usageUser);
-            $this->radius->clearHotspotDataLimits($user);
             Cache::forget('portal_connected:'.$user->id);
 
             return null;
         }
 
-        $this->radius->clearHotspotDataLimits($user);
-        $this->radius->setHotspotDataAllowed($user, true);
-        $this->hotspotPurchase->ensureProvisioned($purchase, $user);
+        $this->hotspotPurchase->ensureProvisioned($purchase, $user, force: true);
 
         return $purchase->fresh();
     }

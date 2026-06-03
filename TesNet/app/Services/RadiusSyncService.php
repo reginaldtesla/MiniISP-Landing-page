@@ -6,6 +6,7 @@ use App\Models\PackagePurchase;
 use App\Models\RadCheck;
 use App\Models\RadReply;
 use App\Models\User;
+use App\Support\HotspotIdentity;
 use App\Support\PackageUsage;
 
 class RadiusSyncService
@@ -51,6 +52,20 @@ class RadiusSyncService
      * Allow or deny hotspot RADIUS login (Wi‑Fi data). Suspended users stay rejected.
      */
     public function setHotspotDataAllowed(User $user, bool $allowed): void
+    {
+        if (HotspotIdentity::perPurchaseEnabled()) {
+            $this->setPhoneHotspotLoginAllowed($user, false);
+
+            return;
+        }
+
+        $this->setPhoneHotspotLoginAllowed($user, $allowed);
+    }
+
+    /**
+     * Allow or block Wi‑Fi hotspot login using the portal phone number (legacy mode only).
+     */
+    public function setPhoneHotspotLoginAllowed(User $user, bool $allowed): void
     {
         $username = $user->phone_number;
 
