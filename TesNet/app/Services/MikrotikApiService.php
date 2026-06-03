@@ -9,6 +9,9 @@ class MikrotikApiService
 {
     protected mixed $socket = null;
 
+    /** @var array<string, array{used: int, limit: int}|null> */
+    protected static array $hotspotUsageCache = [];
+
     public function isEnabled(): bool
     {
         return (bool) config('mikrotik.api.enabled')
@@ -101,7 +104,19 @@ class MikrotikApiService
      */
     public function hotspotDataUsageForUser(string $username): ?array
     {
-        if (! $this->isEnabled() || ! $this->connect()) {
+        if (array_key_exists($username, self::$hotspotUsageCache)) {
+            return self::$hotspotUsageCache[$username];
+        }
+
+        if (! $this->isEnabled()) {
+            self::$hotspotUsageCache[$username] = null;
+
+            return null;
+        }
+
+        if (! $this->connect()) {
+            self::$hotspotUsageCache[$username] = null;
+
             return null;
         }
 
@@ -120,7 +135,46 @@ class MikrotikApiService
                 }
             }
 
+            self::$hotspotUsageCache[$username] = $best;
+
             return $best;
+        } catch (\Throwable $exception) {
+            Log::warning('MikroTik hotspot usage lookup failed', [
+                'username' => $username,
+                'error' => $exception->getMessage(),
+            ]);
+            self::$hotspotUsageCache[$username] = null;
+
+            return null;
+        } finally {
+            $this->disconnect();
+        }
+    }
+
+    public function peakActiveSessionBytes(string $username, ?string $macAddress = null, ?string $ipAddress = null): int
+    {
+        if (! $this->isEnabled() || ! $this->connect()) {
+            return 0;
+        }
+
+        try {
+            $peak = 0;
+
+            foreach ($this->filterHotspotSessions($username, $macAddress, $ipAddress) as $session) {
+                $peak = max(
+                    $peak,
+                    (int) ($session['bytes-in'] ?? 0) + (int) ($session['bytes-out'] ?? 0)
+                );
+            }
+
+            return $peak;
+        } catch (\Throwable $exception) {
+            Log::warning('MikroTik active session byte lookup failed', [
+                'username' => $username,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return 0;
         } finally {
             $this->disconnect();
         }
@@ -293,7 +347,7 @@ class MikrotikApiService
         $host = config('mikrotik.api.host');
         $port = config('mikrotik.api.port');
         $ssl = config('mikrotik.api.ssl');
-        $timeout = 5;
+        $timeout = max(1, (int) config('mikrotik.api.timeout', 2));
 
         $address = ($ssl ? 'ssl://' : '').$host;
         $this->socket = @fsockopen($address, $port, $errno, $errstr, $timeout);

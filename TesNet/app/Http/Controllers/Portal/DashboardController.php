@@ -6,24 +6,30 @@ use App\Http\Controllers\Controller;
 use App\Models\PortalNotification;
 use App\Models\RadAcct;
 use App\Models\User;
-use App\Services\PackageQuotaService;
 use App\Support\PackageUsage;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request, PackageQuotaService $quota): View
+    public function index(Request $request): View
     {
         $user = $request->user();
 
-        $activePackage = $quota->syncForUser($user);
+        // Fast path: no MikroTik API or RADIUS writes (those run on Connect + cron).
+        $activePackage = PackageUsage::activePurchaseForDisplay($user);
 
-        $activeSessions = RadAcct::query()
-            ->active()
-            ->where('username', $user->phone_number)
-            ->orderByDesc('acctstarttime')
-            ->get();
+        $usernames = $user->phone_number
+            ? PackageUsage::usernameVariantsFor($user->phone_number)
+            : [];
+
+        $activeSessions = $usernames === []
+            ? collect()
+            : RadAcct::query()
+                ->active()
+                ->whereIn('username', $usernames)
+                ->orderByDesc('acctstarttime')
+                ->get();
 
         $isConnected = $activeSessions->isNotEmpty();
 
@@ -34,7 +40,7 @@ class DashboardController extends Controller
             : 0;
 
         $bytesRemaining = $activePackage && ! $isUnlimitedData
-            ? PackageUsage::bytesRemaining($activePackage, $user->phone_number)
+            ? PackageUsage::bytesRemainingForDisplay($activePackage, $user->phone_number)
             : null;
 
         if ($isUnlimitedData) {

@@ -45,6 +45,34 @@ class RadiusSyncService
         }
     }
 
+    /**
+     * Allow or deny hotspot RADIUS login (Wi‑Fi data). Suspended users stay rejected.
+     */
+    public function setHotspotDataAllowed(User $user, bool $allowed): void
+    {
+        $username = $user->phone_number;
+
+        if (! $username) {
+            return;
+        }
+
+        if ($user->is_suspended) {
+            $this->syncSuspension($user);
+
+            return;
+        }
+
+        if ($allowed) {
+            RadCheck::query()
+                ->where('username', $username)
+                ->where('attribute', 'Auth-Type')
+                ->where('value', 'Reject')
+                ->delete();
+        } else {
+            $this->upsertCheck($username, 'Auth-Type', ':=', 'Reject');
+        }
+    }
+
     public function applyDataLimitBytes(User $user, ?int $speedMbps, int $limitBytes): void
     {
         $username = $user->phone_number;

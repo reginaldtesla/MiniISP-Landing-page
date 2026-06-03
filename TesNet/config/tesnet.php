@@ -55,4 +55,18 @@ return [
         'radius_stale_hours' => (int) env('TESNET_RADIUS_STALE_HOURS', 6),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Package quota sync (MikroTik API + RADIUS writes)
+    |--------------------------------------------------------------------------
+    |
+    | Cooldown prevents repeat full syncs when using Connect repeatedly.
+    | Dashboard uses a fast DB-only path and does not call the router API.
+    |
+    */
+
+    'quota_sync_cooldown_seconds' => (int) env('TESNET_QUOTA_SYNC_COOLDOWN', 45),
+
+    'portal_connected_cache_seconds' => (int) env('TESNET_PORTAL_CONNECTED_CACHE', 15),
+
 ];

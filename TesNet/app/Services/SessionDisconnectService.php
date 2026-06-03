@@ -3,6 +3,9 @@
 namespace App\Services;
 
 use App\Models\RadAcct;
+use App\Models\User;
+use App\Support\PackageUsage;
+use App\Support\PhoneNumber;
 use App\Support\SessionDisconnectResult;
 use Illuminate\Support\Facades\Log;
 
@@ -14,6 +17,8 @@ class SessionDisconnectService
 
     public function forceDisconnect(RadAcct $session): SessionDisconnectResult
     {
+        $this->recordUsageBeforeClose($session);
+
         $username = $session->username;
         $mac = $session->callingstationid ?: null;
         $ip = $session->framedipaddress ?: null;
@@ -50,5 +55,29 @@ class SessionDisconnectService
         }
 
         return new SessionDisconnectResult($accountingClosed, $routerKicked, $routerAttempted);
+    }
+
+    protected function recordUsageBeforeClose(RadAcct $session): void
+    {
+        $phone = PhoneNumber::normalize($session->username);
+
+        if ($phone === '') {
+            return;
+        }
+
+        $user = User::query()->where('phone_number', $phone)->first();
+
+        if (! $user) {
+            return;
+        }
+
+        try {
+            PackageUsage::syncConsumptionForUser($user);
+        } catch (\Throwable $exception) {
+            Log::warning('Could not record usage before session close', [
+                'username' => $session->username,
+                'error' => $exception->getMessage(),
+            ]);
+        }
     }
 }

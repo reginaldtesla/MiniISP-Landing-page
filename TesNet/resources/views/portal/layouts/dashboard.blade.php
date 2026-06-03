@@ -10,6 +10,8 @@
 </head>
 @php
     use App\Models\RadAcct;
+    use App\Support\PackageUsage;
+    use Illuminate\Support\Facades\Cache;
     $routeName = request()->route()?->getName() ?? '';
     $isHome = str_starts_with($routeName, 'portal.dashboard');
     $isBuyData = str_starts_with($routeName, 'portal.packages') || str_starts_with($routeName, 'portal.payments');
@@ -20,8 +22,16 @@
     $sidebarName = $user->name && $user->name !== $user->phone_number && ! str_contains($user->name, '@')
         ? explode(' ', trim($user->name))[0]
         : (($user->phone_number ?? '') ?: 'User');
+    $connectedCacheSeconds = (int) config('tesnet.portal_connected_cache_seconds', 15);
     $isConnected = $user->phone_number
-        ? RadAcct::query()->active()->where('username', $user->phone_number)->exists()
+        ? Cache::remember(
+            'portal_connected:'.$user->id,
+            $connectedCacheSeconds,
+            fn () => RadAcct::query()
+                ->active()
+                ->whereIn('username', PackageUsage::usernameVariantsFor($user->phone_number))
+                ->exists()
+        )
         : false;
     $navActive = 'flex items-center gap-3 px-4 py-3 rounded-lg font-label-sm text-label-sm text-primary dark:text-primary-fixed-dim font-bold border-r-4 border-primary dark:border-primary-fixed-dim bg-primary-container/20 dark:bg-primary-container/10';
     $navIdle = 'flex items-center gap-3 px-4 py-3 rounded-lg font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant border-r-4 border-transparent hover:bg-surface-container-highest dark:hover:bg-surface-variant/30';

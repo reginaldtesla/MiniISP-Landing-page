@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Portal;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\PackageQuotaService;
+use App\Support\PackageUsage;
 use App\Support\PaystackCustomerEmail;
 use App\Support\PhoneNumber;
 use App\Support\PortalStatus;
@@ -132,11 +133,21 @@ class AuthController extends Controller
                 ->withErrors(['wifi' => 'Please log out and log in again to connect (session credentials expired).']);
         }
 
-        $activePurchase = $quota->syncForUser($user);
+        $activePurchase = $quota->syncForUser($user, force: true);
 
         if (! $activePurchase) {
             return redirect()->route('portal.packages')
-                ->withErrors(['wifi' => 'Purchase a data package before connecting to Wi‑Fi.']);
+                ->withErrors(['wifi' => 'Your data is used up or no active plan. Buy a new package to connect.']);
+        }
+
+        $remaining = PackageUsage::bytesRemaining($activePurchase, $user->phone_number) ?? 0;
+
+        if ($remaining < 1) {
+            $activePurchase->update(['status' => 'depleted']);
+            $quota->syncForUser($user, force: true);
+
+            return redirect()->route('portal.packages')
+                ->withErrors(['wifi' => 'Your data is used up. Buy a new package to connect.']);
         }
 
         return view('portal.auth.hotspot-login', [

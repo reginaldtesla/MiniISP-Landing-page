@@ -11,6 +11,7 @@ return [
         'user' => env('MIKROTIK_API_USER', 'admin'),
         'password' => env('MIKROTIK_API_PASSWORD', ''),
         'ssl' => env('MIKROTIK_API_SSL', false),
+        'timeout' => (int) env('MIKROTIK_API_TIMEOUT', 2),
     ],
 
 ];

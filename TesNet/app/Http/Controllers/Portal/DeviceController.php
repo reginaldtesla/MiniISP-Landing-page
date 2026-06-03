@@ -41,7 +41,7 @@ class DeviceController extends Controller
         $result = $disconnect->forceDisconnect($session);
 
         if ($result->succeeded()) {
-            $quota->syncForUser($request->user());
+            $quota->syncForUser($request->user(), force: true);
 
             return back()->with('status', $result->userMessage('Device disconnected. You can connect again from the dashboard.'));
         }

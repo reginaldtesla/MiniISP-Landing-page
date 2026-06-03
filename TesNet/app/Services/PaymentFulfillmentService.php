@@ -63,7 +63,7 @@ class PaymentFulfillmentService
                     'status' => 'active',
                 ]);
 
-                $this->quota->syncForUser($user);
+                $this->quota->syncForUser($user, force: true);
             }
 
             if ($locked->type === 'custom_data') {
@@ -91,7 +91,7 @@ class PaymentFulfillmentService
                     'status' => 'active',
                 ]);
 
-                $this->quota->syncForUser($user);
+                $this->quota->syncForUser($user, force: true);
             }
 
             return $locked->fresh();
