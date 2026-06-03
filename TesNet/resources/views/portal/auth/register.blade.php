@@ -7,7 +7,7 @@
     <h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary dark:text-primary-fixed-dim font-bold mb-2">Create Account</h1>
     <p class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant mb-2">Register with your Ghana mobile number.</p>
     <p class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant mb-6">One phone number = one personal account. Do not share your password. Only one device can be online at a time.</p>
-    <form method="POST" action="{{ url('/portal/register') }}" class="space-y-4">
+    <form method="POST" action="{{ route('portal.register') }}" class="space-y-4">
         @csrf
         <div>
             <label for="phone_number" class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant block mb-1">Phone Number</label>

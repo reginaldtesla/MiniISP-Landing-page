@@ -334,6 +334,8 @@ DB_PASSWORD=STRONG_DB_PASSWORD
 
 SESSION_DRIVER=database
 SESSION_ENCRYPT=true
+SESSION_SECURE_COOKIE=false
+TRUST_PROXIES=false
 PORTAL_USE_OFFLINE_ASSETS=true
 LOG_CHANNEL=daily
 
@@ -1107,6 +1109,7 @@ See also [`docs/PRODUCTION_CHECKLIST.md`](PRODUCTION_CHECKLIST.md).
 | FreeRADIUS won’t start | `sudo freeradius -CX`; SQL password; `mods-enabled/sql` |
 | Everything dead after power cut | UPS next time; §11.4; `systemctl start mariadb freeradius apache2` |
 | Works until ProBook reboots | §A.10 `systemctl enable`; §A.11 disable sleep |
+| **419 Page Expired** after login | `APP_URL` must match the URL in the browser (same host for GET + POST). For `http://192.168.88.2` set `SESSION_SECURE_COOKIE=false`. For ngrok set `APP_URL=https://….ngrok-free.app`, `SESSION_SECURE_COOKIE=true`, `TRUST_PROXIES=true`, then `php artisan optimize:clear`. Ensure `sessions` table exists (`php artisan migrate`). Fix `storage` permissions (§A.8). Hard-refresh login page (Ctrl+F5). |
 
 **Useful commands:**
 

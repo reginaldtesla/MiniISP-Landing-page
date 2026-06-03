@@ -58,6 +58,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Trusted proxies (ngrok, Cloudflare Tunnel, reverse proxy)
+    |--------------------------------------------------------------------------
+    |
+    | Set TRUST_PROXIES=true when students reach the app through a tunnel or
+    | proxy so sessions and CSRF use the correct HTTPS host.
+    |
+    */
+
+    'trust_proxies' => (bool) env('TRUST_PROXIES', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

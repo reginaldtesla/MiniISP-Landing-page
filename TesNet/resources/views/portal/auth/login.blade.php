@@ -7,7 +7,7 @@
     <h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary dark:text-primary-fixed-dim font-bold mb-2">Student Login</h1>
     <p class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant mb-2">Sign in with your phone number and password.</p>
     <p class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant mb-6">Your account is for you only. Signing in here signs out other browsers and disconnects other devices using your data.</p>
-    <form method="POST" action="{{ url('/portal/login') }}" class="space-y-4">
+    <form method="POST" action="{{ route('portal.login') }}" class="space-y-4">
         @csrf
         <div>
             <label for="phone_number" class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant block mb-1">Phone Number</label>

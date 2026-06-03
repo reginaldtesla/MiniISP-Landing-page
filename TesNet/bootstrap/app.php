@@ -17,6 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        if (filter_var(env('TRUST_PROXIES', false), FILTER_VALIDATE_BOOL)) {
+            $middleware->trustProxies(at: '*');
+        }
+
         $middleware->alias([
             'admin' => EnsureAdmin::class,
             'student' => EnsureStudent::class,
