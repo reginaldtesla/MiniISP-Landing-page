@@ -68,7 +68,10 @@ class PackageQuotaService
 
         if ($remaining < 1) {
             if ($purchase->status === 'active') {
-                $purchase->update(['status' => 'depleted']);
+                $purchase->update([
+                    'status' => 'depleted',
+                    'last_radius_limit_bytes' => 0,
+                ]);
             }
 
             $this->blockDataAccess($user);
@@ -79,6 +82,7 @@ class PackageQuotaService
 
         $this->radius->setHotspotDataAllowed($user, true);
         $this->radius->applyDataLimitBytes($user, $purchase->speed_mbps, $remaining);
+        PackageUsage::recordLastRadiusLimitBytes($purchase, $remaining);
 
         return $purchase;
     }

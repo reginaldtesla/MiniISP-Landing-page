@@ -4,7 +4,6 @@ namespace App\Support;
 
 use App\Models\PackagePurchase;
 use App\Models\RadAcct;
-use App\Models\RadReply;
 use App\Models\User;
 use App\Services\MikrotikApiService;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +14,8 @@ use Throwable;
 class PackageUsage
 {
     protected static ?bool $hasBytesConsumedColumn = null;
+
+    protected static ?bool $hasLastRadiusLimitColumn = null;
 
     protected static bool $queryMikrotik = true;
 
@@ -61,6 +62,9 @@ class PackageUsage
 
     public static function refreshConsumption(PackagePurchase $purchase, ?string $phoneNumber): int
     {
+        self::accountForCompletedSessionChunk($purchase, $phoneNumber);
+        self::markExhaustedIfRouterQuotaHit($purchase, $phoneNumber);
+
         $measured = self::measureBytesUsed($purchase, $phoneNumber);
 
         if (! self::tracksBytesConsumed()) {
@@ -158,7 +162,6 @@ class PackageUsage
         $sources = [
             $stored,
             self::bytesFromRadAcct($purchase, $phoneNumber),
-            self::bytesFromRadReply($phoneNumber, $purchase),
         ];
 
         if (self::$queryMikrotik) {
@@ -166,6 +169,112 @@ class PackageUsage
         }
 
         return max(...$sources);
+    }
+
+    /**
+     * MikroTik applies Mikrotik-Total-Limit per hotspot session. When that session ends,
+     * radacct often misses the last chunk — credit the last RADIUS cap if the user is offline.
+     */
+    public static function accountForCompletedSessionChunk(PackagePurchase $purchase, ?string $phoneNumber): void
+    {
+        if (! $phoneNumber || ! self::tracksBytesConsumed() || ! self::tracksLastRadiusLimitColumn()) {
+            return;
+        }
+
+        $lastChunk = (int) ($purchase->last_radius_limit_bytes ?? 0);
+
+        if ($lastChunk < 1 || self::userHasActiveSession($phoneNumber)) {
+            return;
+        }
+
+        $limit = self::dataLimitBytesFor($purchase);
+
+        if ($limit < 1) {
+            return;
+        }
+
+        $radSum = self::bytesFromRadAcct($purchase, $phoneNumber);
+        $newConsumed = min($limit, max((int) $purchase->bytes_consumed, $radSum + $lastChunk));
+
+        if ($newConsumed <= (int) $purchase->bytes_consumed) {
+            return;
+        }
+
+        $updates = [
+            'bytes_consumed' => $newConsumed,
+            'last_radius_limit_bytes' => 0,
+        ];
+
+        if ($newConsumed >= $limit) {
+            $updates['status'] = 'depleted';
+        }
+
+        $purchase->update($updates);
+        $purchase->bytes_consumed = $newConsumed;
+        $purchase->last_radius_limit_bytes = 0;
+    }
+
+    public static function markExhaustedIfRouterQuotaHit(PackagePurchase $purchase, ?string $phoneNumber): void
+    {
+        if (! $phoneNumber || ! self::$queryMikrotik || PackageValidity::isUnlimited($purchase)) {
+            return;
+        }
+
+        $limit = self::dataLimitBytesFor($purchase);
+
+        if ($limit < 1) {
+            return;
+        }
+
+        try {
+            if (! app(MikrotikApiService::class)->hotspotQuotaExhausted($phoneNumber)) {
+                return;
+            }
+        } catch (Throwable) {
+            return;
+        }
+
+        $purchase->update([
+            'bytes_consumed' => $limit,
+            'last_radius_limit_bytes' => 0,
+            'status' => 'depleted',
+        ]);
+        $purchase->bytes_consumed = $limit;
+        $purchase->last_radius_limit_bytes = 0;
+        $purchase->status = 'depleted';
+    }
+
+    public static function userHasActiveSession(?string $phoneNumber): bool
+    {
+        if (! $phoneNumber) {
+            return false;
+        }
+
+        $variants = self::usernameLookupVariants($phoneNumber);
+
+        if (RadAcct::query()->active()->whereIn('username', $variants)->exists()) {
+            return true;
+        }
+
+        if (self::$queryMikrotik) {
+            try {
+                return app(MikrotikApiService::class)->peakActiveSessionBytes($phoneNumber) > 0;
+            } catch (Throwable) {
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    public static function recordLastRadiusLimitBytes(PackagePurchase $purchase, int $limitBytes): void
+    {
+        if (! self::tracksLastRadiusLimitColumn() || $limitBytes < 1) {
+            return;
+        }
+
+        $purchase->update(['last_radius_limit_bytes' => $limitBytes]);
+        $purchase->last_radius_limit_bytes = $limitBytes;
     }
 
     public static function isQuotaExhausted(PackagePurchase $purchase, ?string $phoneNumber): bool
@@ -282,34 +391,6 @@ class PackageUsage
         return self::usernameLookupVariants($phoneNumber);
     }
 
-    protected static function bytesFromRadReply(string $phoneNumber, PackagePurchase $purchase): int
-    {
-        $limitBytes = self::dataLimitBytesFor($purchase);
-
-        if ($limitBytes < 1) {
-            return 0;
-        }
-
-        foreach (self::usernameLookupVariants($phoneNumber) as $username) {
-            $replyLimit = RadReply::query()
-                ->where('username', $username)
-                ->where('attribute', 'Mikrotik-Total-Limit')
-                ->value('value');
-
-            if ($replyLimit === null) {
-                continue;
-            }
-
-            $remaining = (int) $replyLimit;
-
-            if ($remaining > 0 && $remaining < $limitBytes) {
-                return $limitBytes - $remaining;
-            }
-        }
-
-        return 0;
-    }
-
     protected static function bytesFromRadAcct(PackagePurchase $purchase, string $phoneNumber): int
     {
         try {
@@ -384,6 +465,15 @@ class PackageUsage
         }
 
         return self::$hasBytesConsumedColumn;
+    }
+
+    protected static function tracksLastRadiusLimitColumn(): bool
+    {
+        if (self::$hasLastRadiusLimitColumn === null) {
+            self::$hasLastRadiusLimitColumn = Schema::hasColumn('package_purchases', 'last_radius_limit_bytes');
+        }
+
+        return self::$hasLastRadiusLimitColumn;
     }
 
     /**

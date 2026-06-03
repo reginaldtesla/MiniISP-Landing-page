@@ -17,6 +17,7 @@ class PackagePurchase extends Model
         'data_limit_mb',
         'data_limit_bytes',
         'bytes_consumed',
+        'last_radius_limit_bytes',
         'speed_mbps',
         'validity_type',
         'activated_at',
@@ -32,6 +33,7 @@ class PackagePurchase extends Model
             'data_limit_mb' => 'integer',
             'data_limit_bytes' => 'integer',
             'bytes_consumed' => 'integer',
+            'last_radius_limit_bytes' => 'integer',
             'speed_mbps' => 'integer',
         ];
     }
