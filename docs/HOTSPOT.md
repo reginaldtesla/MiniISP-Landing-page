@@ -38,6 +38,15 @@ Legacy files in the repo (`login.html`, `TesNet/login.html`, `flash/hotspot/logi
 - Laravel writes `radcheck` (Cleartext-Password, Simultaneous-Use) and `radreply` (rate limits, `Mikrotik-Total-Limit`) via `RadiusSyncService`. **`Mikrotik-Total-Limit` is refreshed to remaining bytes** on dashboard load and before **Connect to Internet** (`PackageQuotaService`).
 - Dashboard usage uses **`radacct` + `package_purchases.bytes_consumed` + MikroTik API** (`MIKROTIK_API_ENABLED=true`) so the home page matches the router when accounting SQL lags.
 - Hotspot profile must have **`radius-accounting=yes`** so `radacct` fills in MariaDB.
+
+## When a package runs out
+
+1. Cron / **Connect** marks the purchase **depleted** and kicks the student off hotspot (**`MIKROTIK_API_ENABLED=true`** required for automatic kick).
+2. The phone should show **Sign in to network** again → MikroTik **`login.html`** must redirect to **`/portal/login`** (use `TesNet/mikrotik/login.html`, not the legacy voucher page in `TesNet/login.html`).
+3. Student signs in on the portal and buys a new package under **Buy Data**.
+4. **Connect to Internet** applies the new quota — do **not** rely on `Auth-Type Reject` for quota (only for suspended accounts); reject blocks the captive-portal flow.
+
+If students stay online after data ends, upload the redirect `login.html` and enable the MikroTik API on the ProBook.
 - MikroTik hotspot uses RADIUS for authentication; usernames are **normalized phone numbers** (`233551234567`).
 
 ## Announcements

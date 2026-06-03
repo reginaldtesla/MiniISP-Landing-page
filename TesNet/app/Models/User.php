@@ -69,7 +69,7 @@ class User extends Authenticatable
 
     public function hasActiveDataPlan(): bool
     {
-        return PackageUsage::activePurchaseFor($this) !== null;
+        return PackageUsage::activePurchaseForDisplay($this) !== null;
     }
 
     public function tickets(): HasMany

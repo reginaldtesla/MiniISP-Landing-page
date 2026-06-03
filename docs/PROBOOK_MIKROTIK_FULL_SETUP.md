@@ -560,6 +560,9 @@ Typical hAP²: **ether1 = WAN**, **ether2–ether5 + wlan1 = LAN bridge**.
 
 ### B.6 Custom `login.html` (auto-open TesNet portal)
 
+**Use the redirect file in the repo:** `TesNet/mikrotik/login.html` (points to `/portal/login`).  
+**Do not** upload the old voucher UI from `TesNet/login.html` — students will not reach the Laravel portal to buy again.
+
 **Winbox → Files → folder `hotspot`** → upload or edit **`login.html`**:
 
 **LAN portal (ProBook at `192.168.88.2`):**

@@ -101,6 +101,13 @@ class AuthController extends Controller
             $request->session()->regenerate();
             $this->storeWifiPassword($request, (string) $request->input('password'));
 
+            $user = $request->user();
+
+            if (! $user->hasActiveDataPlan()) {
+                return redirect()->route('portal.packages')
+                    ->with('status', 'Your data is used up or you have no active plan. Choose a package to continue.');
+            }
+
             return redirect()->intended(route('portal.dashboard'));
         }
 

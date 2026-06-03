@@ -16,6 +16,7 @@ class PackageQuotaService
     public function __construct(
         protected RadiusSyncService $radius,
         protected SessionDisconnectService $disconnect,
+        protected MikrotikApiService $mikrotik,
     ) {}
 
     /**
@@ -85,8 +86,13 @@ class PackageQuotaService
     protected function blockDataAccess(User $user): void
     {
         try {
-            $this->radius->setHotspotDataAllowed($user, false);
+            // Do not use Auth-Type Reject — that blocks login and hides the captive portal.
+            // Kick hotspot sessions so the phone shows "Sign in" → login.html → TesNet portal.
+            $this->radius->setHotspotDataAllowed($user, true);
             $this->radius->applyDataLimitBytes($user, null, 1);
+            $this->disconnectActiveSessions($user);
+            $this->kickAllHotspotSessions($user);
+            Cache::forget('portal_connected:'.$user->id);
         } catch (Throwable $exception) {
             Log::warning('Could not block RADIUS data access', [
                 'user_id' => $user->id,
@@ -114,6 +120,24 @@ class PackageQuotaService
                 ->each(fn (RadAcct $session) => $this->disconnect->forceDisconnect($session));
         } catch (Throwable $exception) {
             Log::warning('Could not disconnect active sessions', [
+                'user_id' => $user->id,
+                'error' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    protected function kickAllHotspotSessions(User $user): void
+    {
+        if (! $this->mikrotik->isEnabled() || ! $user->phone_number) {
+            return;
+        }
+
+        try {
+            foreach (PackageUsage::usernameVariantsFor($user->phone_number) as $username) {
+                $this->mikrotik->disconnectHotspotUser($username);
+            }
+        } catch (Throwable $exception) {
+            Log::warning('Could not kick MikroTik hotspot sessions', [
                 'user_id' => $user->id,
                 'error' => $exception->getMessage(),
             ]);
