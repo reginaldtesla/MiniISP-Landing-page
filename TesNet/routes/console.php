@@ -20,6 +20,6 @@ Schedule::command('tesnet:monitor')
     ->appendOutputTo(storage_path('logs/monitor.log'));
 
 Schedule::command('tesnet:sync-package-usage')
-    ->everyFiveMinutes()
+    ->everyMinute()
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/package-usage.log'));
