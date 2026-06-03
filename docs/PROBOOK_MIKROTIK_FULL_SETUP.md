@@ -662,7 +662,27 @@ Verify — only a handful of rows:
 /ip hotspot user remove [find name!="admin"]
 ```
 
-Students auth via **RADIUS only** (`radcheck`), not `/ip hotspot user` entries.
+Students use **phone** in `radcheck` for portal registration. **Data sessions** use per-purchase users **`tn-{purchase_id}`** created by Laravel (Model A) — see below.
+
+#### Step 3b — Hotspot profiles for Model A (per-purchase users)
+
+Run once on the router (adjust rate limits to match your packages):
+
+```routeros
+/ip hotspot user profile add name=tesnet-pkg rate-limit=60M/60M shared-users=1
+/ip hotspot user profile add name=tesnet-custom rate-limit=60M/60M shared-users=1
+```
+
+Laravel (`TESNET_PER_PURCHASE_HOTSPOT=true`) creates users like `tn-42` with `profile=tesnet-pkg`, `limit-bytes-total` from the package, and `comment=055… · 1 Cedi`. Do **not** delete `tn-*` users while they are active; weekly cleanup is done by `tesnet:cleanup-hotspot-users` on the ProBook.
+
+Ensure `.env` on the ProBook:
+
+```env
+TESNET_PER_PURCHASE_HOTSPOT=true
+MIKROTIK_API_ENABLED=true
+TESNET_HOTSPOT_PROFILE_PACKAGE=tesnet-pkg
+TESNET_HOTSPOT_PROFILE_CUSTOM=tesnet-custom
+```
 
 #### Step 4 — Remove bypass bindings
 

@@ -7,6 +7,7 @@ use App\Models\DataPackage;
 use App\Models\PackagePurchase;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Support\HotspotIdentity;
 use App\Support\PackageValidity;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -15,7 +16,7 @@ class PaymentFulfillmentService
 {
     public function __construct(
         protected PackageQuotaService $quota,
-        protected MikrotikApiService $mikrotik,
+        protected HotspotPurchaseService $hotspotPurchase,
     ) {}
 
     public function fulfill(Transaction $transaction, array $paystackData): Transaction
@@ -83,12 +84,16 @@ class PaymentFulfillmentService
      */
     protected function activatePackagePurchase(User $user, Transaction $transaction, array $attributes): void
     {
+        if (HotspotIdentity::perPurchaseEnabled()) {
+            $this->hotspotPurchase->retireActivePurchasesFor($user);
+        }
+
         PackagePurchase::query()
             ->where('user_id', $user->id)
             ->where('status', 'active')
             ->update(['status' => 'superseded']);
 
-        PackagePurchase::query()->create([
+        $purchase = PackagePurchase::query()->create([
             'user_id' => $user->id,
             'transaction_id' => $transaction->id,
             'activated_at' => now(),
@@ -98,13 +103,13 @@ class PaymentFulfillmentService
             ...$attributes,
         ]);
 
-        if ($user->phone_number) {
-            try {
-                $this->mikrotik->resetHotspotUsageForUser($user->phone_number);
-            } catch (\Throwable $exception) {
-                Log::warning('Could not reset MikroTik counters after purchase', [
+        if (HotspotIdentity::perPurchaseEnabled()) {
+            $purchase = $this->hotspotPurchase->assignIdentity($purchase, $user);
+
+            if (! $this->hotspotPurchase->provision($purchase, $user)) {
+                Log::error('Per-purchase MikroTik provision failed after payment', [
                     'user_id' => $user->id,
-                    'error' => $exception->getMessage(),
+                    'purchase_id' => $purchase->id,
                 ]);
             }
         }

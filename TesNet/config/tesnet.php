@@ -69,4 +69,25 @@ return [
 
     'portal_connected_cache_seconds' => (int) env('TESNET_PORTAL_CONNECTED_CACHE', 15),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Per-purchase MikroTik hotspot users (Model A)
+    |--------------------------------------------------------------------------
+    |
+    | Each payment gets a hidden tn-{purchase_id} hotspot user with its own
+    | byte counter. Students still log into the portal with their phone number.
+    |
+    */
+
+    'per_purchase_hotspot' => env('TESNET_PER_PURCHASE_HOTSPOT', true),
+
+    'hotspot_shared_users' => (int) env('TESNET_HOTSPOT_SHARED_USERS', 1),
+
+    'hotspot_cleanup_days' => (int) env('TESNET_HOTSPOT_CLEANUP_DAYS', 30),
+
+    'hotspot_profiles' => [
+        'package' => env('TESNET_HOTSPOT_PROFILE_PACKAGE', 'tesnet-pkg'),
+        'custom' => env('TESNET_HOTSPOT_PROFILE_CUSTOM', 'tesnet-custom'),
+    ],
+
 ];

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PortalNotification;
 use App\Models\RadAcct;
 use App\Models\User;
+use App\Support\HotspotIdentity;
 use App\Support\PackageUsage;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -23,6 +24,11 @@ class DashboardController extends Controller
             ? PackageUsage::usernameVariantsFor($user->phone_number)
             : [];
 
+        if ($activePackage?->mikrotik_username) {
+            $usernames[] = $activePackage->mikrotik_username;
+            $usernames = array_values(array_unique($usernames));
+        }
+
         $activeSessions = $usernames === []
             ? collect()
             : RadAcct::query()
@@ -39,8 +45,12 @@ class DashboardController extends Controller
             ? PackageUsage::dataLimitBytesFor($activePackage)
             : 0;
 
+        $usageUser = $activePackage
+            ? HotspotIdentity::usageUsernameFor($user, $activePackage)
+            : null;
+
         $bytesRemaining = $activePackage && ! $isUnlimitedData
-            ? PackageUsage::bytesRemainingForDisplay($activePackage, $user->phone_number)
+            ? PackageUsage::bytesRemainingForDisplay($activePackage, $usageUser)
             : null;
 
         if ($isUnlimitedData) {

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\PackagePurchase;
 use App\Models\RadAcct;
 use App\Models\User;
+use App\Support\HotspotIdentity;
 use App\Support\PackageUsage;
 use App\Support\PackageValidity;
 use Illuminate\Support\Facades\Cache;
@@ -17,6 +18,7 @@ class PackageQuotaService
         protected RadiusSyncService $radius,
         protected SessionDisconnectService $disconnect,
         protected MikrotikApiService $mikrotik,
+        protected HotspotPurchaseService $hotspotPurchase,
     ) {}
 
     /**
@@ -57,6 +59,10 @@ class PackageQuotaService
             return null;
         }
 
+        if (HotspotIdentity::usesPerPurchase($purchase)) {
+            return $this->performSyncPerPurchase($user, $purchase);
+        }
+
         if (PackageValidity::isUnlimited($purchase)) {
             $this->radius->setHotspotDataAllowed($user, true);
             $this->radius->applyDataLimitBytes($user, $purchase->speed_mbps, 0);
@@ -87,11 +93,40 @@ class PackageQuotaService
         return $purchase;
     }
 
+    protected function performSyncPerPurchase(User $user, PackagePurchase $purchase): ?PackagePurchase
+    {
+        $usageUser = HotspotIdentity::usageUsernameFor($user, $purchase);
+
+        if (PackageValidity::isUnlimited($purchase)) {
+            $this->radius->clearHotspotDataLimits($user);
+            $this->radius->setHotspotDataAllowed($user, true);
+            $this->hotspotPurchase->ensureProvisioned($purchase, $user);
+
+            return $purchase;
+        }
+
+        $remaining = PackageUsage::bytesRemaining($purchase, $usageUser) ?? 0;
+
+        if ($remaining < 1) {
+            PackageUsage::markDepleted($purchase);
+            $this->disconnectPurchaseSessions($purchase, $usageUser);
+            $this->radius->clearHotspotDataLimits($user);
+            Cache::forget('portal_connected:'.$user->id);
+
+            return null;
+        }
+
+        $this->radius->clearHotspotDataLimits($user);
+        $this->radius->setHotspotDataAllowed($user, true);
+        $this->hotspotPurchase->ensureProvisioned($purchase, $user);
+
+        return $purchase->fresh();
+    }
+
     protected function blockDataAccess(User $user): void
     {
         try {
-            // Do not use Auth-Type Reject — that blocks login and hides the captive portal.
-            // Kick hotspot sessions so the phone shows "Sign in" → login.html → TesNet portal.
+            $this->radius->clearHotspotDataLimits($user);
             $this->radius->setHotspotDataAllowed($user, true);
             $this->radius->applyDataLimitBytes($user, null, 1);
             $this->disconnectActiveSessions($user);
@@ -116,15 +151,44 @@ class PackageQuotaService
         try {
             $usernames = PackageUsage::usernameVariantsFor($phone);
 
+            $activePurchase = PackageUsage::activePurchaseForDisplay($user);
+
+            if ($activePurchase?->mikrotik_username) {
+                $usernames[] = $activePurchase->mikrotik_username;
+            }
+
             RadAcct::query()
                 ->active()
-                ->whereIn('username', $usernames)
+                ->whereIn('username', array_unique($usernames))
                 ->orderByDesc('acctstarttime')
                 ->get()
                 ->each(fn (RadAcct $session) => $this->disconnect->forceDisconnect($session));
         } catch (Throwable $exception) {
             Log::warning('Could not disconnect active sessions', [
                 'user_id' => $user->id,
+                'error' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    protected function disconnectPurchaseSessions(PackagePurchase $purchase, ?string $usageUser): void
+    {
+        if (! $usageUser) {
+            return;
+        }
+
+        try {
+            RadAcct::query()
+                ->active()
+                ->whereIn('username', PackageUsage::usernameVariantsFor($usageUser))
+                ->orderByDesc('acctstarttime')
+                ->get()
+                ->each(fn (RadAcct $session) => $this->disconnect->forceDisconnect($session));
+
+            $this->mikrotik->disconnectHotspotUser($usageUser);
+        } catch (Throwable $exception) {
+            Log::warning('Could not disconnect purchase hotspot sessions', [
+                'purchase_id' => $purchase->id,
                 'error' => $exception->getMessage(),
             ]);
         }
@@ -139,6 +203,12 @@ class PackageQuotaService
         try {
             foreach (PackageUsage::usernameVariantsFor($user->phone_number) as $username) {
                 $this->mikrotik->disconnectHotspotUser($username);
+            }
+
+            $purchase = PackageUsage::activePurchaseForDisplay($user);
+
+            if ($purchase?->mikrotik_username) {
+                $this->mikrotik->disconnectHotspotUser($purchase->mikrotik_username);
             }
         } catch (Throwable $exception) {
             Log::warning('Could not kick MikroTik hotspot sessions', [

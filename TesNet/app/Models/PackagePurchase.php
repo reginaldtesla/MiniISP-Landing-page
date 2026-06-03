@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\HotspotIdentity;
 use App\Support\PackageUsage;
 use App\Support\PackageValidity;
 use Illuminate\Database\Eloquent\Model;
@@ -23,6 +24,14 @@ class PackagePurchase extends Model
         'activated_at',
         'expires_at',
         'status',
+        'mikrotik_username',
+        'mikrotik_password',
+        'mikrotik_profile',
+        'mikrotik_synced_at',
+    ];
+
+    protected $hidden = [
+        'mikrotik_password',
     ];
 
     protected function casts(): array
@@ -35,7 +44,21 @@ class PackagePurchase extends Model
             'bytes_consumed' => 'integer',
             'last_radius_limit_bytes' => 'integer',
             'speed_mbps' => 'integer',
+            'mikrotik_password' => 'encrypted',
+            'mikrotik_synced_at' => 'datetime',
         ];
+    }
+
+    public function usesPerPurchaseHotspot(): bool
+    {
+        return HotspotIdentity::usesPerPurchase($this);
+    }
+
+    public function hotspotLoginPassword(): ?string
+    {
+        $password = $this->mikrotik_password;
+
+        return is_string($password) && $password !== '' ? $password : null;
     }
 
     public function user(): BelongsTo
@@ -66,7 +89,10 @@ class PackagePurchase extends Model
             ? $this->user?->phone_number
             : $this->user()->value('phone_number');
 
-        return PackageUsage::hasDataRemaining($this, $phone);
+        return PackageUsage::hasDataRemaining(
+            $this,
+            HotspotIdentity::usageUsername($this, $phone)
+        );
     }
 
     public function validityLabel(): string

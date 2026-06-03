@@ -23,3 +23,8 @@ Schedule::command('tesnet:sync-package-usage')
     ->everyMinute()
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/package-usage.log'));
+
+Schedule::command('tesnet:cleanup-hotspot-users')
+    ->weeklyOn(0, '03:00')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/hotspot-cleanup.log'));

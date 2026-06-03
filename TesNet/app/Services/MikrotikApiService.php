@@ -262,8 +262,136 @@ class MikrotikApiService
     /**
      * @return array<int, string>
      */
+    public function upsertHotspotUser(
+        string $name,
+        string $password,
+        string $profile,
+        int $limitBytes,
+        ?string $comment = null,
+        ?int $limitUptimeSeconds = null,
+    ): bool {
+        if (! $this->isEnabled() || ! $this->connect()) {
+            return false;
+        }
+
+        try {
+            $existingId = null;
+
+            foreach ($this->command('/ip/hotspot/user/print', ['?name' => $name]) as $row) {
+                if (isset($row['!type']) || ! isset($row['.id'])) {
+                    continue;
+                }
+
+                $existingId = $row['.id'];
+                break;
+            }
+
+            $arguments = [
+                'name' => $name,
+                'password' => $password,
+                'profile' => $profile,
+                'disabled' => 'no',
+                'comment' => $comment ?? '',
+            ];
+
+            if ($limitBytes > 0) {
+                $arguments['limit-bytes-total'] = (string) $limitBytes;
+            }
+
+            if ($limitUptimeSeconds !== null && $limitUptimeSeconds > 0) {
+                $arguments['limit-uptime'] = (string) $limitUptimeSeconds.'s';
+            }
+
+            if ($existingId !== null) {
+                $arguments['.id'] = $existingId;
+                $response = $this->command('/ip/hotspot/user/set', $arguments);
+            } else {
+                $response = $this->command('/ip/hotspot/user/add', $arguments);
+            }
+
+            unset(self::$hotspotUsageCache[$name]);
+
+            return ! $this->responseFailed($response);
+        } catch (\Throwable $exception) {
+            Log::warning('MikroTik hotspot user upsert failed', [
+                'name' => $name,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return false;
+        } finally {
+            $this->disconnect();
+        }
+    }
+
+    public function setHotspotUserDisabled(string $name, bool $disabled = true): bool
+    {
+        if (! $this->isEnabled() || ! $this->connect()) {
+            return false;
+        }
+
+        try {
+            foreach ($this->command('/ip/hotspot/user/print', ['?name' => $name]) as $row) {
+                if (isset($row['!type']) || ! isset($row['.id'])) {
+                    continue;
+                }
+
+                $response = $this->command('/ip/hotspot/user/set', [
+                    '.id' => $row['.id'],
+                    'disabled' => $disabled ? 'yes' : 'no',
+                ]);
+
+                unset(self::$hotspotUsageCache[$name]);
+
+                return ! $this->responseFailed($response);
+            }
+
+            return false;
+        } catch (\Throwable $exception) {
+            Log::warning('MikroTik hotspot user disable failed', [
+                'name' => $name,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return false;
+        } finally {
+            $this->disconnect();
+        }
+    }
+
+    public function removeHotspotUser(string $name): void
+    {
+        $this->disconnectHotspotUser($name);
+
+        if (! $this->isEnabled() || ! $this->connect()) {
+            return;
+        }
+
+        try {
+            foreach ($this->command('/ip/hotspot/user/print', ['?name' => $name]) as $row) {
+                if (isset($row['!type']) || ! isset($row['.id'])) {
+                    continue;
+                }
+
+                $this->command('/ip/hotspot/user/remove', ['.id' => $row['.id']]);
+            }
+        } catch (\Throwable $exception) {
+            Log::warning('MikroTik hotspot user remove failed', [
+                'name' => $name,
+                'error' => $exception->getMessage(),
+            ]);
+        } finally {
+            $this->disconnect();
+            unset(self::$hotspotUsageCache[$name]);
+        }
+    }
+
     protected function usernameLookupVariants(string $username): array
     {
+        if (str_starts_with($username, 'tn-')) {
+            return [$username];
+        }
+
         $variants = array_filter([$username, PhoneNumber::normalize($username)]);
 
         foreach ($variants as $variant) {

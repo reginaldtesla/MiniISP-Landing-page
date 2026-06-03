@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\PackagePurchase;
 use App\Models\RadCheck;
 use App\Models\RadReply;
 use App\Models\User;
+use App\Support\PackageUsage;
 
 class RadiusSyncService
 {
@@ -94,6 +96,72 @@ class RadiusSyncService
     public function removeUser(User $user): void
     {
         $username = $user->phone_number;
+
+        RadCheck::query()->where('username', $username)->delete();
+        RadReply::query()->where('username', $username)->delete();
+    }
+
+    public function clearHotspotDataLimits(User $user): void
+    {
+        $username = $user->phone_number;
+
+        if (! $username) {
+            return;
+        }
+
+        RadReply::query()->where('username', $username)->whereIn('attribute', [
+            'Mikrotik-Rate-Limit',
+            'Mikrotik-Total-Limit',
+        ])->delete();
+    }
+
+    /**
+     * RADIUS credentials for a per-purchase hotspot user (tn-{id}).
+     */
+    public function syncPurchaseUser(PackagePurchase $purchase, string $plainPassword): void
+    {
+        $username = $purchase->mikrotik_username;
+
+        if (! $username) {
+            return;
+        }
+
+        $limitBytes = PackageUsage::dataLimitBytesFor($purchase);
+
+        $this->upsertCheck($username, 'Cleartext-Password', ':=', $plainPassword);
+        $this->upsertCheck(
+            $username,
+            'Simultaneous-Use',
+            ':=',
+            (string) config('tesnet.hotspot_shared_users', 1)
+        );
+
+        RadReply::query()->where('username', $username)->whereIn('attribute', [
+            'Mikrotik-Rate-Limit',
+            'Mikrotik-Total-Limit',
+        ])->delete();
+
+        if ($purchase->speed_mbps) {
+            $this->upsertReply(
+                $username,
+                'Mikrotik-Rate-Limit',
+                ':=',
+                $purchase->speed_mbps.'M/'.$purchase->speed_mbps.'M'
+            );
+        }
+
+        if ($limitBytes > 0) {
+            $this->upsertReply($username, 'Mikrotik-Total-Limit', ':=', (string) $limitBytes);
+        }
+    }
+
+    public function removePurchaseUser(PackagePurchase $purchase): void
+    {
+        $username = $purchase->mikrotik_username;
+
+        if (! $username) {
+            return;
+        }
 
         RadCheck::query()->where('username', $username)->delete();
         RadReply::query()->where('username', $username)->delete();

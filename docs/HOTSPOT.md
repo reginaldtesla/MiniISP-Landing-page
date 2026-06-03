@@ -7,7 +7,7 @@ TesNet no longer relies on PHPNuxBill or voucher HTML for day-to-day login. The 
 1. Student associates to Wi‑Fi and gets a hotspot login page from MikroTik.
 2. MikroTik redirects (or links) to **`https://<your-server>/portal/login`** (walled garden must allow this host).
 3. Student signs in with **phone + password** (same credentials synced to FreeRADIUS).
-4. After purchase, **Connect Wi‑Fi** uses `MIKROTIK_LOGIN_URL` with username/password query params (see `AuthController::connectToWifi`).
+4. After purchase, **Connect Wi‑Fi** posts to `MIKROTIK_LOGIN_URL` with a **hidden per-purchase** hotspot username (`tn-{purchase_id}`) and password — students still only know their **phone + portal password** for sign-in.
 
 ## Walled garden
 
@@ -33,10 +33,28 @@ Legacy files in the repo (`login.html`, `TesNet/login.html`, `flash/hotspot/logi
 
 3. Set **`MIKROTIK_LOGIN_URL`** in `.env` to the router’s HTTP login endpoint (e.g. `http://192.168.88.1/login`) used after the student is authorized in RADIUS.
 
+## Per-purchase hotspot users (Model A)
+
+When `TESNET_PER_PURCHASE_HOTSPOT=true` (default):
+
+| Identity | Purpose |
+|----------|---------|
+| Phone + password | Portal login only (`users` table + `radcheck` for registration) |
+| `tn-{purchase_id}` + random password | Hotspot data bucket for **that payment only** |
+
+On Paystack success, Laravel creates `/ip/hotspot/user` **`tn-*`** (via API), syncs matching **`radcheck`/`radreply`**, and disables the previous purchase’s `tn-*` user.
+
+**Router setup (once):** create profiles `tesnet-pkg` and `tesnet-custom` with `shared-users=1` and your rate limits. See `PROBOOK_MIKROTIK_FULL_SETUP.md` § Model A profiles.
+
+**Cron:** `tesnet:cleanup-hotspot-users` weekly removes old `tn-*` users.
+
+Legacy purchases without `mikrotik_username` still use phone-based RADIUS limits until the student buys again.
+
 ## FreeRADIUS
 
-- Laravel writes `radcheck` (Cleartext-Password, Simultaneous-Use) and `radreply` (rate limits, `Mikrotik-Total-Limit`) via `RadiusSyncService`. **`Mikrotik-Total-Limit` is refreshed to remaining bytes** on dashboard load and before **Connect to Internet** (`PackageQuotaService`).
-- Dashboard usage uses **`radacct` + `package_purchases.bytes_consumed` + MikroTik API** (`MIKROTIK_API_ENABLED=true`) so the home page matches the router when accounting SQL lags.
+- Portal accounts: `radcheck` on the **phone** (Cleartext-Password, Simultaneous-Use).
+- Per-purchase data: `radcheck`/`radreply` on **`tn-{id}`** (password, `Mikrotik-Total-Limit`, rate limit).
+- Dashboard usage uses **`radacct` + `package_purchases.bytes_consumed` + MikroTik API** scoped to the active **`tn-*`** username.
 - Hotspot profile must have **`radius-accounting=yes`** so `radacct` fills in MariaDB.
 
 ## When a package runs out
@@ -47,7 +65,7 @@ Legacy files in the repo (`login.html`, `TesNet/login.html`, `flash/hotspot/logi
 4. **Connect to Internet** applies the new quota — do **not** rely on `Auth-Type Reject` for quota (only for suspended accounts); reject blocks the captive-portal flow.
 
 If students stay online after data ends, upload the redirect `login.html` and enable the MikroTik API on the ProBook.
-- MikroTik hotspot uses RADIUS for authentication; usernames are **normalized phone numbers** (`233551234567`).
+- MikroTik hotspot auth for data sessions uses **`tn-{purchase_id}`** (RADIUS + optional local `/ip/hotspot/user` row for byte caps).
 
 ## Announcements
 

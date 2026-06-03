@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\PackagePurchase;
 use App\Models\RadAcct;
 use App\Models\User;
+use App\Services\HotspotPurchaseService;
 use App\Services\MikrotikApiService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -104,11 +105,27 @@ class PackageUsage
             ->get();
 
         foreach ($purchases as $purchase) {
-            self::refreshConsumption($purchase, $phone);
+            $usageUser = HotspotIdentity::usageUsername($purchase, $phone) ?? $phone;
 
-            if (self::isQuotaExhausted($purchase, $phone)) {
-                $purchase->update(['status' => 'depleted']);
+            self::refreshConsumption($purchase, $usageUser);
+
+            if (self::isQuotaExhausted($purchase, $usageUser)) {
+                self::markDepleted($purchase);
             }
+        }
+    }
+
+    public static function markDepleted(PackagePurchase $purchase): void
+    {
+        if ($purchase->status === 'depleted') {
+            return;
+        }
+
+        $purchase->update(['status' => 'depleted', 'last_radius_limit_bytes' => 0]);
+        $purchase->status = 'depleted';
+
+        if (filled($purchase->mikrotik_username)) {
+            app(HotspotPurchaseService::class)->retire($purchase);
         }
     }
 
@@ -118,11 +135,23 @@ class PackageUsage
             return;
         }
 
+        $purchase = PackagePurchase::query()
+            ->where('user_id', $user->id)
+            ->where('status', 'active')
+            ->latest('activated_at')
+            ->first();
+
+        if (! $purchase) {
+            return;
+        }
+
+        $usageUser = HotspotIdentity::usageUsername($purchase, $phoneNumber) ?? $phoneNumber;
+
         try {
-            $usage = app(MikrotikApiService::class)->hotspotDataUsageForUser($phoneNumber);
+            $usage = app(MikrotikApiService::class)->hotspotDataUsageForUser($usageUser);
             $peak = $usage['used'] ?? 0;
 
-            foreach (RadAcct::query()->active()->whereIn('username', self::usernameLookupVariants($phoneNumber))->get() as $session) {
+            foreach (RadAcct::query()->active()->whereIn('username', self::usernameLookupVariants($usageUser))->get() as $session) {
                 $peak = max($peak, $session->totalBytes());
             }
 
@@ -130,17 +159,7 @@ class PackageUsage
                 return;
             }
 
-            $purchase = PackagePurchase::query()
-                ->where('user_id', $user->id)
-                ->where('status', 'active')
-                ->latest('activated_at')
-                ->first();
-
-            if (! $purchase) {
-                return;
-            }
-
-            $radSum = self::bytesFromRadAcct($purchase, $phoneNumber);
+            $radSum = self::bytesFromRadAcct($purchase, $usageUser);
 
             if (self::isFreshPurchase($purchase) && $radSum < 1) {
                 $peak = 0;
@@ -214,7 +233,12 @@ class PackageUsage
         ];
 
         if ($newConsumed >= $limit) {
-            $updates['status'] = 'depleted';
+            $purchase->update($updates);
+            $purchase->bytes_consumed = $newConsumed;
+            $purchase->last_radius_limit_bytes = 0;
+            self::markDepleted($purchase);
+
+            return;
         }
 
         $purchase->update($updates);
@@ -263,11 +287,10 @@ class PackageUsage
         $purchase->update([
             'bytes_consumed' => $limit,
             'last_radius_limit_bytes' => 0,
-            'status' => 'depleted',
         ]);
         $purchase->bytes_consumed = $limit;
         $purchase->last_radius_limit_bytes = 0;
-        $purchase->status = 'depleted';
+        self::markDepleted($purchase);
     }
 
     public static function userHasActiveSession(?string $phoneNumber): bool
@@ -395,10 +418,12 @@ class PackageUsage
                 continue;
             }
 
-            self::refreshConsumption($purchase, $phone);
+            $usageUser = HotspotIdentity::usageUsername($purchase, $phone) ?? $phone;
 
-            if (self::isQuotaExhausted($purchase, $phone) || ! self::hasDataRemaining($purchase, $phone)) {
-                $purchase->update(['status' => 'depleted']);
+            self::refreshConsumption($purchase, $usageUser);
+
+            if (self::isQuotaExhausted($purchase, $usageUser) || ! self::hasDataRemaining($purchase, $usageUser)) {
+                self::markDepleted($purchase);
 
                 continue;
             }
@@ -493,6 +518,10 @@ class PackageUsage
      */
     protected static function usernameLookupVariants(string $phoneNumber): array
     {
+        if (str_starts_with($phoneNumber, 'tn-')) {
+            return [$phoneNumber];
+        }
+
         $variants = array_filter([$phoneNumber, PhoneNumber::normalize($phoneNumber)]);
 
         foreach ($variants as $variant) {

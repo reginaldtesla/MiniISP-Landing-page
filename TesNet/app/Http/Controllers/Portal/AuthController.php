@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Portal;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\PackageQuotaService;
+use App\Support\HotspotIdentity;
 use App\Support\PackageUsage;
 use App\Support\PaystackCustomerEmail;
 use App\Support\PhoneNumber;
@@ -147,14 +148,30 @@ class AuthController extends Controller
                 ->withErrors(['wifi' => 'Your data is used up or no active plan. Buy a new package to connect.']);
         }
 
-        $remaining = PackageUsage::bytesRemaining($activePurchase, $user->phone_number) ?? 0;
+        $usageUser = HotspotIdentity::usageUsernameFor($user, $activePurchase);
+        $remaining = PackageUsage::bytesRemaining($activePurchase, $usageUser) ?? 0;
 
         if ($remaining < 1) {
-            $activePurchase->update(['status' => 'depleted']);
+            PackageUsage::markDepleted($activePurchase);
             $quota->syncForUser($user, force: true);
 
             return redirect()->route('portal.packages')
                 ->withErrors(['wifi' => 'Your data is used up. Buy a new package to connect.']);
+        }
+
+        if (HotspotIdentity::usesPerPurchase($activePurchase)) {
+            $hotspotPassword = $activePurchase->hotspotLoginPassword();
+
+            if (! $usageUser || ! $hotspotPassword) {
+                return redirect()->route('portal.dashboard')
+                    ->withErrors(['wifi' => 'Your plan is still activating. Wait a moment and tap Connect again.']);
+            }
+
+            return view('portal.auth.hotspot-login', [
+                'loginUrl' => config('mikrotik.login_url'),
+                'username' => $usageUser,
+                'password' => $hotspotPassword,
+            ]);
         }
 
         return view('portal.auth.hotspot-login', [
