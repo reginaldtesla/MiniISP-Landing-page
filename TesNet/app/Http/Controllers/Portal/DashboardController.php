@@ -57,22 +57,23 @@ class DashboardController extends Controller
 
         if ($isUnlimitedData) {
             $dataRemainingGb = 'Unlimited';
+            $dataUsedGb = null;
             $totalPlanGb = 'Unlimited';
             $percentRemaining = 100;
+            $percentUsed = 0;
         } else {
             $dataRemainingGb = round(($bytesRemaining ?? 0) / 1073741824, 1);
             $totalPlanGb = $dataLimitBytes > 0
                 ? round($dataLimitBytes / 1073741824, 2)
                 : 0;
-            $percentRemaining = $dataLimitBytes > 0
-                ? min(100, max(0, (($bytesRemaining ?? 0) / $dataLimitBytes) * 100))
+            $dataUsedGb = $dataLimitBytes > 0
+                ? round(max(0, $dataLimitBytes - ($bytesRemaining ?? 0)) / 1073741824, 2)
                 : 0;
+            $percentRemaining = $dataLimitBytes > 0
+                ? (int) min(100, max(0, round((($bytesRemaining ?? 0) / $dataLimitBytes) * 100)))
+                : 0;
+            $percentUsed = 100 - $percentRemaining;
         }
-
-        $chartCircumference = 251.2;
-        $chartStrokeOffset = $chartCircumference * (1 - $percentRemaining / 100);
-
-        $wifiSpeedMbps = $activePackage?->speed_mbps;
 
         $displayName = $this->displayName($user);
 
@@ -101,8 +102,9 @@ class DashboardController extends Controller
             'totalPlanGb' => $totalPlanGb,
             'hasActivePlan' => $activePackage !== null,
             'isUnlimitedData' => $isUnlimitedData,
-            'chartStrokeOffset' => $chartStrokeOffset,
-            'wifiSpeedMbps' => $wifiSpeedMbps,
+            'dataUsedGb' => $dataUsedGb,
+            'percentRemaining' => $percentRemaining,
+            'percentUsed' => $percentUsed,
         ]);
     }
 

@@ -51,92 +51,74 @@
 
     <div class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6">
     {{-- Your Data --}}
-    <div class="{{ $card }} md:col-span-8 p-4 sm:p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8 relative overflow-hidden">
+    <div class="{{ $card }} md:col-span-12 p-4 sm:p-6 md:p-8 relative overflow-hidden">
         <div class="absolute -top-20 -right-20 w-48 sm:w-64 h-48 sm:h-64 bg-primary-fixed dark:opacity-20 opacity-50 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="flex-1 flex flex-col items-center md:items-start text-center md:text-left z-10 w-full min-w-0">
-            <h2 class="font-title-md text-title-md text-on-background dark:text-inverse-on-surface mb-1">Your Data</h2>
-            <p class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant mb-4 sm:mb-6 line-clamp-2">
-                {{ $hasActivePlan ? ($activePackage->package_name ?? 'Current active plan') : 'No active plan' }}
-            </p>
-            <div class="data-ring-size relative w-36 h-36 sm:w-48 sm:h-48 mb-4 sm:mb-6 flex items-center justify-center shrink-0">
-                <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100" aria-hidden="true">
-                    <circle class="text-surface-variant dark:text-surface-container-highest" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-linecap="round" stroke-width="12"></circle>
-                    <circle class="text-primary dark:text-primary-fixed-dim transition-all duration-1000 ease-out" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor"
-                        stroke-dasharray="251.2" stroke-dashoffset="{{ $hasActivePlan ? $chartStrokeOffset : 251.2 }}" stroke-linecap="round" stroke-width="12"></circle>
-                </svg>
-                <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-2">
-                    @if ($hasActivePlan)
-                        @if ($isUnlimitedData ?? false)
-                            <span class="font-title-md sm:font-headline-lg text-title-md sm:text-headline-lg-mobile text-primary dark:text-primary-fixed-dim">∞</span>
-                            <span class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">Unlimited</span>
-                        @else
-                            <span class="data-display-text font-display-mobile sm:font-display-lg text-display-mobile sm:text-display-lg text-primary dark:text-primary-fixed-dim">{{ $dataRemainingGb }}</span>
-                            <span class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">GB left</span>
-                        @endif
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-start gap-6 lg:gap-10">
+            <div class="flex-1 min-w-0">
+                <h2 class="font-title-md text-title-md text-on-background dark:text-inverse-on-surface mb-1">Your Data</h2>
+                <p class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant mb-4 line-clamp-2">
+                    {{ $hasActivePlan ? ($activePackage->package_name ?? 'Current active plan') : 'No active plan' }}
+                </p>
+
+                @if ($hasActivePlan)
+                    @if ($isUnlimitedData ?? false)
+                        <p class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary dark:text-primary-fixed-dim mb-2">Unlimited data</p>
+                        <p class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">No data cap on this plan.</p>
                     @else
-                        <span class="font-title-md text-title-md text-on-surface-variant dark:text-outline-variant">—</span>
-                        <span class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">No plan</span>
+                        <p class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary dark:text-primary-fixed-dim tabular-nums mb-1">
+                            {{ $dataRemainingGb }} <span class="font-title-md text-title-md text-on-surface-variant dark:text-outline-variant">GB left</span>
+                        </p>
+                        <p class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant mb-4 tabular-nums">
+                            {{ $dataUsedGb }} GB used of {{ $totalPlanGb }} GB
+                        </p>
+                        <div class="mb-2 flex justify-between gap-2 font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant tabular-nums">
+                            <span>{{ $percentRemaining }}% remaining</span>
+                            <span>{{ $percentUsed }}% used</span>
+                        </div>
+                        <div class="h-3 sm:h-4 rounded-full bg-surface-variant/50 dark:bg-outline/25 overflow-hidden" role="progressbar"
+                             aria-valuenow="{{ $percentRemaining }}" aria-valuemin="0" aria-valuemax="100"
+                             aria-label="Data remaining on current plan">
+                            <div class="h-full rounded-full bg-primary dark:bg-primary-fixed-dim transition-[width] duration-500"
+                                 style="width: {{ $percentRemaining }}%"></div>
+                        </div>
+                        <p class="font-label-sm text-label-sm text-on-surface-variant/80 dark:text-outline-variant/80 mt-3">
+                            Updates when you open this page or after you use the internet. Refresh to see the latest.
+                        </p>
+                    @endif
+                @else
+                    <p class="font-title-md text-title-md text-on-surface-variant dark:text-outline-variant mb-4">No active data plan</p>
+                    <p class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">Buy a package to get online.</p>
+                @endif
+            </div>
+
+            <div class="lg:w-72 shrink-0 flex flex-col gap-4">
+                <div class="bg-surface-container-high dark:bg-on-background/50 p-3 sm:p-4 rounded-xl w-full">
+                    <div class="flex justify-between items-center mb-2 gap-2">
+                        <span class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">Total Plan</span>
+                        <span class="font-label-sm text-label-sm text-on-background dark:text-inverse-on-surface shrink-0 tabular-nums">{{ $hasActivePlan ? (($isUnlimitedData ?? false) ? 'Unlimited' : $totalPlanGb.' GB') : '—' }}</span>
+                    </div>
+                    <div class="flex justify-between items-center gap-2">
+                        <span class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">Validity</span>
+                        <span class="font-label-sm text-label-sm text-on-background dark:text-inverse-on-surface shrink-0 text-right">{{ $hasActivePlan ? $validityLabel : '—' }}</span>
+                    </div>
+                    @if ($hasActivePlan && $planExpiresAt)
+                        <div class="flex justify-between items-center gap-2 mt-2 pt-2 border-t border-outline-variant/20 dark:border-outline/20">
+                            <span class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">Time left</span>
+                            <span id="plan-countdown"
+                                  class="font-label-sm text-label-sm font-semibold text-primary dark:text-primary-fixed-dim shrink-0 text-right tabular-nums"
+                                  data-expires-at="{{ $planExpiresAt->toIso8601String() }}">
+                                <span id="plan-countdown-value">Calculating…</span>
+                            </span>
+                        </div>
                     @endif
                 </div>
+                <a href="{{ route('portal.packages') }}"
+                   class="w-full min-h-[48px] bg-primary text-on-primary dark:bg-primary-fixed-dim dark:text-on-primary-fixed rounded-lg font-label-sm text-label-sm flex items-center justify-center gap-2 hover:bg-primary/90 dark:hover:bg-primary-fixed-dim/90 transition-colors active:scale-[0.98] shadow-sm">
+                    <span class="material-symbols-outlined">add_circle</span>
+                    Quick Recharge
+                </a>
             </div>
         </div>
-        <div class="flex-1 flex flex-col items-stretch md:items-end justify-center z-10 w-full min-w-0">
-            <div class="bg-surface-container-high dark:bg-on-background/50 p-3 sm:p-4 rounded-xl mb-4 w-full md:max-w-sm">
-                <div class="flex justify-between items-center mb-2 gap-2">
-                    <span class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">Total Plan</span>
-                    <span class="font-label-sm text-label-sm text-on-background dark:text-inverse-on-surface shrink-0">{{ $hasActivePlan ? (($isUnlimitedData ?? false) ? 'Unlimited' : $totalPlanGb.' GB') : '—' }}</span>
-                </div>
-                <div class="flex justify-between items-center gap-2">
-                    <span class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">Validity</span>
-                    <span class="font-label-sm text-label-sm text-on-background dark:text-inverse-on-surface shrink-0 text-right">{{ $hasActivePlan ? $validityLabel : '—' }}</span>
-                </div>
-                @if ($hasActivePlan && $planExpiresAt)
-                    <div class="flex justify-between items-center gap-2 mt-2 pt-2 border-t border-outline-variant/20 dark:border-outline/20">
-                        <span class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">Time left</span>
-                        <span id="plan-countdown"
-                              class="font-label-sm text-label-sm font-semibold text-primary dark:text-primary-fixed-dim shrink-0 text-right tabular-nums"
-                              data-expires-at="{{ $planExpiresAt->toIso8601String() }}">
-                            <span id="plan-countdown-value">Calculating…</span>
-                        </span>
-                    </div>
-                @endif
-            </div>
-            <a href="{{ route('portal.packages') }}"
-               class="w-full md:max-w-sm min-h-[48px] sm:min-h-[56px] bg-primary text-on-primary dark:bg-primary-fixed-dim dark:text-on-primary-fixed rounded-lg font-label-sm text-label-sm flex items-center justify-center gap-2 hover:bg-primary/90 dark:hover:bg-primary-fixed-dim/90 transition-colors active:scale-[0.98] shadow-sm">
-                <span class="material-symbols-outlined">add_circle</span>
-                Quick Recharge
-            </a>
-        </div>
-    </div>
-
-    <div class="md:col-span-4 flex flex-col gap-4 md:gap-6">
-        {{-- WiFi Speed --}}
-        <div class="{{ $card }} p-4 sm:p-6">
-            <div class="flex items-center justify-between mb-3 sm:mb-4 gap-2">
-                <div class="flex items-center gap-2 min-w-0">
-                    <div class="bg-primary-container/30 dark:bg-primary-container/10 text-primary dark:text-primary-fixed-dim p-2 rounded-lg shrink-0">
-                        <span class="material-symbols-outlined">wifi</span>
-                    </div>
-                    <h3 class="font-title-md text-title-md text-on-background dark:text-inverse-on-surface truncate">WiFi Speed</h3>
-                </div>
-                @if ($isConnected && $wifiSpeedMbps)
-                    <span class="material-symbols-outlined fill text-secondary dark:text-secondary-fixed-dim text-2xl sm:text-3xl shrink-0">mood</span>
-                @endif
-            </div>
-            <div class="flex items-end gap-2">
-                <span class="font-headline-lg-mobile sm:font-headline-lg text-headline-lg-mobile sm:text-headline-lg text-on-background dark:text-inverse-on-surface">{{ $wifiSpeedMbps ?? ($isConnected ? '—' : '0') }}</span>
-                <span class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant mb-0.5">Mbps</span>
-            </div>
-            <p class="font-label-sm text-label-sm text-secondary dark:text-secondary-fixed-dim mt-2 flex items-start gap-1">
-                @if ($isConnected)
-                    <span class="material-symbols-outlined text-[16px] shrink-0 mt-0.5">arrow_upward</span>
-                    <span>{{ $wifiSpeedMbps ? 'Optimal connection for studying' : 'Connected — speed cap not set' }}</span>
-                @else
-                    Connect to WiFi to see live speed
-                @endif
-            </p>
-        </div>
-
     </div>
 
     {{-- About hotspot --}}
