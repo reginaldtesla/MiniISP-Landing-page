@@ -179,6 +179,10 @@ test('connect wifi uses tn username for model a purchase', function () {
         $mock->shouldReceive('syncForUser')->andReturn($purchase);
     });
 
+    $this->mock(MikrotikApiService::class, function ($mock) {
+        $mock->shouldReceive('isEnabled')->andReturn(false);
+    });
+
     $response = $this->actingAs($user)
         ->withSession(['portal_wifi_password' => Crypt::encryptString('portal-pass')])
         ->post(route('portal.connect-wifi'));

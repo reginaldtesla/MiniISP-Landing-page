@@ -61,11 +61,17 @@ return [
     |--------------------------------------------------------------------------
     |
     | Cooldown prevents repeat full syncs when using Connect repeatedly.
-    | Dashboard uses a fast DB-only path and does not call the router API.
     |
     */
 
     'quota_sync_cooldown_seconds' => (int) env('TESNET_QUOTA_SYNC_COOLDOWN', 45),
+
+    /*
+    | Minutes after purchase activation to ignore router byte counters for legacy
+    | phone hotspot logins only. Per-purchase tn-{id} users use mikrotik_synced_at.
+    */
+
+    'purchase_provisioning_minutes' => max(1, (int) env('TESNET_PURCHASE_PROVISIONING_MINUTES', 3)),
 
     'portal_connected_cache_seconds' => (int) env('TESNET_PORTAL_CONNECTED_CACHE', 15),
 

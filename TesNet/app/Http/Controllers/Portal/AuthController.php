@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\MikrotikApiService;
 use App\Services\PackageQuotaService;
 use App\Services\SingleDeviceGuard;
 use App\Support\HotspotIdentity;
@@ -149,6 +150,20 @@ class AuthController extends Controller
         $usageUser = $activePurchase
             ? HotspotIdentity::usageUsernameFor($user, $activePurchase)
             : null;
+
+        $mikrotik = app(MikrotikApiService::class);
+
+        if (
+            $activePurchase
+            && $usageUser
+            && $mikrotik->isEnabled()
+            && $mikrotik->hotspotQuotaExhausted($usageUser)
+        ) {
+            PackageUsage::markDepleted($activePurchase);
+
+            return redirect()->route('portal.packages')
+                ->withErrors(['wifi' => 'Your data is used up. Buy a new package to connect.']);
+        }
 
         if (! $activePurchase || ! PackageUsage::hasDataRemaining($activePurchase, $usageUser)) {
             return redirect()->route('portal.packages')

@@ -274,7 +274,11 @@ class PackageUsage
 
             $radSum = self::bytesFromRadAcct($purchase, $usageUser);
 
-            if (self::isFreshPurchase($purchase) && $radSum < 1) {
+            if (
+                ! HotspotIdentity::usesPerPurchase($purchase)
+                && self::isFreshPurchase($purchase)
+                && $radSum < 1
+            ) {
                 $peak = 0;
             }
 
@@ -302,6 +306,17 @@ class PackageUsage
 
     public static function isFreshPurchase(PackagePurchase $purchase): bool
     {
+        if (HotspotIdentity::usesPerPurchase($purchase)) {
+            if ($purchase->mikrotik_synced_at !== null) {
+                return false;
+            }
+
+            $activatedAt = $purchase->activated_at;
+
+            return $activatedAt !== null
+                && $activatedAt->isAfter(now()->subMinutes(self::purchaseProvisioningMinutes()));
+        }
+
         if ((int) $purchase->bytes_consumed > 0) {
             return false;
         }
@@ -309,6 +324,11 @@ class PackageUsage
         $activatedAt = $purchase->activated_at;
 
         return $activatedAt !== null && $activatedAt->isAfter(now()->subMinutes(20));
+    }
+
+    protected static function purchaseProvisioningMinutes(): int
+    {
+        return max(1, (int) config('tesnet.purchase_provisioning_minutes', 3));
     }
 
     /**

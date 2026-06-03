@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PortalNotification;
 use App\Models\RadAcct;
 use App\Models\User;
+use App\Services\MikrotikApiService;
 use App\Support\BytesFormat;
 use App\Support\HotspotIdentity;
 use App\Support\PackageUsage;
@@ -51,7 +52,9 @@ class DashboardController extends Controller
             : null;
 
         $bytesRemaining = $activePackage && ! $isUnlimitedData
-            ? PackageUsage::bytesRemainingForDisplay($activePackage, $usageUser)
+            ? (app(MikrotikApiService::class)->isEnabled()
+                ? PackageUsage::bytesRemainingWithRouter($activePackage, $usageUser)
+                : PackageUsage::bytesRemainingForDisplay($activePackage, $usageUser))
             : null;
 
         $dataRemainingLabel = '—';
