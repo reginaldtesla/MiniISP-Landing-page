@@ -149,9 +149,10 @@ class PackageController extends Controller
             'price' => $validated['price'],
             'speed_mbps' => $validated['speed_mbps'] ?? null,
             'validity_type' => $validityType,
-            'validity_days' => ($isSpecial || $validityType !== PackageValidity::TYPE_DAYS)
-                ? null
-                : (int) ($validated['validity_days'] ?? 30),
+            // Column is NOT NULL; special/until-finished/unlimited expiry uses other fields.
+            'validity_days' => ($validityType === PackageValidity::TYPE_DAYS && ! $isSpecial)
+                ? (int) ($validated['validity_days'] ?? 30)
+                : 0,
             'description' => $validated['description'] ?? null,
             'sort_order' => $validated['sort_order'],
             'is_active' => $request->boolean('is_active'),
