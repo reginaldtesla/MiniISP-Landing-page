@@ -17,7 +17,7 @@ class LiveHotspotUsageService
     ) {}
 
     /**
-     * Live hotspot usage (router session when possible) plus plan quota for the dashboard.
+     * Live hotspot usage from the MikroTik router (primary) plus plan quota for the dashboard.
      *
      * @return array<string, mixed>
      */
@@ -31,19 +31,33 @@ class LiveHotspotUsageService
         $usernames = $this->lookupUsernames($user, $activePackage);
         $radacctSession = $this->activeRadacctSession($usernames);
 
-        $session = $this->liveSessionFromRouter($usageUser)
-            ?? $this->liveSessionFromRadacct($radacctSession);
+        $apiEnabled = $this->mikrotik->isEnabled();
+        $session = $this->liveSessionFromRouter($usageUser);
+        $routerMessage = null;
 
-        $connected = $session !== null;
+        if ($session === null && $apiEnabled && $usageUser) {
+            $routerMessage = 'Could not read counters from the MikroTik router. Check API host, user, password, and firewall.';
+        } elseif ($session === null && ! $apiEnabled) {
+            $routerMessage = 'MikroTik API is disabled. Set MIKROTIK_API_ENABLED=true on the portal server.';
+        }
+
+        if ($session === null) {
+            $session = $this->liveSessionFromRadacct($radacctSession);
+        }
+
+        $connected = ($session['on_active_session'] ?? false)
+            || $radacctSession !== null;
+
         $source = $session['source'] ?? 'unavailable';
 
-        $plan = $this->planStats($user, $activePackage, $usageUser, $connected);
+        $plan = $this->planStats($user, $activePackage, $usageUser, $apiEnabled && $usageUser !== null);
 
         return [
             'ok' => true,
             'source' => $source,
             'connected' => $connected,
-            'api_enabled' => $this->mikrotik->isEnabled(),
+            'api_enabled' => $apiEnabled,
+            'router_message' => $routerMessage,
             'session' => $session,
             'plan' => $plan,
             'polled_at' => now()->toIso8601String(),
@@ -88,13 +102,20 @@ class LiveHotspotUsageService
             return null;
         }
 
-        $live = $this->mikrotik->liveActiveSessionForUser($usageUser);
+        $counters = $this->mikrotik->routerHotspotCounters($usageUser);
 
-        if ($live === null) {
+        if ($counters === null) {
             return null;
         }
 
-        return $this->formatSessionPayload($live, 'mikrotik');
+        return $this->formatSessionPayload([
+            'bytes_in' => $counters['bytes_in'],
+            'bytes_out' => $counters['bytes_out'],
+            'limit_bytes' => $counters['limit_bytes'],
+            'uptime_seconds' => $counters['uptime_seconds'] ?? null,
+            'uptime_label' => $counters['uptime_label'] ?? '—',
+            'on_active_session' => $counters['on_active_session'],
+        ], 'mikrotik');
     }
 
     /**
@@ -115,6 +136,7 @@ class LiveHotspotUsageService
             'limit_bytes' => 0,
             'uptime_seconds' => (int) ($session->acctsessiontime ?? 0),
             'uptime_label' => BytesFormat::formatDurationSeconds((int) ($session->acctsessiontime ?? 0)),
+            'on_active_session' => true,
         ], 'radacct');
     }
 
@@ -141,6 +163,7 @@ class LiveHotspotUsageService
 
         return [
             'source' => $source,
+            'on_active_session' => (bool) ($raw['on_active_session'] ?? false),
             'bytes_in' => $bytesIn,
             'bytes_out' => $bytesOut,
             'bytes_total' => $totalUsed,
@@ -164,7 +187,7 @@ class LiveHotspotUsageService
         User $user,
         ?PackagePurchase $activePackage,
         ?string $usageUser,
-        bool $connected,
+        bool $syncFromRouter,
     ): array {
         if ($activePackage === null) {
             return [
@@ -177,7 +200,7 @@ class LiveHotspotUsageService
             ];
         }
 
-        if ($connected && $usageUser) {
+        if ($syncFromRouter && $usageUser) {
             PackageUsage::ingestPeakActiveSessionBytes($user, $user->phone_number ?? '');
             PackageUsage::refreshConsumption($activePackage, $usageUser);
             $activePackage->refresh();

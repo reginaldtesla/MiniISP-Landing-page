@@ -124,7 +124,7 @@
                         </div>
                     </div>
                     <p id="live-usage-hint" class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant mt-3">
-                        Tap <strong>Connect to Internet</strong> on Wi‑Fi to refresh live download, upload, and session usage here.
+                        Readings come from the MikroTik router (API). Connect to campus Wi‑Fi, tap <strong>Connect to Internet</strong>, then this panel updates every few seconds.
                     </p>
                 </div>
             @endif

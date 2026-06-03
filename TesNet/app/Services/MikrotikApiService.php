@@ -165,42 +165,86 @@ class MikrotikApiService
      */
     public function liveActiveSessionForUser(string $username): ?array
     {
+        $counters = $this->routerHotspotCounters($username);
+
+        if ($counters === null || ! ($counters['on_active_session'] ?? false)) {
+            return null;
+        }
+
+        return [
+            'bytes_in' => $counters['bytes_in'],
+            'bytes_out' => $counters['bytes_out'],
+            'limit_bytes' => $counters['limit_bytes'],
+            'uptime' => $counters['uptime'] ?? '',
+            'uptime_seconds' => $counters['uptime_seconds'],
+            'uptime_label' => $counters['uptime_label'],
+        ];
+    }
+
+    /**
+     * Byte counters as stored on the router (hotspot user + active session), same source as MikroTik status.html.
+     *
+     * @return array{
+     *     bytes_in: int,
+     *     bytes_out: int,
+     *     limit_bytes: int,
+     *     on_active_session: bool,
+     *     uptime?: string,
+     *     uptime_seconds?: int|null,
+     *     uptime_label?: string
+     * }|null
+     */
+    public function routerHotspotCounters(string $username): ?array
+    {
         if (! $this->isEnabled() || ! $this->connect()) {
             return null;
         }
 
         try {
-            $best = null;
-            $bestTotal = 0;
+            $best = [
+                'bytes_in' => 0,
+                'bytes_out' => 0,
+                'limit_bytes' => 0,
+                'on_active_session' => false,
+                'uptime' => '',
+                'uptime_seconds' => null,
+                'uptime_label' => '—',
+            ];
+            $found = false;
 
             foreach ($this->usernameLookupVariants($username) as $variant) {
-                foreach ($this->filterHotspotSessions($variant) as $session) {
-                    $bytesIn = (int) ($session['bytes-in'] ?? 0);
-                    $bytesOut = (int) ($session['bytes-out'] ?? 0);
-                    $total = $bytesIn + $bytesOut;
-
-                    if ($best !== null && $total <= $bestTotal) {
+                foreach ($this->command('/ip/hotspot/user/print', ['?name' => $variant]) as $row) {
+                    if (isset($row['!type'])) {
                         continue;
                     }
+
+                    $found = true;
+                    $best['bytes_in'] = max($best['bytes_in'], (int) ($row['bytes-in'] ?? 0));
+                    $best['bytes_out'] = max($best['bytes_out'], (int) ($row['bytes-out'] ?? 0));
+                    $best['limit_bytes'] = max($best['limit_bytes'], (int) ($row['limit-bytes-total'] ?? 0));
+                }
+
+                foreach ($this->filterHotspotSessions($variant) as $session) {
+                    $found = true;
+                    $best['on_active_session'] = true;
+                    $best['bytes_in'] = max($best['bytes_in'], (int) ($session['bytes-in'] ?? 0));
+                    $best['bytes_out'] = max($best['bytes_out'], (int) ($session['bytes-out'] ?? 0));
+                    $best['limit_bytes'] = max($best['limit_bytes'], (int) ($session['limit-bytes-total'] ?? 0));
 
                     $uptime = (string) ($session['uptime'] ?? '');
                     $uptimeSeconds = \App\Support\BytesFormat::parseRouterUptimeToSeconds($uptime);
 
-                    $bestTotal = $total;
-                    $best = [
-                        'bytes_in' => $bytesIn,
-                        'bytes_out' => $bytesOut,
-                        'limit_bytes' => (int) ($session['limit-bytes-total'] ?? 0),
-                        'uptime' => $uptime,
-                        'uptime_seconds' => $uptimeSeconds,
-                        'uptime_label' => \App\Support\BytesFormat::formatDurationSeconds($uptimeSeconds),
-                    ];
+                    if ($uptime !== '') {
+                        $best['uptime'] = $uptime;
+                        $best['uptime_seconds'] = $uptimeSeconds;
+                        $best['uptime_label'] = \App\Support\BytesFormat::formatDurationSeconds($uptimeSeconds);
+                    }
                 }
             }
 
-            return $best;
+            return $found ? $best : null;
         } catch (\Throwable $exception) {
-            Log::warning('MikroTik live session lookup failed', [
+            Log::warning('MikroTik router counter lookup failed', [
                 'username' => $username,
                 'error' => $exception->getMessage(),
             ]);

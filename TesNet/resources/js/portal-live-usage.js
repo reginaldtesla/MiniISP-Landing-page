@@ -12,9 +12,10 @@
             return;
         }
 
-        var connected = !!data.connected;
         var session = data.session || null;
         var plan = data.plan || {};
+        var connected = !!data.connected;
+        var onActiveSession = session && session.on_active_session;
         var dot = document.getElementById('live-usage-dot');
         var status = document.getElementById('live-usage-status');
         var hint = document.getElementById('live-usage-hint');
@@ -22,21 +23,31 @@
         var barWrap = document.getElementById('live-usage-bar-wrap');
 
         if (dot) {
-            dot.className = 'w-2 h-2 rounded-full ' + (connected ? 'bg-secondary dark:bg-secondary-fixed-dim animate-pulse' : 'bg-outline-variant dark:bg-outline');
+            if (onActiveSession || connected) {
+                dot.className = 'w-2 h-2 rounded-full bg-secondary dark:bg-secondary-fixed-dim animate-pulse';
+            } else if (session && data.source === 'mikrotik') {
+                dot.className = 'w-2 h-2 rounded-full bg-primary/70 dark:bg-primary-fixed-dim/70';
+            } else {
+                dot.className = 'w-2 h-2 rounded-full bg-outline-variant dark:bg-outline';
+            }
         }
 
         if (status) {
-            if (connected) {
-                status.textContent = data.source === 'mikrotik' ? 'Live · router' : 'Live · accounting';
+            if (session && data.source === 'mikrotik') {
+                status.textContent = onActiveSession ? 'Live · router' : 'Router · idle';
+            } else if (session && data.source === 'radacct') {
+                status.textContent = 'Live · accounting';
+            } else if (!data.api_enabled) {
+                status.textContent = 'API off';
             } else {
                 status.textContent = 'Offline';
             }
         }
 
         if (session) {
-            setText('live-bytes-in', session.bytes_in_nice || '—');
-            setText('live-bytes-out', session.bytes_out_nice || '—');
-            setText('live-uptime', session.uptime_label || '—');
+            setText('live-bytes-in', session.bytes_in_nice || '0 B');
+            setText('live-bytes-out', session.bytes_out_nice || '0 B');
+            setText('live-uptime', onActiveSession ? (session.uptime_label || '—') : '—');
 
             if (remainRow && session.remain_nice) {
                 remainRow.classList.remove('hidden');
@@ -68,9 +79,13 @@
         }
 
         if (hint) {
-            if (connected) {
+            if (data.router_message) {
+                hint.textContent = data.router_message;
+                hint.classList.remove('hidden');
+            } else if (onActiveSession || connected) {
                 hint.classList.add('hidden');
             } else {
+                hint.textContent = 'Readings come from the MikroTik router (API). Connect to campus Wi‑Fi, tap Connect to Internet, then this panel updates.';
                 hint.classList.remove('hidden');
             }
         }
