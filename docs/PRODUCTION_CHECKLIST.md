@@ -128,6 +128,7 @@ npm install && npm run build:offline
 
 - [ ] Database `tesnet` created; app and RADIUS use same DB
 - [ ] Tables `radcheck`, `radreply`, `radacct` exist (migrations)
+- [ ] `radacct` has IPv6 columns (`framedipv6address`, etc.) — required for FreeRADIUS 3 accounting SQL
 - [ ] FreeRADIUS SQL module enabled; test: `radtest USER PASS 127.0.0.1 0 testing123`
 - [ ] MikroTik RADIUS client secret matches `clients.conf`
 - [ ] Accounting enabled on hotspot — `radacct` rows update while users are online
@@ -170,6 +171,14 @@ npm install && npm run build:offline
 php artisan tesnet:monitor
 php artisan tesnet:backup-database
 php artisan route:list --name=admin.system-health
+```
+
+If `radius.log` shows **Unknown column 'framedipv6address'**, accounting is broken (dashboard usage stays at 0):
+
+```bash
+cd /var/www/.../TesNet && php artisan migrate --force
+sudo systemctl restart freeradius
+sudo tail -f /var/log/freeradius/radius.log   # errors should stop
 ```
 
 ## After go-live

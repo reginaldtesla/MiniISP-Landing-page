@@ -99,6 +99,15 @@ class SystemHealthService
             return $this->result('radius_accounting', 'RADIUS accounting', 'warn', 'radacct table missing.');
         }
 
+        if (! Schema::hasColumn('radacct', 'framedipv6address')) {
+            return $this->result(
+                'radius_accounting',
+                'RADIUS accounting',
+                'fail',
+                'radacct is missing framedipv6address (and related IPv6 columns). Run php artisan migrate — FreeRADIUS accounting INSERT/UPDATE will fail until fixed.'
+            );
+        }
+
         $latest = RadAcct::query()->max('acctupdatetime');
         $staleHours = config('tesnet.monitor.radius_stale_hours', 6);
 

@@ -1113,6 +1113,7 @@ See also [`docs/PRODUCTION_CHECKLIST.md`](PRODUCTION_CHECKLIST.md).
 | Paystack paid, no data | Webhook URL + HTTPS; `transactions`; manual approve as fallback |
 | Certificate warning on login | Use HTTP for hotspot login; empty `ssl-certificate` on profile |
 | FreeRADIUS won’t start | `sudo freeradius -CX`; SQL password; `mods-enabled/sql` |
+| `radius.log`: **Unknown column 'framedipv6address'** | `php artisan migrate` on ProBook (adds IPv6 columns to `radacct`). Then `sudo systemctl restart freeradius`. Errors should stop; `radacct` rows will update. |
 | Everything dead after power cut | UPS next time; §11.4; `systemctl start mariadb freeradius apache2` |
 | Works until ProBook reboots | §A.10 `systemctl enable`; §A.11 disable sleep |
 | **419 Page Expired** after login | Run `php artisan tesnet:session-doctor` on the ProBook. Almost always: **`php artisan config:clear`** after `.env` changes (cached config keeps `SESSION_SECURE_COOKIE=true`). `.env`: `APP_URL=http://192.168.88.2`, `SESSION_SECURE_COOKIE=false`, `SESSION_ENCRYPT=false`, **no** `SESSION_DOMAIN` line (never `SESSION_DOMAIN=192.168.88.2`). `php artisan migrate` (sessions table). §A.8 storage permissions. Phone: open **only** `http://192.168.88.2/portal/login`, hard-refresh, register/login again. |

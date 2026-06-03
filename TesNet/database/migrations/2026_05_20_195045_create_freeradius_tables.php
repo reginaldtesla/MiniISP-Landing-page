@@ -54,6 +54,11 @@ return new class extends Migration
                 $table->string('servicetype', 32)->nullable();
                 $table->string('framedprotocol', 32)->nullable();
                 $table->string('framedipaddress', 15)->default('');
+                $table->string('framedipv6address', 45)->default('');
+                $table->string('framedipv6prefix', 45)->default('');
+                $table->string('framedinterfaceid', 44)->default('');
+                $table->string('delegatedipv6prefix', 45)->default('');
+                $table->string('class', 64)->nullable();
             });
         }
     }
