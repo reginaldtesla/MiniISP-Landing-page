@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\User;
 use App\Observers\UserObserver;
+use App\Support\SessionConfig;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use App\Models\RadAcct;
@@ -21,6 +22,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        SessionConfig::applyForHttpRequest();
+
         User::observe(UserObserver::class);
 
         if (config('app.force_https')) {

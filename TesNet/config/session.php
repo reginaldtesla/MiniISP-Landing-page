@@ -156,7 +156,9 @@ return [
     |
     */
 
-    'domain' => env('SESSION_DOMAIN'),
+    'domain' => ($domain = env('SESSION_DOMAIN')) === null || $domain === '' || $domain === 'null'
+        ? null
+        : $domain,
 
     /*
     |--------------------------------------------------------------------------

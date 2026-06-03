@@ -335,6 +335,8 @@ DB_PASSWORD=STRONG_DB_PASSWORD
 SESSION_DRIVER=database
 SESSION_ENCRYPT=true
 SESSION_SECURE_COOKIE=false
+SESSION_ENCRYPT=false
+# Do not set SESSION_DOMAIN to the IP — leave unset/empty
 TRUST_PROXIES=false
 PORTAL_USE_OFFLINE_ASSETS=true
 LOG_CHANNEL=daily
@@ -1109,7 +1111,7 @@ See also [`docs/PRODUCTION_CHECKLIST.md`](PRODUCTION_CHECKLIST.md).
 | FreeRADIUS won’t start | `sudo freeradius -CX`; SQL password; `mods-enabled/sql` |
 | Everything dead after power cut | UPS next time; §11.4; `systemctl start mariadb freeradius apache2` |
 | Works until ProBook reboots | §A.10 `systemctl enable`; §A.11 disable sleep |
-| **419 Page Expired** after login | `APP_URL` must match the URL in the browser (same host for GET + POST). For `http://192.168.88.2` set `SESSION_SECURE_COOKIE=false`. For ngrok set `APP_URL=https://….ngrok-free.app`, `SESSION_SECURE_COOKIE=true`, `TRUST_PROXIES=true`, then `php artisan optimize:clear`. Ensure `sessions` table exists (`php artisan migrate`). Fix `storage` permissions (§A.8). Hard-refresh login page (Ctrl+F5). |
+| **419 Page Expired** after login | Run `php artisan tesnet:session-doctor` on the ProBook. Almost always: **`php artisan config:clear`** after `.env` changes (cached config keeps `SESSION_SECURE_COOKIE=true`). `.env`: `APP_URL=http://192.168.88.2`, `SESSION_SECURE_COOKIE=false`, `SESSION_ENCRYPT=false`, **no** `SESSION_DOMAIN` line (never `SESSION_DOMAIN=192.168.88.2`). `php artisan migrate` (sessions table). §A.8 storage permissions. Phone: open **only** `http://192.168.88.2/portal/login`, hard-refresh, register/login again. |
 
 **Useful commands:**
 

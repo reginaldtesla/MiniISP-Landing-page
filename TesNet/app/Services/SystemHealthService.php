@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\RadAcct;
+use App\Support\SessionConfig;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -26,7 +27,32 @@ class SystemHealthService
             $this->checkDiskSpace(),
             $this->checkPaystackConfigured(),
             $this->checkOfflineAssets(),
+            $this->checkPortalSession(),
         ];
+    }
+
+    /**
+     * @return array{key: string, label: string, status: string, detail: string}
+     */
+    protected function checkPortalSession(): array
+    {
+        $diag = SessionConfig::diagnostics();
+
+        if ($diag['issues'] !== []) {
+            return $this->result(
+                'portal_session',
+                'Portal session (419 risk)',
+                'fail',
+                implode(' ', $diag['issues'])
+            );
+        }
+
+        return $this->result(
+            'portal_session',
+            'Portal session (419 risk)',
+            'ok',
+            'APP_URL and session cookie settings look OK for captive portal.'
+        );
     }
 
     /**
