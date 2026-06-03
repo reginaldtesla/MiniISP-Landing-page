@@ -66,10 +66,10 @@
                         <p class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">No data cap on this plan.</p>
                     @else
                         <p class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary dark:text-primary-fixed-dim tabular-nums mb-1">
-                            {{ $dataRemainingGb }} <span class="font-title-md text-title-md text-on-surface-variant dark:text-outline-variant">GB left</span>
+                            {{ $dataRemainingLabel }} <span class="font-title-md text-title-md text-on-surface-variant dark:text-outline-variant">left</span>
                         </p>
                         <p class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant mb-4 tabular-nums">
-                            {{ $dataUsedGb }} GB used of {{ $totalPlanGb }} GB
+                            {{ $dataUsedLabel }} used of {{ $totalPlanLabel }}
                         </p>
                         <div class="mb-2 flex justify-between gap-2 font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant tabular-nums">
                             <span>{{ $percentRemaining }}% remaining</span>
@@ -77,12 +77,12 @@
                         </div>
                         <div class="h-3 sm:h-4 rounded-full bg-surface-variant/50 dark:bg-outline/25 overflow-hidden" role="progressbar"
                              aria-valuenow="{{ $percentRemaining }}" aria-valuemin="0" aria-valuemax="100"
-                             aria-label="Data remaining on current plan">
+                             aria-label="Share of plan data still available">
                             <div class="h-full rounded-full bg-primary dark:bg-primary-fixed-dim transition-[width] duration-500"
                                  style="width: {{ $percentRemaining }}%"></div>
                         </div>
                         <p class="font-label-sm text-label-sm text-on-surface-variant/80 dark:text-outline-variant/80 mt-3">
-                            Updates when you open this page or after you use the internet. Refresh to see the latest.
+                            The blue bar is how much of this plan is still left. It updates when you open or refresh this page.
                         </p>
                     @endif
                 @else
@@ -95,7 +95,7 @@
                 <div class="bg-surface-container-high dark:bg-on-background/50 p-3 sm:p-4 rounded-xl w-full">
                     <div class="flex justify-between items-center mb-2 gap-2">
                         <span class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">Total Plan</span>
-                        <span class="font-label-sm text-label-sm text-on-background dark:text-inverse-on-surface shrink-0 tabular-nums">{{ $hasActivePlan ? (($isUnlimitedData ?? false) ? 'Unlimited' : $totalPlanGb.' GB') : '—' }}</span>
+                        <span class="font-label-sm text-label-sm text-on-background dark:text-inverse-on-surface shrink-0 tabular-nums">{{ $hasActivePlan ? (($isUnlimitedData ?? false) ? 'Unlimited' : $totalPlanLabel) : '—' }}</span>
                     </div>
                     <div class="flex justify-between items-center gap-2">
                         <span class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">Validity</span>

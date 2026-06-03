@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PortalNotification;
 use App\Models\RadAcct;
 use App\Models\User;
+use App\Support\BytesFormat;
 use App\Support\HotspotIdentity;
 use App\Support\PackageUsage;
 use Illuminate\Http\Request;
@@ -17,9 +18,7 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        PackageUsage::consolidateActivePurchases($user, touchRouter: false);
-
-        $activePackage = PackageUsage::activePurchaseForDisplay($user);
+        $activePackage = PackageUsage::reconcileActivePurchaseWithRouter($user);
 
         $usernames = $user->phone_number
             ? PackageUsage::usernameVariantsFor($user->phone_number)
@@ -55,23 +54,22 @@ class DashboardController extends Controller
             ? PackageUsage::bytesRemainingForDisplay($activePackage, $usageUser)
             : null;
 
+        $dataRemainingLabel = '—';
+        $dataUsedLabel = '—';
+        $totalPlanLabel = '—';
+        $percentRemaining = 0;
+        $percentUsed = 0;
+
         if ($isUnlimitedData) {
-            $dataRemainingGb = 'Unlimited';
-            $dataUsedGb = null;
-            $totalPlanGb = 'Unlimited';
+            $dataRemainingLabel = 'Unlimited';
+            $totalPlanLabel = 'Unlimited';
             $percentRemaining = 100;
-            $percentUsed = 0;
-        } else {
-            $dataRemainingGb = round(($bytesRemaining ?? 0) / 1073741824, 1);
-            $totalPlanGb = $dataLimitBytes > 0
-                ? round($dataLimitBytes / 1073741824, 2)
-                : 0;
-            $dataUsedGb = $dataLimitBytes > 0
-                ? round(max(0, $dataLimitBytes - ($bytesRemaining ?? 0)) / 1073741824, 2)
-                : 0;
-            $percentRemaining = $dataLimitBytes > 0
-                ? (int) min(100, max(0, round((($bytesRemaining ?? 0) / $dataLimitBytes) * 100)))
-                : 0;
+        } elseif ($activePackage && $dataLimitBytes > 0) {
+            $bytesUsed = max(0, $dataLimitBytes - (int) ($bytesRemaining ?? 0));
+            $dataRemainingLabel = BytesFormat::planDataAmount((int) ($bytesRemaining ?? 0));
+            $dataUsedLabel = BytesFormat::planDataAmount($bytesUsed);
+            $totalPlanLabel = BytesFormat::planDataAmount($dataLimitBytes);
+            $percentRemaining = (int) min(100, max(0, round(((($bytesRemaining ?? 0) / $dataLimitBytes) * 100))));
             $percentUsed = 100 - $percentRemaining;
         }
 
@@ -98,11 +96,11 @@ class DashboardController extends Controller
             'isConnected' => $isConnected,
             'announcement' => $announcement,
             'displayName' => $displayName,
-            'dataRemainingGb' => $dataRemainingGb,
-            'totalPlanGb' => $totalPlanGb,
+            'dataRemainingLabel' => $dataRemainingLabel,
+            'dataUsedLabel' => $dataUsedLabel,
+            'totalPlanLabel' => $totalPlanLabel,
             'hasActivePlan' => $activePackage !== null,
             'isUnlimitedData' => $isUnlimitedData,
-            'dataUsedGb' => $dataUsedGb,
             'percentRemaining' => $percentRemaining,
             'percentUsed' => $percentUsed,
         ]);

@@ -45,6 +45,55 @@ class PackageUsage
         return self::forFastPortalDisplay(fn () => self::activePurchaseFor($user));
     }
 
+    /**
+     * Align portal quota with router/RADIUS (marks plan depleted when the router shows cap hit).
+     */
+    public static function reconcileActivePurchaseWithRouter(User $user): ?PackagePurchase
+    {
+        $purchase = self::consolidateActivePurchases($user, touchRouter: false);
+
+        if (! $purchase) {
+            return null;
+        }
+
+        $phone = $user->phone_number;
+        $usageUser = HotspotIdentity::usageUsername($purchase, $phone) ?? $phone;
+
+        if (! $usageUser) {
+            return $purchase;
+        }
+
+        if (! app(MikrotikApiService::class)->isEnabled()) {
+            self::forFastPortalDisplay(function () use ($purchase, $usageUser) {
+                self::accountForCompletedSessionChunk($purchase, $usageUser);
+
+                if (self::isQuotaExhausted($purchase, $usageUser)) {
+                    self::markDepleted($purchase);
+                }
+            });
+
+            return PackagePurchase::query()
+                ->whereKey($purchase->id)
+                ->where('status', 'active')
+                ->first();
+        }
+
+        return self::withMikrotikQueries(function () use ($user, $purchase, $usageUser, $phone) {
+            self::accountForCompletedSessionChunk($purchase, $usageUser);
+            self::ingestPeakActiveSessionBytes($user, $phone ?? '', $purchase);
+            self::refreshConsumption($purchase, $usageUser);
+            self::markExhaustedIfRouterQuotaHit($purchase, $usageUser);
+
+            if (self::isQuotaExhausted($purchase, $usageUser)) {
+                self::markDepleted($purchase);
+
+                return null;
+            }
+
+            return $purchase->fresh();
+        });
+    }
+
     public static function bytesRemainingForDisplay(PackagePurchase $purchase, ?string $phoneNumber): ?int
     {
         return self::forFastPortalDisplay(fn () => self::bytesRemaining($purchase, $phoneNumber));

@@ -145,21 +145,14 @@ class AuthController extends Controller
 
         PackageUsage::consolidateActivePurchases($user, touchRouter: false);
 
-        $activePurchase = PackageUsage::activePurchaseForDisplay($user);
+        $activePurchase = $quota->syncForUser($user, force: true);
         $usageUser = $activePurchase
             ? HotspotIdentity::usageUsernameFor($user, $activePurchase)
             : null;
 
         if (! $activePurchase || ! PackageUsage::hasDataRemaining($activePurchase, $usageUser)) {
-            $activePurchase = $quota->syncForUser($user, force: true);
-            $usageUser = $activePurchase
-                ? HotspotIdentity::usageUsernameFor($user, $activePurchase)
-                : null;
-
-            if (! $activePurchase || ! PackageUsage::hasDataRemaining($activePurchase, $usageUser)) {
-                return redirect()->route('portal.packages')
-                    ->withErrors(['wifi' => 'Your data is used up or no active plan. Buy a new package to connect.']);
-            }
+            return redirect()->route('portal.packages')
+                ->withErrors(['wifi' => 'Your data is used up or no active plan. Buy a new package to connect.']);
         }
 
         app(SingleDeviceGuard::class)->disconnectOtherHotspotSessions($user);

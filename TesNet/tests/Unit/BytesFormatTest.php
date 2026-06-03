@@ -12,3 +12,8 @@ test('parses router uptime strings', function () {
     expect(BytesFormat::parseRouterUptimeToSeconds('1h2m3s'))->toBe(3723);
     expect(BytesFormat::formatDurationSeconds(3723))->toBe('1h 2m 3s');
 });
+
+test('formats small plans in megabytes', function () {
+    $bytes = (int) (0.29 * 1073741824);
+    expect(BytesFormat::planDataAmount($bytes))->toBe('297 MB');
+});

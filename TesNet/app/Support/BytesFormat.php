@@ -26,6 +26,28 @@ class BytesFormat
         return round($bytes / 1073741824, $precision);
     }
 
+    /**
+     * Human plan size for dashboard (uses MB when under 1 GB so 0.29 GB does not show as "0.3 GB").
+     */
+    public static function planDataAmount(int $bytes): string
+    {
+        if ($bytes >= 1073741824) {
+            $gb = $bytes / 1073741824;
+
+            return (fmod($gb, 1.0) === 0.0 ? (string) (int) $gb : rtrim(rtrim(number_format($gb, 2, '.', ''), '0'), '.')).' GB';
+        }
+
+        if ($bytes >= 1048576) {
+            return round($bytes / 1048576, 0).' MB';
+        }
+
+        if ($bytes >= 1024) {
+            return round($bytes / 1024, 0).' KB';
+        }
+
+        return $bytes.' B';
+    }
+
     public static function parseRouterUptimeToSeconds(?string $uptime): ?int
     {
         if ($uptime === null || $uptime === '') {
