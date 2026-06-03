@@ -130,7 +130,7 @@ npm install && npm run build:offline
 - [ ] Tables `radcheck`, `radreply`, `radacct` exist (migrations)
 - [ ] `radacct` has IPv6 columns (`framedipv6address`, etc.) — required for FreeRADIUS 3 accounting SQL
 - [ ] FreeRADIUS SQL module enabled; test: `radtest USER PASS 127.0.0.1 0 testing123`
-- [ ] MikroTik RADIUS client secret matches `clients.conf`
+- [ ] MikroTik RADIUS client secret matches `clients.conf` (long secret; `require_message_authenticator = true` on `mikrotik-hap`)
 - [ ] Accounting enabled on hotspot — `radacct` rows update while users are online
 
 ## MikroTik hAP²

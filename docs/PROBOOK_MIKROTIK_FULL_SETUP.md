@@ -280,10 +280,16 @@ Add at the end:
 client mikrotik-hap {
     ipaddr          = 192.168.88.1
     secret          = "CHANGE_ME_RADIUS_SECRET"
-    require_message_authenticator = no
+    # RouterOS 7.x + FreeRADIUS 3.2+ (BlastRADIUS): use a long secret (32+ chars) and:
+    require_message_authenticator = true
+    limit_proxy_state = true
     nas_type        = other
 }
 ```
+
+Use a **long random secret** (32+ characters). Short secrets trigger warnings at startup and are unsafe.
+
+If MikroTik suddenly gets **Access-Reject** after upgrading FreeRADIUS, confirm RouterOS is current; only as a temporary fallback set `require_message_authenticator = no` (not recommended).
 
 Test and start:
 
@@ -1114,6 +1120,7 @@ See also [`docs/PRODUCTION_CHECKLIST.md`](PRODUCTION_CHECKLIST.md).
 | Certificate warning on login | Use HTTP for hotspot login; empty `ssl-certificate` on profile |
 | FreeRADIUS won’t start | `sudo freeradius -CX`; SQL password; `mods-enabled/sql` |
 | `radius.log`: **Unknown column 'framedipv6address'** | `php artisan migrate` on ProBook (adds IPv6 columns to `radacct`). Then `sudo systemctl restart freeradius`. Errors should stop; `radacct` rows will update. |
+| `BlastRADIUS check` / **without Proxy-State** for `mikrotik-hap` | In `clients.conf` for `mikrotik-hap`: `require_message_authenticator = true` and `limit_proxy_state = true`. Long shared secret. `sudo freeradius -CX` then `sudo systemctl restart freeradius`. Match the same secret on MikroTik `/radius`. |
 | Everything dead after power cut | UPS next time; §11.4; `systemctl start mariadb freeradius apache2` |
 | Works until ProBook reboots | §A.10 `systemctl enable`; §A.11 disable sleep |
 | **419 Page Expired** after login | Run `php artisan tesnet:session-doctor` on the ProBook. Almost always: **`php artisan config:clear`** after `.env` changes (cached config keeps `SESSION_SECURE_COOKIE=true`). `.env`: `APP_URL=http://192.168.88.2`, `SESSION_SECURE_COOKIE=false`, `SESSION_ENCRYPT=false`, **no** `SESSION_DOMAIN` line (never `SESSION_DOMAIN=192.168.88.2`). `php artisan migrate` (sessions table). §A.8 storage permissions. Phone: open **only** `http://192.168.88.2/portal/login`, hard-refresh, register/login again. |

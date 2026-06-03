@@ -239,10 +239,13 @@ Add at the end:
 client mikrotik-hap {
     ipaddr          = 192.168.88.1
     secret          = "CHANGE_ME_RADIUS_SECRET"
-    require_message_authenticator = no
+    require_message_authenticator = true
+    limit_proxy_state = true
     nas_type        = other
 }
 ```
+
+Use a long random secret (32+ characters). Required for FreeRADIUS 3.2+ BlastRADIUS hardening with RouterOS 7.x.
 
 Test config and start RADIUS:
 
