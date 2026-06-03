@@ -173,6 +173,7 @@ class AuthController extends Controller
 
             return view('portal.auth.hotspot-login', [
                 'loginUrl' => config('mikrotik.login_url'),
+                'postLoginUrl' => config('mikrotik.post_login_url'),
                 'username' => $usageUser,
                 'password' => $hotspotPassword,
             ]);
@@ -180,6 +181,7 @@ class AuthController extends Controller
 
         return view('portal.auth.hotspot-login', [
             'loginUrl' => config('mikrotik.login_url'),
+            'postLoginUrl' => config('mikrotik.post_login_url'),
             'username' => $user->phone_number,
             'password' => $password,
         ]);

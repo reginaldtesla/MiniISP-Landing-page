@@ -11,6 +11,7 @@
     <form id="hotspot-login" method="POST" action="{{ $loginUrl }}">
         <input type="hidden" name="username" value="{{ $username }}">
         <input type="hidden" name="password" value="{{ $password }}">
+        <input type="hidden" name="dst" value="{{ $postLoginUrl }}">
     </form>
     <script>
         document.getElementById('hotspot-login').submit();

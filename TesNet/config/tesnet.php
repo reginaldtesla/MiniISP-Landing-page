@@ -69,6 +69,8 @@ return [
 
     'portal_connected_cache_seconds' => (int) env('TESNET_PORTAL_CONNECTED_CACHE', 15),
 
+    'portal_live_usage_poll_seconds' => max(5, (int) env('TESNET_LIVE_USAGE_POLL_SECONDS', 15)),
+
     /*
     |--------------------------------------------------------------------------
     | Per-purchase MikroTik hotspot users (Model A)

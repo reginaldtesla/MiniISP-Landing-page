@@ -50,6 +50,29 @@ class PackageUsage
         return self::forFastPortalDisplay(fn () => self::bytesRemaining($purchase, $phoneNumber));
     }
 
+    public static function bytesRemainingWithRouter(PackagePurchase $purchase, ?string $phoneNumber): ?int
+    {
+        return self::withMikrotikQueries(fn () => self::bytesRemaining($purchase, $phoneNumber));
+    }
+
+    /**
+     * @template TReturn
+     *
+     * @param  callable(): TReturn  $callback
+     * @return TReturn
+     */
+    public static function withMikrotikQueries(callable $callback): mixed
+    {
+        $previous = self::$queryMikrotik;
+        self::$queryMikrotik = true;
+
+        try {
+            return $callback();
+        } finally {
+            self::$queryMikrotik = $previous;
+        }
+    }
+
     public static function bytesUsed(PackagePurchase $purchase, ?string $phoneNumber): int
     {
         if (self::tracksBytesConsumed()) {

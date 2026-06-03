@@ -151,6 +151,66 @@ class MikrotikApiService
         }
     }
 
+    /**
+     * Best active hotspot session for live dashboard (matches MikroTik status page fields).
+     *
+     * @return array{
+     *     bytes_in: int,
+     *     bytes_out: int,
+     *     limit_bytes: int,
+     *     uptime: string,
+     *     uptime_seconds: int|null,
+     *     uptime_label: string
+     * }|null
+     */
+    public function liveActiveSessionForUser(string $username): ?array
+    {
+        if (! $this->isEnabled() || ! $this->connect()) {
+            return null;
+        }
+
+        try {
+            $best = null;
+            $bestTotal = 0;
+
+            foreach ($this->usernameLookupVariants($username) as $variant) {
+                foreach ($this->filterHotspotSessions($variant) as $session) {
+                    $bytesIn = (int) ($session['bytes-in'] ?? 0);
+                    $bytesOut = (int) ($session['bytes-out'] ?? 0);
+                    $total = $bytesIn + $bytesOut;
+
+                    if ($best !== null && $total <= $bestTotal) {
+                        continue;
+                    }
+
+                    $uptime = (string) ($session['uptime'] ?? '');
+                    $uptimeSeconds = \App\Support\BytesFormat::parseRouterUptimeToSeconds($uptime);
+
+                    $bestTotal = $total;
+                    $best = [
+                        'bytes_in' => $bytesIn,
+                        'bytes_out' => $bytesOut,
+                        'limit_bytes' => (int) ($session['limit-bytes-total'] ?? 0),
+                        'uptime' => $uptime,
+                        'uptime_seconds' => $uptimeSeconds,
+                        'uptime_label' => \App\Support\BytesFormat::formatDurationSeconds($uptimeSeconds),
+                    ];
+                }
+            }
+
+            return $best;
+        } catch (\Throwable $exception) {
+            Log::warning('MikroTik live session lookup failed', [
+                'username' => $username,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return null;
+        } finally {
+            $this->disconnect();
+        }
+    }
+
     public function peakActiveSessionBytes(string $username, ?string $macAddress = null, ?string $ipAddress = null): int
     {
         if (! $this->isEnabled() || ! $this->connect()) {
