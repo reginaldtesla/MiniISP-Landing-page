@@ -34,7 +34,6 @@ class UserController extends Controller
         $validated = $request->validate([
             'phone_number' => ['required', 'string', 'max:20'],
             'password' => ['required', 'string', 'min:6', 'confirmed'],
-            'device_limit' => ['required', 'integer', 'min:1', 'max:10'],
         ]);
 
         if (! PhoneNumber::isValid($phone)) {
@@ -56,7 +55,7 @@ class UserController extends Controller
             'email' => PaystackCustomerEmail::forPhone($phone),
             'phone_number' => $phone,
             'password' => $validated['password'],
-            'device_limit' => $validated['device_limit'],
+            'device_limit' => (int) config('tesnet.student_device_limit', 1),
             'wallet_balance' => 0,
             'is_admin' => false,
         ]);
@@ -79,7 +78,6 @@ class UserController extends Controller
     public function update(Request $request, User $user): RedirectResponse
     {
         $validated = $request->validate([
-            'device_limit' => ['required', 'integer', 'min:1', 'max:10'],
             'is_suspended' => ['nullable', 'boolean'],
             'password' => ['nullable', 'string', 'min:6', 'confirmed'],
         ]);
@@ -90,7 +88,7 @@ class UserController extends Controller
             User::setPlainPasswordForRadius(null);
         }
 
-        $user->device_limit = $validated['device_limit'];
+        $user->device_limit = (int) config('tesnet.student_device_limit', 1);
         $user->is_suspended = (bool) ($validated['is_suspended'] ?? false);
         $user->save();
 

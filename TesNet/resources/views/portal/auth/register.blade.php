@@ -5,7 +5,8 @@
 @section('content')
 <div class="bg-surface-container dark:bg-inverse-surface rounded-xl shadow-[0_4px_12px_rgba(37,99,235,0.08)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.3)] p-5 sm:p-8 border border-surface-variant/50 dark:border-outline/30">
     <h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary dark:text-primary-fixed-dim font-bold mb-2">Create Account</h1>
-    <p class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant mb-6">Register with your Ghana mobile number.</p>
+    <p class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant mb-2">Register with your Ghana mobile number.</p>
+    <p class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant mb-6">One phone number = one personal account. Do not share your password. Only one device can be online at a time.</p>
     <form method="POST" action="{{ url('/portal/register') }}" class="space-y-4">
         @csrf
         <div>

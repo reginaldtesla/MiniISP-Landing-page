@@ -133,7 +133,7 @@ class RadiusSyncService
             $username,
             'Simultaneous-Use',
             ':=',
-            (string) config('tesnet.hotspot_shared_users', 1)
+            (string) config('tesnet.student_device_limit', 1)
         );
 
         RadReply::query()->where('username', $username)->whereIn('attribute', [

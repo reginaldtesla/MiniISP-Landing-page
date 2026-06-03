@@ -33,7 +33,7 @@ Route::prefix('portal')->name('portal.')->group(function () {
 
     Route::post('payments/webhook', [PaymentController::class, 'webhook'])->name('payments.webhook');
 
-    Route::middleware(['auth', 'student'])->group(function () {
+    Route::middleware(['auth', 'student', 'portal.single_session'])->group(function () {
         Route::get('payments/callback', [PaymentController::class, 'callback'])->name('payments.callback');
 
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');

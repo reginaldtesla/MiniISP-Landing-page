@@ -32,6 +32,10 @@ class UserObserver
             if ($plain) {
                 $this->radius->updatePassword($user, $plain);
             }
+
+            if (! $user->is_admin) {
+                User::query()->whereKey($user->id)->increment('portal_session_version');
+            }
         }
 
         if ($user->wasChanged('device_limit')) {

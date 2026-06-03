@@ -81,7 +81,20 @@ return [
 
     'per_purchase_hotspot' => env('TESNET_PER_PURCHASE_HOTSPOT', true),
 
-    'hotspot_shared_users' => (int) env('TESNET_HOTSPOT_SHARED_USERS', 1),
+    /*
+    |--------------------------------------------------------------------------
+    | One account, one device (students)
+    |--------------------------------------------------------------------------
+    |
+    | Each student phone number is a single account. device_limit and RADIUS
+    | Simultaneous-Use are capped at this value (default 1). New portal logins
+    | invalidate other browsers; Connect kicks other hotspot sessions.
+    |
+    */
+
+    'student_device_limit' => max(1, (int) env('TESNET_STUDENT_DEVICE_LIMIT', 1)),
+
+    'hotspot_shared_users' => max(1, (int) env('TESNET_HOTSPOT_SHARED_USERS', 1)),
 
     'hotspot_cleanup_days' => (int) env('TESNET_HOTSPOT_CLEANUP_DAYS', 30),
 

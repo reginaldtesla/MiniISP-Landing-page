@@ -20,10 +20,7 @@
             <label class="font-label-sm admin-card-muted block mb-1">Confirm password</label>
             <input type="password" name="password_confirmation" required minlength="6" class="portal-input min-h-[48px]"/>
         </div>
-        <div>
-            <label class="font-label-sm admin-card-muted block mb-1">Device limit</label>
-            <input type="number" name="device_limit" min="1" max="10" value="{{ old('device_limit', 1) }}" class="portal-input min-h-[48px]"/>
-        </div>
+        <p class="font-label-sm admin-card-muted">One phone number = one account. Device limit is fixed at 1 (no sharing).</p>
         <button type="submit" class="w-full min-h-[48px] rounded-lg bg-primary text-on-primary dark:bg-primary-fixed-dim dark:text-on-primary-fixed font-label-sm">Create student</button>
     </form>
     <p class="mt-4">

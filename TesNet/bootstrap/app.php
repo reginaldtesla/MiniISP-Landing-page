@@ -3,6 +3,7 @@
 use App\Http\Middleware\AdminIdleTimeout;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureStudent;
+use App\Http\Middleware\EnsureSinglePortalSession;
 use App\Http\Middleware\RestrictAdminByIp;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -21,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'student' => EnsureStudent::class,
             'admin.ip' => RestrictAdminByIp::class,
             'admin.idle' => AdminIdleTimeout::class,
+            'portal.single_session' => EnsureSinglePortalSession::class,
         ]);
 
         $middleware->redirectGuestsTo(function (Request $request) {

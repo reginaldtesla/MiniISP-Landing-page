@@ -30,7 +30,17 @@ class User extends Authenticatable
             'is_suspended' => 'boolean',
             'wallet_balance' => 'decimal:2',
             'device_limit' => 'integer',
+            'portal_session_version' => 'integer',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (User $user): void {
+            if (! $user->is_admin) {
+                $user->device_limit = max(1, (int) config('tesnet.student_device_limit', 1));
+            }
+        });
     }
 
     public static function setPlainPasswordForRadius(?string $password): void

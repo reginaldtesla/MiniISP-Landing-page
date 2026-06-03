@@ -48,6 +48,16 @@ On Paystack success, Laravel creates `/ip/hotspot/user` **`tn-*`** (via API), sy
 
 **Cron:** `tesnet:cleanup-hotspot-users` weekly removes old `tn-*` users.
 
+## One account, one device (no sharing)
+
+- One **phone number** per registered student (duplicate registration blocked).
+- **`device_limit`** is always **1** for students (RADIUS `Simultaneous-Use` + MikroTik `shared-users=1` on profiles).
+- **New portal login** bumps `portal_session_version` — other browsers are signed out (`portal.single_session` middleware).
+- **Connect** disconnects any other active hotspot session for that account before opening a new one.
+- Students are told not to share passwords on login/register screens.
+
+This stops two people using one account **at the same time**. It does not stop someone from handing over their password for use later (that is policy/trust).
+
 Legacy purchases without `mikrotik_username` still use phone-based RADIUS limits until the student buys again.
 
 ## FreeRADIUS

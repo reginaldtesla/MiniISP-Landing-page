@@ -11,10 +11,10 @@
     <p class="font-mono text-body-md admin-card-muted mb-6">{{ $user->phone_number }}</p>
     <form method="POST" action="{{ route('admin.users.update', $user) }}" class="admin-card rounded-xl p-6 soft-shadow space-y-4 border border-outline-variant/20">
         @csrf @method('PUT')
-        <div>
-            <label class="font-label-sm admin-card-muted block mb-1">Device Limit</label>
-            <input type="number" name="device_limit" min="1" max="10" value="{{ old('device_limit', $user->device_limit) }}" class="portal-input min-h-[48px]"/>
-        </div>
+        <p class="font-label-sm admin-card-muted rounded-lg border border-outline-variant/20 bg-surface-container-low dark:bg-admin-elevated-high p-3">
+            <span class="font-semibold admin-card-strong">One account, one device.</span>
+            Each student may use {{ $user->device_limit }} device at a time. Sharing login details is not allowed.
+        </p>
         <div class="rounded-lg border border-outline-variant/20 bg-surface-container-low dark:bg-admin-elevated-high p-4">
             <label class="flex items-start gap-3">
                 <input type="hidden" name="is_suspended" value="0"/>

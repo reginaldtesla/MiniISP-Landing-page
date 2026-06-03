@@ -6,8 +6,11 @@ use App\Models\RadCheck;
 use App\Models\RadReply;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Http\Middleware\EnsureSinglePortalSession;
 use App\Services\MikrotikApiService;
+use App\Services\PackageQuotaService;
 use App\Services\PaymentFulfillmentService;
+use App\Services\SingleDeviceGuard;
 use App\Support\HotspotIdentity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt;
@@ -134,6 +137,8 @@ test('new payment supersedes prior active purchase', function () {
 });
 
 test('connect wifi uses tn username for model a purchase', function () {
+    $this->withoutMiddleware(EnsureSinglePortalSession::class);
+
     $user = User::factory()->create(['phone_number' => '233559998877']);
 
     $purchase = PackagePurchase::query()->create([
@@ -163,11 +168,21 @@ test('connect wifi uses tn username for model a purchase', function () {
         'mikrotik_synced_at' => now(),
     ]);
 
+    $this->mock(SingleDeviceGuard::class, function ($mock) {
+        $mock->shouldReceive('disconnectOtherHotspotSessions')->andReturnNull();
+    });
+
+    $purchase = PackagePurchase::query()->whereKey($purchase->id)->first();
+
+    $this->mock(PackageQuotaService::class, function ($mock) use ($purchase) {
+        $mock->shouldReceive('syncForUser')->andReturn($purchase);
+    });
+
     $response = $this->actingAs($user)
         ->withSession(['portal_wifi_password' => Crypt::encryptString('portal-pass')])
         ->post(route('portal.connect-wifi'));
 
-    $response->assertOk();
-    $response->assertViewHas('username', 'tn-500');
-    $response->assertViewHas('password', 'hotspot-only-secret');
+    expect($response->status())->toBe(200)
+        ->and($response->getContent())->toContain('tn-500')
+        ->and($response->getContent())->toContain('hotspot-only-secret');
 });

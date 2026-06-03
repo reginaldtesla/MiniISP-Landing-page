@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Portal;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\PackageQuotaService;
+use App\Services\SingleDeviceGuard;
 use App\Support\HotspotIdentity;
 use App\Support\PackageUsage;
 use App\Support\PaystackCustomerEmail;
@@ -58,7 +59,8 @@ class AuthController extends Controller
         User::setPlainPasswordForRadius(null);
 
         Auth::login($user);
-        $this->storeWifiPassword($request, $validated['password']);
+        $request->session()->regenerate();
+        $this->finalizePortalLogin($request, $user, $validated['password']);
 
         return redirect()->route('portal.dashboard')
             ->with('status', 'Account created. Buy a data plan to get online.');
@@ -100,7 +102,7 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
-            $this->storeWifiPassword($request, (string) $request->input('password'));
+            $this->finalizePortalLogin($request, $request->user(), (string) $request->input('password'));
 
             $user = $request->user();
 
@@ -159,6 +161,8 @@ class AuthController extends Controller
                 ->withErrors(['wifi' => 'Your data is used up. Buy a new package to connect.']);
         }
 
+        app(SingleDeviceGuard::class)->disconnectOtherHotspotSessions($user);
+
         if (HotspotIdentity::usesPerPurchase($activePurchase)) {
             $hotspotPassword = $activePurchase->hotspotLoginPassword();
 
@@ -179,6 +183,15 @@ class AuthController extends Controller
             'username' => $user->phone_number,
             'password' => $password,
         ]);
+    }
+
+    protected function finalizePortalLogin(Request $request, User $user, string $password): void
+    {
+        $guard = app(SingleDeviceGuard::class);
+        $guard->disconnectOtherHotspotSessions($user);
+        $version = $guard->bindPortalSession($user);
+        $request->session()->put('portal_session_version', $version);
+        $this->storeWifiPassword($request, $password);
     }
 
     protected function storeWifiPassword(Request $request, string $password): void
