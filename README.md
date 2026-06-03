@@ -14,6 +14,8 @@ TesNet is a Laravel captive-portal and billing stack for student Wi‑Fi: **phon
 
 Auth is **not** MAC-based: RADIUS uses the normalized phone number as username (`233…`). Laravel syncs `radcheck` / `radreply` on user and package changes.
 
+**Production path (HP ProBook):** after `git clone https://github.com/reginaldtesla/MiniISP-Landing-page.git`, the app is `/var/www/MiniISP-Landing-page/TesNet` (Apache → `…/TesNet/public`).
+
 ## Quick start (development)
 
 ```bash

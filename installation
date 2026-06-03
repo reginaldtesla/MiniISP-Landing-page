@@ -264,16 +264,18 @@ From your dev machine, clone or copy the repo to the server, e.g.:
 sudo mkdir -p /var/www
 sudo chown $USER:$USER /var/www
 cd /var/www
-git clone <your-repo-url> tesnet
-cd tesnet/TesNet
+git clone https://github.com/reginaldtesla/MiniISP-Landing-page.git
+cd MiniISP-Landing-page/TesNet
 ```
 
-Or upload the `TesNet/` folder with `scp` / WinSCP to `/var/www/tesnet/TesNet`.
+Clone URL: `https://github.com/reginaldtesla/MiniISP-Landing-page.git` — default folder **`MiniISP-Landing-page`**, app path **`MiniISP-Landing-page/TesNet`**.
+
+Or upload the `TesNet/` folder with `scp` / WinSCP to `/var/www/MiniISP-Landing-page/TesNet`.
 
 ### 4.2 Install PHP dependencies and build assets
 
 ```bash
-cd /var/www/tesnet/TesNet
+cd /var/www/MiniISP-Landing-page/TesNet
 composer install --no-dev --optimize-autoloader
 cp .env.example .env
 php artisan key:generate
@@ -322,8 +324,8 @@ npm run build:offline
 Set permissions:
 
 ```bash
-sudo chown -R www-data:www-data /var/www/tesnet/TesNet/storage /var/www/tesnet/TesNet/bootstrap/cache
-sudo chmod -R 775 /var/www/tesnet/TesNet/storage /var/www/tesnet/TesNet/bootstrap/cache
+sudo chown -R www-data:www-data /var/www/MiniISP-Landing-page/TesNet/storage /var/www/MiniISP-Landing-page/TesNet/bootstrap/cache
+sudo chmod -R 775 /var/www/MiniISP-Landing-page/TesNet/storage /var/www/MiniISP-Landing-page/TesNet/bootstrap/cache
 ```
 
 **Offline UI assets (fonts + icons):** `build:offline` writes self-contained files to `public/assets/portal/`:
@@ -349,9 +351,9 @@ sudo nano /etc/apache2/sites-available/tesnet.conf
 ```apache
 <VirtualHost *:80>
     ServerName portal.tesnet.local
-    DocumentRoot /var/www/tesnet/TesNet/public
+    DocumentRoot /var/www/MiniISP-Landing-page/TesNet/public
 
-    <Directory /var/www/tesnet/TesNet/public>
+    <Directory /var/www/MiniISP-Landing-page/TesNet/public>
         AllowOverride All
         Require all granted
     </Directory>
@@ -393,7 +395,7 @@ sudo crontab -u www-data -e
 Add:
 
 ```cron
-* * * * * cd /var/www/tesnet/TesNet && php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd /var/www/MiniISP-Landing-page/TesNet && php artisan schedule:run >> /dev/null 2>&1
 ```
 
 This runs scheduled tasks defined in `routes/console.php`:
@@ -801,7 +803,7 @@ Useful commands:
 # Ubuntu
 sudo systemctl status freeradius apache2 mariadb
 sudo journalctl -u freeradius -n 50
-sudo tail -f /var/www/tesnet/TesNet/storage/logs/laravel.log
+sudo tail -f /var/www/MiniISP-Landing-page/TesNet/storage/logs/laravel.log
 
 # MikroTik
 /log print where topics~"hotspot"

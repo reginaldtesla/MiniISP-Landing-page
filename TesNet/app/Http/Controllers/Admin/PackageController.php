@@ -22,7 +22,7 @@ class PackageController extends Controller
 
     public function create(): View
     {
-        return view('admin.packages.create');
+        return view('admin.packages.create', ['package' => null]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -87,7 +87,7 @@ class PackageController extends Controller
             'name' => ['required', 'string', 'max:120'],
             'data_label' => ['required', 'string', 'max:32'],
             'data_limit_mb' => [
-                Rule::requiredIf(fn () => ! $request->boolean('is_special_offer') && $request->input('validity_type') !== PackageValidity::TYPE_UNLIMITED),
+                Rule::requiredIf(fn () => $request->input('validity_type') !== PackageValidity::TYPE_UNLIMITED),
                 'nullable',
                 'integer',
                 'min:1',

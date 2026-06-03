@@ -40,7 +40,7 @@ return [
 
     'backup' => [
         'enabled' => env('TESNET_BACKUP_ENABLED', true),
-        'path' => env('TESNET_BACKUP_PATH', storage_path('backups')),
+        'path' => env('TESNET_BACKUP_PATH') ?: storage_path('backups'),
         'retain_days' => (int) env('TESNET_BACKUP_RETAIN_DAYS', 14),
     ],
 

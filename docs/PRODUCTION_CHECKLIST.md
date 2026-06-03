@@ -73,10 +73,12 @@ sudo apt install -y certbot python3-certbot-apache
 
 ### 6. Application (not apt — deploy TesNet code)
 
-On the ProBook after packages above:
+On the ProBook after packages above (path after default `git clone`):
 
 ```bash
-cd /var/www/tesnet/TesNet
+cd /var/www
+git clone https://github.com/reginaldtesla/MiniISP-Landing-page.git
+cd /var/www/MiniISP-Landing-page/TesNet
 composer install --no-dev --optimize-autoloader
 cp .env.example .env && php artisan key:generate
 php artisan migrate --force
@@ -109,13 +111,13 @@ npm install && npm run build:offline
 ## Server (HP ProBook / Ubuntu)
 
 - [ ] `APP_ENV=production`, `APP_DEBUG=false`, correct `APP_URL` (HTTPS in production)
-- [ ] Apache/Nginx + PHP 8.2+ pointing to `TesNet/public`
+- [ ] Apache + PHP 8.3+ → `DocumentRoot` `/var/www/MiniISP-Landing-page/TesNet/public`
 - [ ] `php artisan migrate --force` applied
 - [ ] `npm run build:offline` — `public/assets/portal/` present
 - [ ] `PORTAL_USE_OFFLINE_ASSETS=true`
 - [ ] Cron for Laravel scheduler:
   ```cron
-  * * * * * cd /var/www/tesnet/TesNet && php artisan schedule:run >> /dev/null 2>&1
+  * * * * * cd /var/www/MiniISP-Landing-page/TesNet && php artisan schedule:run >> /dev/null 2>&1
   ```
 - [ ] `LOG_CHANNEL=daily` (log rotation via daily files)
 - [ ] `TESNET_BACKUP_ENABLED=true` — verify `php artisan tesnet:backup-database` works

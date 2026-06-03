@@ -299,14 +299,16 @@ sudo systemctl status freeradius
 sudo mkdir -p /var/www
 sudo chown $USER:$USER /var/www
 cd /var/www
-git clone <your-repo-url> tesnet
-cd tesnet/TesNet
+git clone https://github.com/reginaldtesla/MiniISP-Landing-page.git
+cd MiniISP-Landing-page/TesNet
 ```
 
-Or copy the `TesNet/` folder with WinSCP to `/var/www/tesnet/TesNet`.
+Git creates `/var/www/MiniISP-Landing-page/`; the Laravel app lives in the **`TesNet`** subfolder.
+
+Or clone on your PC and upload with WinSCP to `/var/www/MiniISP-Landing-page/TesNet` (full `TesNet` directory contents).
 
 ```bash
-cd /var/www/tesnet/TesNet
+cd /var/www/MiniISP-Landing-page/TesNet
 composer install --no-dev --optimize-autoloader
 cp .env.example .env
 php artisan key:generate
@@ -378,6 +380,7 @@ Permissions:
 ```bash
 sudo chown -R www-data:www-data storage bootstrap/cache
 sudo chmod -R 775 storage bootstrap/cache
+# full paths: /var/www/MiniISP-Landing-page/TesNet/storage and bootstrap/cache
 ```
 
 Verify offline assets exist:
@@ -395,9 +398,9 @@ sudo nano /etc/apache2/sites-available/tesnet.conf
 ```apache
 <VirtualHost *:80>
     ServerName 192.168.88.2
-    DocumentRoot /var/www/tesnet/TesNet/public
+    DocumentRoot /var/www/MiniISP-Landing-page/TesNet/public
 
-    <Directory /var/www/tesnet/TesNet/public>
+    <Directory /var/www/MiniISP-Landing-page/TesNet/public>
         AllowOverride All
         Require all granted
     </Directory>
@@ -430,13 +433,13 @@ sudo crontab -u www-data -e
 Add:
 
 ```cron
-* * * * * cd /var/www/tesnet/TesNet && php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd /var/www/MiniISP-Landing-page/TesNet && php artisan schedule:run >> /dev/null 2>&1
 ```
 
 Test manually:
 
 ```bash
-cd /var/www/tesnet/TesNet
+cd /var/www/MiniISP-Landing-page/TesNet
 php artisan tesnet:monitor
 php artisan tesnet:backup-database
 ```
@@ -987,7 +990,7 @@ curl -sI http://127.0.0.1/portal/login | head -3
 radtest 233551234567 'password' 127.0.0.1 0 testing123
 
 # 5. App health
-cd /var/www/tesnet/TesNet && php artisan tesnet:monitor
+cd /var/www/MiniISP-Landing-page/TesNet && php artisan tesnet:monitor
 ```
 
 **From Winbox (MikroTik):**
@@ -1088,7 +1091,7 @@ See also [`docs/PRODUCTION_CHECKLIST.md`](PRODUCTION_CHECKLIST.md).
 # ProBook
 sudo systemctl status freeradius apache2 mariadb
 sudo journalctl -u freeradius -n 50
-sudo tail -f /var/www/tesnet/TesNet/storage/logs/laravel.log
+sudo tail -f /var/www/MiniISP-Landing-page/TesNet/storage/logs/laravel.log
 php artisan tesnet:monitor
 
 # MikroTik
