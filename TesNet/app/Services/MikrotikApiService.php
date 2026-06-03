@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\PhoneNumber;
 use Illuminate\Support\Facades\Log;
 
 class MikrotikApiService
@@ -91,6 +92,96 @@ class MikrotikApiService
         }
 
         return false;
+    }
+
+    /**
+     * Bytes used / total cap as seen on the router (hotspot user + active sessions).
+     *
+     * @return array{used: int, limit: int}|null null when API disabled or unreachable
+     */
+    public function hotspotDataUsageForUser(string $username): ?array
+    {
+        if (! $this->isEnabled() || ! $this->connect()) {
+            return null;
+        }
+
+        try {
+            $best = ['used' => 0, 'limit' => 0];
+
+            foreach ($this->usernameLookupVariants($username) as $variant) {
+                $usage = $this->fetchHotspotUsageForVariant($variant);
+
+                if ($usage['used'] > $best['used']) {
+                    $best['used'] = $usage['used'];
+                }
+
+                if ($usage['limit'] > $best['limit']) {
+                    $best['limit'] = $usage['limit'];
+                }
+            }
+
+            return $best;
+        } finally {
+            $this->disconnect();
+        }
+    }
+
+    public function hotspotQuotaExhausted(string $username): bool
+    {
+        $usage = $this->hotspotDataUsageForUser($username);
+
+        if ($usage === null || $usage['limit'] < 1) {
+            return false;
+        }
+
+        return $usage['used'] >= $usage['limit'];
+    }
+
+    /**
+     * @return array{used: int, limit: int}
+     */
+    protected function fetchHotspotUsageForVariant(string $username): array
+    {
+        $used = 0;
+        $limit = 0;
+
+        foreach ($this->command('/ip/hotspot/user/print', ['?name' => $username]) as $row) {
+            if (isset($row['!type'])) {
+                continue;
+            }
+
+            $rowUsed = (int) ($row['bytes-in'] ?? 0) + (int) ($row['bytes-out'] ?? 0);
+            $used = max($used, $rowUsed);
+            $limit = max($limit, (int) ($row['limit-bytes-total'] ?? 0));
+        }
+
+        foreach ($this->command('/ip/hotspot/active/print', ['?user' => $username]) as $row) {
+            if (isset($row['!type'])) {
+                continue;
+            }
+
+            $rowUsed = (int) ($row['bytes-in'] ?? 0) + (int) ($row['bytes-out'] ?? 0);
+            $used = max($used, $rowUsed);
+            $limit = max($limit, (int) ($row['limit-bytes-total'] ?? 0));
+        }
+
+        return ['used' => $used, 'limit' => $limit];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function usernameLookupVariants(string $username): array
+    {
+        $variants = array_filter([$username, PhoneNumber::normalize($username)]);
+
+        foreach ($variants as $variant) {
+            if (str_starts_with($variant, '233') && strlen($variant) >= 12) {
+                $variants[] = '0'.substr($variant, 3);
+            }
+        }
+
+        return array_values(array_unique($variants));
     }
 
     public function disconnectHotspotUser(string $username): bool

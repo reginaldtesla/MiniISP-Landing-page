@@ -16,6 +16,7 @@ class PackagePurchase extends Model
         'package_name',
         'data_limit_mb',
         'data_limit_bytes',
+        'bytes_consumed',
         'speed_mbps',
         'validity_type',
         'activated_at',
@@ -30,6 +31,7 @@ class PackagePurchase extends Model
             'expires_at' => 'datetime',
             'data_limit_mb' => 'integer',
             'data_limit_bytes' => 'integer',
+            'bytes_consumed' => 'integer',
             'speed_mbps' => 'integer',
         ];
     }

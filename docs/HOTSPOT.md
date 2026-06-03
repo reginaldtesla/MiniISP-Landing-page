@@ -35,7 +35,9 @@ Legacy files in the repo (`login.html`, `TesNet/login.html`, `flash/hotspot/logi
 
 ## FreeRADIUS
 
-- Laravel writes `radcheck` (Cleartext-Password, Simultaneous-Use) and `radreply` (rate limits, `Mikrotik-Total-Limit`) via `RadiusSyncService`. **`Mikrotik-Total-Limit` is refreshed to remaining bytes** on dashboard load and before **Connect to Internet** (`PackageQuotaService`), so reconnecting Wi‑Fi does not reset the full package cap.
+- Laravel writes `radcheck` (Cleartext-Password, Simultaneous-Use) and `radreply` (rate limits, `Mikrotik-Total-Limit`) via `RadiusSyncService`. **`Mikrotik-Total-Limit` is refreshed to remaining bytes** on dashboard load and before **Connect to Internet** (`PackageQuotaService`).
+- Dashboard usage uses **`radacct` + `package_purchases.bytes_consumed` + MikroTik API** (`MIKROTIK_API_ENABLED=true`) so the home page matches the router when accounting SQL lags.
+- Hotspot profile must have **`radius-accounting=yes`** so `radacct` fills in MariaDB.
 - MikroTik hotspot uses RADIUS for authentication; usernames are **normalized phone numbers** (`233551234567`).
 
 ## Announcements
