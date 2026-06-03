@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\PackageQuotaService;
 use App\Support\PaystackCustomerEmail;
 use App\Support\PhoneNumber;
 use App\Support\PortalStatus;
@@ -116,7 +117,7 @@ class AuthController extends Controller
         return redirect()->route('portal.login');
     }
 
-    public function connectToWifi(Request $request): RedirectResponse|View
+    public function connectToWifi(Request $request, PackageQuotaService $quota): RedirectResponse|View
     {
         if (PortalStatus::shouldBlockConnect()) {
             return redirect()->route('portal.dashboard')
@@ -131,9 +132,9 @@ class AuthController extends Controller
                 ->withErrors(['wifi' => 'Please log out and log in again to connect (session credentials expired).']);
         }
 
-        $hasPlan = $user->hasActiveDataPlan();
+        $activePurchase = $quota->syncForUser($user);
 
-        if (! $hasPlan) {
+        if (! $activePurchase) {
             return redirect()->route('portal.packages')
                 ->withErrors(['wifi' => 'Purchase a data package before connecting to Wi‑Fi.']);
         }

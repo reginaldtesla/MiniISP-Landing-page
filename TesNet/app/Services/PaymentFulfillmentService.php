@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 class PaymentFulfillmentService
 {
     public function __construct(
-        protected RadiusSyncService $radius,
+        protected PackageQuotaService $quota,
     ) {}
 
     public function fulfill(Transaction $transaction, array $paystackData): Transaction
@@ -63,15 +63,7 @@ class PaymentFulfillmentService
                     'status' => 'active',
                 ]);
 
-                if (PackageValidity::isUnlimited($package)) {
-                    $this->radius->applyDataLimitBytes($user, $package->speed_mbps, 0);
-                } else {
-                    $this->radius->applyPackageLimits(
-                        $user,
-                        $package->speed_mbps,
-                        $package->data_limit_mb
-                    );
-                }
+                $this->quota->syncForUser($user);
             }
 
             if ($locked->type === 'custom_data') {
@@ -99,7 +91,7 @@ class PaymentFulfillmentService
                     'status' => 'active',
                 ]);
 
-                $this->radius->applyDataLimitBytes($user, $speedMbps, $limitBytes);
+                $this->quota->syncForUser($user);
             }
 
             return $locked->fresh();

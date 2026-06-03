@@ -6,17 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\PortalNotification;
 use App\Models\RadAcct;
 use App\Models\User;
+use App\Services\PackageQuotaService;
 use App\Support\PackageUsage;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request, PackageQuotaService $quota): View
     {
         $user = $request->user();
 
-        $activePackage = PackageUsage::activePurchaseFor($user);
+        $activePackage = $quota->syncForUser($user);
 
         $activeSessions = RadAcct::query()
             ->active()

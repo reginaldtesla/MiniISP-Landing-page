@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
 use App\Models\RadAcct;
+use App\Services\PackageQuotaService;
 use App\Services\SessionDisconnectService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,7 +28,7 @@ class DeviceController extends Controller
         ]);
     }
 
-    public function disconnect(Request $request, RadAcct $session, SessionDisconnectService $disconnect): RedirectResponse
+    public function disconnect(Request $request, RadAcct $session, SessionDisconnectService $disconnect, PackageQuotaService $quota): RedirectResponse
     {
         if ($session->username !== $request->user()->phone_number) {
             abort(403);
@@ -40,6 +41,8 @@ class DeviceController extends Controller
         $result = $disconnect->forceDisconnect($session);
 
         if ($result->succeeded()) {
+            $quota->syncForUser($request->user());
+
             return back()->with('status', $result->userMessage('Device disconnected. You can connect again from the dashboard.'));
         }
 

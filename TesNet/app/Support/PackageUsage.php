@@ -15,9 +15,11 @@ class PackageUsage
             return 0;
         }
 
+        $activatedAt = $purchase->activated_at?->copy()->subSecond() ?? now()->subYear();
+
         return (int) RadAcct::query()
             ->where('username', $phoneNumber)
-            ->where('acctstarttime', '>=', $purchase->activated_at)
+            ->where('acctstarttime', '>=', $activatedAt)
             ->sum(DB::raw('COALESCE(acctinputoctets, 0) + COALESCE(acctoutputoctets, 0)'));
     }
 
