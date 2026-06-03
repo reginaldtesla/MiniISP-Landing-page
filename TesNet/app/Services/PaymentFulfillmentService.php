@@ -9,11 +9,13 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Support\PackageValidity;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PaymentFulfillmentService
 {
     public function __construct(
         protected PackageQuotaService $quota,
+        protected MikrotikApiService $mikrotik,
     ) {}
 
     public function fulfill(Transaction $transaction, array $paystackData): Transaction
@@ -44,26 +46,15 @@ class PaymentFulfillmentService
             $user = User::query()->whereKey($locked->user_id)->lockForUpdate()->firstOrFail();
 
             if ($locked->type === 'package' && $package) {
-                PackagePurchase::query()
-                    ->where('user_id', $user->id)
-                    ->where('status', 'active')
-                    ->update(['status' => 'superseded']);
-
-                PackagePurchase::query()->create([
-                    'user_id' => $user->id,
-                    'transaction_id' => $locked->id,
+                $this->activatePackagePurchase($user, $locked, [
                     'package_slug' => $package->slug,
                     'package_name' => $package->name,
                     'data_limit_mb' => $package->data_limit_mb,
                     'data_limit_bytes' => null,
                     'speed_mbps' => $package->speed_mbps,
                     'validity_type' => PackageValidity::typeForPackage($package),
-                    'activated_at' => now(),
                     'expires_at' => PackageValidity::purchaseExpiresAt($package, now()),
-                    'status' => 'active',
                 ]);
-
-                $this->quota->syncForUser($user, force: true);
             }
 
             if ($locked->type === 'custom_data') {
@@ -72,30 +63,60 @@ class PaymentFulfillmentService
                 $speedMbps = (int) ($meta['speed_mbps'] ?? config('custom_data.speed_mbps', 60));
                 $label = (string) ($meta['data_label'] ?? 'Custom data');
 
-                PackagePurchase::query()
-                    ->where('user_id', $user->id)
-                    ->where('status', 'active')
-                    ->update(['status' => 'superseded']);
-
-                PackagePurchase::query()->create([
-                    'user_id' => $user->id,
-                    'transaction_id' => $locked->id,
+                $this->activatePackagePurchase($user, $locked, [
                     'package_slug' => 'custom',
                     'package_name' => 'Custom · '.$label,
                     'data_limit_mb' => (int) ceil($limitBytes / 1048576),
                     'data_limit_bytes' => $limitBytes,
                     'speed_mbps' => $speedMbps,
                     'validity_type' => PackageValidity::TYPE_UNTIL_FINISHED,
-                    'activated_at' => now(),
                     'expires_at' => null,
-                    'status' => 'active',
                 ]);
-
-                $this->quota->syncForUser($user, force: true);
             }
 
             return $locked->fresh();
         });
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    protected function activatePackagePurchase(User $user, Transaction $transaction, array $attributes): void
+    {
+        PackagePurchase::query()
+            ->where('user_id', $user->id)
+            ->where('status', 'active')
+            ->update(['status' => 'superseded']);
+
+        PackagePurchase::query()->create([
+            'user_id' => $user->id,
+            'transaction_id' => $transaction->id,
+            'activated_at' => now(),
+            'status' => 'active',
+            'bytes_consumed' => 0,
+            'last_radius_limit_bytes' => 0,
+            ...$attributes,
+        ]);
+
+        if ($user->phone_number) {
+            try {
+                $this->mikrotik->resetHotspotUsageForUser($user->phone_number);
+            } catch (\Throwable $exception) {
+                Log::warning('Could not reset MikroTik counters after purchase', [
+                    'user_id' => $user->id,
+                    'error' => $exception->getMessage(),
+                ]);
+            }
+        }
+
+        $active = $this->quota->syncForUser($user, force: true);
+
+        if ($active === null) {
+            Log::error('New package not active after payment', [
+                'user_id' => $user->id,
+                'transaction_id' => $transaction->id,
+            ]);
+        }
     }
 
     /**

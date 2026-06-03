@@ -140,7 +140,13 @@ class PackageUsage
                 return;
             }
 
-            $measured = max((int) $purchase->bytes_consumed, $peak, self::bytesFromRadAcct($purchase, $phoneNumber));
+            $radSum = self::bytesFromRadAcct($purchase, $phoneNumber);
+
+            if (self::isFreshPurchase($purchase) && $radSum < 1) {
+                $peak = 0;
+            }
+
+            $measured = max((int) $purchase->bytes_consumed, $peak, $radSum);
 
             if (self::tracksBytesConsumed() && $measured > (int) $purchase->bytes_consumed) {
                 $purchase->update(['bytes_consumed' => $measured]);
@@ -159,16 +165,18 @@ class PackageUsage
 
         $stored = self::tracksBytesConsumed() ? (int) $purchase->bytes_consumed : 0;
 
-        $sources = [
-            $stored,
-            self::bytesFromRadAcct($purchase, $phoneNumber),
-        ];
+        return max($stored, self::bytesFromRadAcct($purchase, $phoneNumber));
+    }
 
-        if (self::$queryMikrotik) {
-            $sources[] = self::bytesFromMikrotik($phoneNumber);
+    public static function isFreshPurchase(PackagePurchase $purchase): bool
+    {
+        if ((int) $purchase->bytes_consumed > 0) {
+            return false;
         }
 
-        return max(...$sources);
+        $activatedAt = $purchase->activated_at;
+
+        return $activatedAt !== null && $activatedAt->isAfter(now()->subMinutes(20));
     }
 
     /**
@@ -220,6 +228,10 @@ class PackageUsage
             return;
         }
 
+        if (self::isFreshPurchase($purchase)) {
+            return;
+        }
+
         $limit = self::dataLimitBytesFor($purchase);
 
         if ($limit < 1) {
@@ -227,10 +239,24 @@ class PackageUsage
         }
 
         try {
-            if (! app(MikrotikApiService::class)->hotspotQuotaExhausted($phoneNumber)) {
-                return;
-            }
+            $usage = app(MikrotikApiService::class)->hotspotDataUsageForUser($phoneNumber);
         } catch (Throwable) {
+            return;
+        }
+
+        if ($usage === null || $usage['limit'] < 1 || $usage['used'] < $usage['limit']) {
+            return;
+        }
+
+        $expectedCap = (int) ($purchase->last_radius_limit_bytes ?? 0);
+
+        if ($expectedCap < 1) {
+            $expectedCap = $limit;
+        }
+
+        $tolerance = max(1048576, (int) ($expectedCap * 0.2));
+
+        if (abs($usage['limit'] - $expectedCap) > $tolerance) {
             return;
         }
 
@@ -316,7 +342,7 @@ class PackageUsage
         $remaining = max(0, $limitBytes - $used);
 
         if (self::$queryMikrotik) {
-            $routerRemaining = self::bytesRemainingFromRouter($phoneNumber, $limitBytes);
+            $routerRemaining = self::bytesRemainingFromRouter($phoneNumber, $limitBytes, $purchase);
 
             if ($routerRemaining !== null) {
                 $remaining = min($remaining, $routerRemaining);
@@ -412,26 +438,12 @@ class PackageUsage
         }
     }
 
-    protected static function bytesFromMikrotik(string $phoneNumber): int
-    {
-        if (! self::$queryMikrotik) {
-            return 0;
-        }
-
-        try {
-            $usage = app(MikrotikApiService::class)->hotspotDataUsageForUser($phoneNumber);
-
-            return $usage['used'] ?? 0;
-        } catch (Throwable $exception) {
-            Log::warning('MikroTik usage lookup failed', ['error' => $exception->getMessage()]);
-
-            return 0;
-        }
-    }
-
-    protected static function bytesRemainingFromRouter(?string $phoneNumber, int $purchaseLimitBytes): ?int
-    {
-        if (! $phoneNumber || ! self::$queryMikrotik) {
+    protected static function bytesRemainingFromRouter(
+        ?string $phoneNumber,
+        int $purchaseLimitBytes,
+        ?PackagePurchase $purchase = null,
+    ): ?int {
+        if (! $phoneNumber || ! self::$queryMikrotik || ($purchase && self::isFreshPurchase($purchase))) {
             return null;
         }
 

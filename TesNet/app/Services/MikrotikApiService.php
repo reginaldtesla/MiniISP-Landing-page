@@ -192,6 +192,43 @@ class MikrotikApiService
     }
 
     /**
+     * Clear stale hotspot byte counters after a new package purchase.
+     */
+    public function resetHotspotUsageForUser(string $username): void
+    {
+        if (! $this->isEnabled()) {
+            return;
+        }
+
+        foreach ($this->usernameLookupVariants($username) as $variant) {
+            $this->disconnectHotspotUser($variant);
+
+            if (! $this->connect()) {
+                continue;
+            }
+
+            try {
+                foreach ($this->command('/ip/hotspot/user/print', ['?name' => $variant]) as $row) {
+                    if (isset($row['!type']) || ! isset($row['.id'])) {
+                        continue;
+                    }
+
+                    $this->command('/ip/hotspot/user/remove', ['.id' => $row['.id']]);
+                }
+            } catch (\Throwable $exception) {
+                Log::warning('MikroTik hotspot user reset failed', [
+                    'username' => $variant,
+                    'error' => $exception->getMessage(),
+                ]);
+            } finally {
+                $this->disconnect();
+            }
+        }
+
+        self::$hotspotUsageCache = [];
+    }
+
+    /**
      * @return array{used: int, limit: int}
      */
     protected function fetchHotspotUsageForVariant(string $username): array
