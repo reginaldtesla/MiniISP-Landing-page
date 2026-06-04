@@ -4,15 +4,20 @@ namespace App\Http\Controllers\Admin;
 
 use App\Exceptions\PaymentFulfillmentException;
 use App\Http\Controllers\Controller;
+use App\Models\DataPackage;
 use App\Models\ManualPaymentRequest;
 use App\Models\Transaction;
+use App\Models\User;
 use App\Services\PaymentFulfillmentService;
+use App\Support\CustomDataCalculator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Throwable;
 
 class ManualPaymentController extends Controller
 {
@@ -49,7 +54,9 @@ class ManualPaymentController extends Controller
         $approved = false;
 
         try {
-            DB::transaction(function () use ($manualPaymentRequest, $request, $fulfillment, $validated, &$approved) {
+            $fulfillmentMeta = $this->resolveFulfillmentMetadata($manualPaymentRequest);
+
+            DB::transaction(function () use ($manualPaymentRequest, $request, $fulfillment, $validated, $fulfillmentMeta, &$approved) {
                 $locked = ManualPaymentRequest::query()
                     ->whereKey($manualPaymentRequest->id)
                     ->lockForUpdate()
@@ -59,7 +66,7 @@ class ManualPaymentController extends Controller
                     return;
                 }
 
-                $user = $locked->user()->lockForUpdate()->firstOrFail();
+                $user = User::query()->whereKey($locked->user_id)->lockForUpdate()->firstOrFail();
 
                 $txType = $locked->type;
                 $packageSlug = null;
@@ -70,7 +77,7 @@ class ManualPaymentController extends Controller
                 }
 
                 if ($txType === 'custom_data') {
-                    $metadata = $locked->metadata ?? [];
+                    $metadata = $fulfillmentMeta;
                 }
 
                 $reference = 'manual_'.$locked->id.'_'.now()->format('YmdHis');
@@ -109,6 +116,15 @@ class ManualPaymentController extends Controller
             });
         } catch (PaymentFulfillmentException $exception) {
             return back()->withErrors(['request' => $exception->getMessage()]);
+        } catch (Throwable $exception) {
+            Log::error('Manual payment approval failed', [
+                'manual_payment_request_id' => $manualPaymentRequest->id,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return back()->withErrors([
+                'request' => 'Could not approve this request. Run php artisan migrate --force on the server, then try again. Details were logged.',
+            ]);
         }
 
         if (! $approved) {
@@ -151,5 +167,47 @@ class ManualPaymentController extends Controller
             $manualPaymentRequest->proof_path,
             'manual-payment-'.$manualPaymentRequest->id.'-proof'
         );
+    }
+
+    /**
+     * @return array<string, mixed>
+     *
+     * @throws PaymentFulfillmentException
+     */
+    protected function resolveFulfillmentMetadata(ManualPaymentRequest $manualPaymentRequest): array
+    {
+        if ($manualPaymentRequest->type === 'package') {
+            if (! $manualPaymentRequest->package_slug) {
+                throw new PaymentFulfillmentException('This request has no package selected. Reject it and ask the student to submit again.');
+            }
+
+            $package = DataPackage::query()
+                ->active()
+                ->where('slug', $manualPaymentRequest->package_slug)
+                ->first();
+
+            if (! $package) {
+                throw new PaymentFulfillmentException('Package "'.$manualPaymentRequest->package_slug.'" is missing or inactive. Reactivate the package or reject this request.');
+            }
+
+            return [];
+        }
+
+        if ($manualPaymentRequest->type !== 'custom_data') {
+            throw new PaymentFulfillmentException('Unsupported manual payment type.');
+        }
+
+        $metadata = $manualPaymentRequest->metadata ?? [];
+        $limitBytes = (int) ($metadata['data_limit_bytes'] ?? 0);
+
+        if ($limitBytes > 0) {
+            return $metadata;
+        }
+
+        try {
+            return CustomDataCalculator::quote((float) $manualPaymentRequest->amount)->toMetadata();
+        } catch (\InvalidArgumentException $exception) {
+            throw new PaymentFulfillmentException($exception->getMessage());
+        }
     }
 }
