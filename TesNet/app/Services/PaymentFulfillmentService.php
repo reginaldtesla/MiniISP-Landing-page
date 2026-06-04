@@ -19,64 +19,69 @@ class PaymentFulfillmentService
         protected HotspotPurchaseService $hotspotPurchase,
     ) {}
 
-    public function fulfill(Transaction $transaction, array $paystackData): Transaction
+    public function fulfill(Transaction $transaction, array $paystackData, bool $useTransaction = true): Transaction
     {
         if ($transaction->status === 'success') {
             return $transaction;
         }
 
-        return DB::transaction(function () use ($transaction, $paystackData) {
-            $locked = Transaction::query()
-                ->whereKey($transaction->id)
-                ->lockForUpdate()
-                ->firstOrFail();
+        $perform = fn () => $this->performFulfill($transaction, $paystackData);
 
-            if ($locked->status === 'success') {
-                return $locked;
-            }
+        return $useTransaction ? DB::transaction($perform) : $perform();
+    }
 
-            $package = $this->validateBeforeFulfillment($locked);
+    protected function performFulfill(Transaction $transaction, array $paystackData): Transaction
+    {
+        $locked = Transaction::query()
+            ->whereKey($transaction->id)
+            ->lockForUpdate()
+            ->firstOrFail();
 
-            $locked->update([
-                'status' => 'success',
-                'channel' => $paystackData['channel'] ?? null,
-                'paid_at' => now(),
-                'paystack_response' => ['verify' => $paystackData],
+        if ($locked->status === 'success') {
+            return $locked;
+        }
+
+        $package = $this->validateBeforeFulfillment($locked);
+
+        $locked->update([
+            'status' => 'success',
+            'channel' => $paystackData['channel'] ?? null,
+            'paid_at' => now(),
+            'paystack_response' => ['verify' => $paystackData],
+        ]);
+
+        $user = User::query()->whereKey($locked->user_id)->firstOrFail();
+
+        if ($locked->type === 'package' && $package) {
+            $this->activatePackagePurchase($user, $locked, [
+                'package_slug' => $package->slug,
+                'package_name' => $package->name,
+                'data_limit_mb' => $package->data_limit_mb,
+                'data_limit_bytes' => null,
+                'speed_mbps' => $package->speed_mbps,
+                'validity_type' => PackageValidity::typeForPackage($package),
+                'expires_at' => PackageValidity::purchaseExpiresAt($package, now()),
             ]);
+        }
 
-            $user = User::query()->whereKey($locked->user_id)->lockForUpdate()->firstOrFail();
+        if ($locked->type === 'custom_data') {
+            $meta = $locked->metadata ?? [];
+            $limitBytes = (int) ($meta['data_limit_bytes'] ?? 0);
+            $speedMbps = (int) ($meta['speed_mbps'] ?? config('custom_data.speed_mbps', 60));
+            $label = (string) ($meta['data_label'] ?? 'Custom data');
 
-            if ($locked->type === 'package' && $package) {
-                $this->activatePackagePurchase($user, $locked, [
-                    'package_slug' => $package->slug,
-                    'package_name' => $package->name,
-                    'data_limit_mb' => $package->data_limit_mb,
-                    'data_limit_bytes' => null,
-                    'speed_mbps' => $package->speed_mbps,
-                    'validity_type' => PackageValidity::typeForPackage($package),
-                    'expires_at' => PackageValidity::purchaseExpiresAt($package, now()),
-                ]);
-            }
+            $this->activatePackagePurchase($user, $locked, [
+                'package_slug' => 'custom',
+                'package_name' => 'Custom · '.$label,
+                'data_limit_mb' => (int) ceil($limitBytes / 1048576),
+                'data_limit_bytes' => $limitBytes,
+                'speed_mbps' => $speedMbps,
+                'validity_type' => PackageValidity::TYPE_UNTIL_FINISHED,
+                'expires_at' => null,
+            ]);
+        }
 
-            if ($locked->type === 'custom_data') {
-                $meta = $locked->metadata ?? [];
-                $limitBytes = (int) ($meta['data_limit_bytes'] ?? 0);
-                $speedMbps = (int) ($meta['speed_mbps'] ?? config('custom_data.speed_mbps', 60));
-                $label = (string) ($meta['data_label'] ?? 'Custom data');
-
-                $this->activatePackagePurchase($user, $locked, [
-                    'package_slug' => 'custom',
-                    'package_name' => 'Custom · '.$label,
-                    'data_limit_mb' => (int) ceil($limitBytes / 1048576),
-                    'data_limit_bytes' => $limitBytes,
-                    'speed_mbps' => $speedMbps,
-                    'validity_type' => PackageValidity::TYPE_UNTIL_FINISHED,
-                    'expires_at' => null,
-                ]);
-            }
-
-            return $locked->fresh();
-        });
+        return $locked->fresh();
     }
 
     /**

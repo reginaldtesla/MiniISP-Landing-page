@@ -7,7 +7,6 @@ use App\Http\Controllers\Controller;
 use App\Models\DataPackage;
 use App\Models\ManualPaymentRequest;
 use App\Models\Transaction;
-use App\Models\User;
 use App\Services\PaymentFulfillmentService;
 use App\Support\CustomDataCalculator;
 use Illuminate\Http\RedirectResponse;
@@ -66,8 +65,6 @@ class ManualPaymentController extends Controller
                     return;
                 }
 
-                $user = User::query()->whereKey($locked->user_id)->lockForUpdate()->firstOrFail();
-
                 $txType = $locked->type;
                 $packageSlug = null;
                 $metadata = [];
@@ -83,7 +80,7 @@ class ManualPaymentController extends Controller
                 $reference = 'manual_'.$locked->id.'_'.now()->format('YmdHis');
 
                 $transaction = Transaction::query()->create([
-                    'user_id' => $user->id,
+                    'user_id' => $locked->user_id,
                     'type' => $txType,
                     'package_slug' => $packageSlug,
                     'amount' => $locked->amount,
@@ -102,7 +99,7 @@ class ManualPaymentController extends Controller
                     'reference' => $locked->reference,
                     'provider' => $locked->provider,
                     'method' => $locked->payment_method,
-                ]);
+                ], useTransaction: false);
 
                 $locked->update([
                     'status' => 'approved',
@@ -120,11 +117,19 @@ class ManualPaymentController extends Controller
             Log::error('Manual payment approval failed', [
                 'manual_payment_request_id' => $manualPaymentRequest->id,
                 'error' => $exception->getMessage(),
+                'exception' => $exception::class,
             ]);
 
-            return back()->withErrors([
-                'request' => 'Could not approve this request. Run php artisan migrate --force on the server, then try again. Details were logged.',
-            ]);
+            $message = trim($exception->getMessage());
+
+            if ($exception instanceof \Illuminate\Database\QueryException) {
+                $message = 'Database error while activating the plan. Run php artisan migrate --force on the server, then try again.'
+                    .($message !== '' ? ' ('.$message.')' : '');
+            } elseif ($message === '') {
+                $message = 'Could not approve this request. Check storage/logs/laravel.log on the server.';
+            }
+
+            return back()->withErrors(['request' => $message]);
         }
 
         if (! $approved) {

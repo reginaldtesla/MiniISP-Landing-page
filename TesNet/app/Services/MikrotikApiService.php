@@ -517,7 +517,7 @@ class MikrotikApiService
         ?string $macAddress = null,
         ?string $ipAddress = null,
     ): bool {
-        if (! $this->connect()) {
+        if (! $this->isEnabled() || ! $this->connect()) {
             return false;
         }
 
