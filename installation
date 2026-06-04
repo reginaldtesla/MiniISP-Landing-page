@@ -559,11 +559,13 @@ Replace `portal.yourdomain.com` with the hostname from Laravel `APP_URL`.
 /ip hotspot walled-garden ip add dst-host=standard.paystack.co action=accept
 ```
 
-**Cloudflare Tunnel** (only if `APP_URL` uses it):
+**Cloudflare Tunnel** (when `APP_URL` uses HTTPS on your domain — see [`docs/CLOUDFLARE_TUNNEL.md`](docs/CLOUDFLARE_TUNNEL.md)):
 
 ```routeros
-/ip hotspot walled-garden ip add dst-host=your-tunnel.cfargotunnel.com action=accept comment="CF tunnel"
+/ip hotspot walled-garden ip add dst-host=portal.yourdomain.com action=accept comment="TesNet portal HTTPS"
 ```
+
+Do **not** use ngrok hostnames in production; they change and break Paystack.
 
 Verify — you should see **only** 5–8 rows, nothing with `dst-address=0.0.0.0/0`:
 

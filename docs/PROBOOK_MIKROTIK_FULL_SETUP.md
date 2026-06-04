@@ -910,18 +910,37 @@ Test renewal:
 sudo certbot renew --dry-run
 ```
 
-### 9.3 Split setup (LAN portal + HTTPS only for Paystack)
+### 9.3 Public HTTPS via Cloudflare Tunnel (replace ngrok)
 
-Common on a ProBook before cloud migration:
+Use this when the ProBook is on a private LAN but Paystack (and optionally the whole portal) needs **stable HTTPS** without port forwarding.
+
+**Full guide:** [`docs/CLOUDFLARE_TUNNEL.md`](CLOUDFLARE_TUNNEL.md)
 
 | Traffic | URL | Certificate |
 |---------|-----|-------------|
-| Students on Wi‑Fi | `http://192.168.88.2/portal/...` | None |
-| Paystack webhooks | `https://your-tunnel.ngrok-free.app/portal/payments/webhook` | Tunnel provider’s cert |
+| Students + Paystack (recommended) | `https://portal.yourdomain.com/portal/...` | Cloudflare edge |
+| Hotspot login after **Connect** | `http://192.168.88.1/login` | Router-local HTTP (`MIKROTIK_LOGIN_URL`) |
 
-If you use a tunnel **only** for webhooks, set `APP_URL` to the tunnel HTTPS URL **only if** students also reach the portal through that same URL. If students use LAN HTTP but `APP_URL` is the tunnel, payment callbacks and links can break.
+**Laravel `.env` (Mode A — one URL for everything):**
 
-**Safer approach:** use **manual payments** until `APP_URL` and the student-facing URL are the same trusted HTTPS origin, or until the whole portal moves to HTTPS on your domain.
+```env
+APP_URL=https://portal.yourdomain.com
+APP_FORCE_HTTPS=true
+TRUST_PROXIES=true
+SESSION_SECURE_COOKIE=true
+MIKROTIK_LOGIN_URL=http://192.168.88.1/login
+MIKROTIK_POST_LOGIN_URL=https://portal.yourdomain.com/portal/dashboard
+```
+
+**Paystack webhook:**
+
+```text
+https://portal.yourdomain.com/portal/payments/webhook
+```
+
+**Do not** mix `APP_URL` (HTTPS tunnel) with students bookmarking `http://192.168.88.2` — payment callbacks and sessions break. Pick one student-facing URL.
+
+**Stop ngrok** after Cloudflare works; remove the old ngrok URL from the Paystack dashboard.
 
 ### 9.4 Certificate checklist (before go-live)
 
@@ -954,7 +973,7 @@ On the ProBook alone:
 Options:
 
 1. **Manual pay only** for the first weeks (simplest on ProBook).
-2. **Temporary tunnel** (ngrok / Cloudflare Tunnel) — HTTPS for Paystack; understand `APP_URL` must match how students reach the app (§9.3).
+2. **Cloudflare Tunnel** — stable HTTPS for portal + Paystack ([`docs/CLOUDFLARE_TUNNEL.md`](CLOUDFLARE_TUNNEL.md); replaces ngrok).
 3. **Real domain + Let’s Encrypt** on the ProBook (§9.2) or on a VPS later.
 
 Full steps: [`docs/PAYSTACK.md`](PAYSTACK.md).

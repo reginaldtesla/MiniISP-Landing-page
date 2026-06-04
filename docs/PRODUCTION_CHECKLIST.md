@@ -2,7 +2,8 @@
 
 Use with **Admin → Health** in the portal and the main [installation](../installation) guide.
 
-Full step-by-step (factory reset → go-live): **[PROBOOK_MIKROTIK_FULL_SETUP.md](PROBOOK_MIKROTIK_FULL_SETUP.md)**.
+Full step-by-step (factory reset → go-live): **[PROBOOK_MIKROTIK_FULL_SETUP.md](PROBOOK_MIKROTIK_FULL_SETUP.md)**.  
+Public HTTPS (ngrok → Cloudflare): **[CLOUDFLARE_TUNNEL.md](CLOUDFLARE_TUNNEL.md)**.
 
 ## ProBook — everything to install
 
@@ -150,6 +151,19 @@ npm install && npm run build:offline
 | Logged in, no package | Portal works; general internet blocked |
 | Paid, not connected | Still blocked until **Connect** |
 | Connected with active plan | Browsing works within quota |
+
+## Cloudflare Tunnel (recommended for ProBook)
+
+If the portal runs on a private LAN (`192.168.88.2`), use **Cloudflare Tunnel** for stable HTTPS — see **[`docs/CLOUDFLARE_TUNNEL.md`](CLOUDFLARE_TUNNEL.md)**.
+
+Quick checklist:
+
+- [ ] `cloudflared` service running on ProBook
+- [ ] `APP_URL=https://portal.yourdomain.com` matches tunnel hostname
+- [ ] `TRUST_PROXIES=true`, `APP_FORCE_HTTPS=true`
+- [ ] Paystack webhook: `https://portal.yourdomain.com/portal/payments/webhook`
+- [ ] MikroTik walled garden + `login.html` use the same hostname
+- [ ] ngrok stopped; old ngrok webhook removed from Paystack
 
 ## Paystack
 

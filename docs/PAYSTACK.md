@@ -34,7 +34,7 @@ https://portal.yourdomain.com/portal/payments/webhook
 
 - Paystack **live** webhooks require a **public HTTPS** endpoint (not `http://192.168.88.2` on a LAN-only IP unless you tunnel).
 - Set `APP_FORCE_HTTPS=true` so `route()` and redirects use `https://` behind a reverse proxy or TLS terminator.
-- Terminate TLS on Apache/nginx/Caddy on the ProBook, or use a tunnel (Cloudflare Tunnel, ngrok for testing only).
+- Terminate TLS on Apache/nginx/Caddy on the ProBook, or use **Cloudflare Tunnel** ([`CLOUDFLARE_TUNNEL.md`](CLOUDFLARE_TUNNEL.md)). Avoid ngrok for production — URLs change and break Paystack webhooks.
 
 ## Paystack dashboard
 

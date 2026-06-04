@@ -14,7 +14,8 @@
     use Illuminate\Support\Facades\Cache;
     $routeName = request()->route()?->getName() ?? '';
     $isHome = str_starts_with($routeName, 'portal.dashboard');
-    $isBuyData = str_starts_with($routeName, 'portal.packages') || str_starts_with($routeName, 'portal.payments');
+    $isBuyData = str_starts_with($routeName, 'portal.packages') || (str_starts_with($routeName, 'portal.payments') && ! str_starts_with($routeName, 'portal.manual-payments'));
+    $isManualPay = str_starts_with($routeName, 'portal.manual-payments');
     $isAbout = str_starts_with($routeName, 'portal.about');
     $isSupport = str_starts_with($routeName, 'portal.support');
     $isDevices = str_starts_with($routeName, 'portal.devices');
@@ -67,6 +68,9 @@
         </a>
         <a href="{{ route('portal.packages') }}" class="{{ $isBuyData ? $navActive : $navIdle }}">
             <span class="material-symbols-outlined">bolt</span><span>Buy Data</span>
+        </a>
+        <a href="{{ route('portal.manual-payments.create') }}" class="{{ $isManualPay ? $navActive : $navIdle }}">
+            <span class="material-symbols-outlined">payments</span><span>Manual Pay</span>
         </a>
         <a href="{{ route('portal.devices.index') }}" class="{{ $isDevices ? $navActive : $navIdle }}">
             <span class="material-symbols-outlined">devices</span><span>Devices</span>
@@ -123,6 +127,10 @@
     <a href="{{ route('portal.packages') }}" class="{{ $isBuyData ? $bottomActive : $bottomIdle }}">
         <span class="material-symbols-outlined text-[22px]">bolt</span>
         <span class="font-label-sm text-[11px]">Data</span>
+    </a>
+    <a href="{{ route('portal.manual-payments.create') }}" class="{{ $isManualPay ? $bottomActive : $bottomIdle }}">
+        <span class="material-symbols-outlined text-[22px]">payments</span>
+        <span class="font-label-sm text-[11px]">MoMo</span>
     </a>
     <a href="{{ route('portal.support.index') }}" class="{{ $isSupport ? $bottomActive : $bottomIdle }}">
         <span class="material-symbols-outlined text-[22px]">support_agent</span>

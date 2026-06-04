@@ -24,7 +24,7 @@ class ManualPaymentController extends Controller
     {
         $validated = $request->validate([
             'type' => ['required', 'string', 'in:package,custom_data'],
-            'package' => ['nullable', 'string'],
+            'package' => ['required_if:type,package', 'nullable', 'string'],
             'amount' => ['required', 'numeric', 'min:1', 'max:5000'],
             'payment_method' => ['required', 'string', 'in:momo,airtime,cash,other'],
             'provider' => ['nullable', 'string', 'max:64'],
@@ -58,12 +58,13 @@ class ManualPaymentController extends Controller
         }
 
         if ($type === 'custom_data') {
-            $quote = CustomDataCalculator::quote($amount);
-            $meta = [
-                'data_limit_bytes' => $quote['data_limit_bytes'] ?? null,
-                'speed_mbps' => $quote['speed_mbps'] ?? null,
-                'data_label' => $quote['data_label'] ?? null,
-            ];
+            try {
+                $quote = CustomDataCalculator::quote($amount);
+            } catch (\InvalidArgumentException $exception) {
+                return back()->withInput()->withErrors(['amount' => $exception->getMessage()]);
+            }
+
+            $meta = $quote->toMetadata();
         }
 
         $requestRow = ManualPaymentRequest::query()->create([

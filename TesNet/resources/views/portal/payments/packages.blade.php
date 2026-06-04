@@ -7,7 +7,18 @@
 @section('content')
 <div class="px-4 md:px-margin-desktop py-5 md:py-10 max-w-container-max w-full mr-auto">
     <h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-background dark:text-inverse-on-surface mb-2">Buy Data</h1>
-    <p class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant mb-6 sm:mb-8">Pay for a package with Paystack (Mobile Money & card). Your internet starts as soon as payment succeeds.</p>
+    <p class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant mb-4 sm:mb-6">Pay for a package with Paystack (Mobile Money & card). Your internet starts as soon as payment succeeds.</p>
+
+    <div class="mb-6 rounded-lg border border-outline-variant/30 dark:border-outline/30 bg-surface-container dark:bg-inverse-surface px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+        <div class="min-w-0">
+            <p class="font-label-sm text-label-sm font-semibold text-on-surface dark:text-inverse-on-surface">Paid with MoMo outside Paystack?</p>
+            <p class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant text-sm mt-0.5">Submit your payment proof here. An admin will activate your plan after review.</p>
+        </div>
+        <a href="{{ route('portal.manual-payments.create') }}" class="shrink-0 min-h-[44px] px-4 py-2 rounded-lg bg-primary text-on-primary dark:bg-primary-fixed-dim dark:text-on-primary-fixed font-label-sm text-label-sm flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">payments</span>
+            Manual payment
+        </a>
+    </div>
 
     @if (\App\Support\PortalStatus::shouldBlockPurchases() || ! config('paystack.secret_key'))
         <div class="mb-6 rounded-lg border border-tertiary-fixed dark:border-tertiary-fixed-dim/40 bg-tertiary-fixed/50 dark:bg-tertiary-fixed-dim/10 px-4 py-3 font-body-md text-tertiary dark:text-tertiary-fixed-dim text-sm flex flex-wrap items-center justify-between gap-2">
