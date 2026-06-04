@@ -99,7 +99,7 @@ class ManualPaymentController extends Controller
                     'reference' => $locked->reference,
                     'provider' => $locked->provider,
                     'method' => $locked->payment_method,
-                ], useTransaction: false);
+                ]);
 
                 $locked->update([
                     'status' => 'approved',

@@ -8,6 +8,10 @@
         <div>
             <h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface dark:text-inverse-on-surface">Manual Payments</h1>
             <p class="font-body-md text-body-md admin-card-muted text-sm mt-1">Requests from students when Paystack is down (MoMo/Airtime).</p>
+            <a href="{{ route('admin.vouchers.index') }}" class="inline-flex items-center gap-1 mt-2 text-primary dark:text-primary-fixed-dim font-label-sm hover:underline">
+                <span class="material-symbols-outlined text-[18px]">confirmation_number</span>
+                Create instant voucher codes instead
+            </a>
         </div>
         <div class="flex flex-wrap gap-2">
             <a href="{{ route('admin.manual-payments.index', ['status' => 'pending']) }}" class="min-h-[44px] px-4 py-2 rounded-lg {{ $status === 'pending' ? 'bg-primary text-on-primary dark:bg-primary-fixed-dim dark:text-on-primary-fixed' : 'border border-outline-variant/30 admin-card-muted' }} font-label-sm text-label-sm">Pending</a>

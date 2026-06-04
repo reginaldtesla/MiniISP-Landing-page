@@ -18,6 +18,7 @@
     $isAnalytics = str_contains($routeName, 'admin.analytics');
     $isSystemHealth = str_contains($routeName, 'admin.system-health');
     $isManualPayments = str_contains($routeName, 'admin.manual-payments');
+    $isVouchers = str_contains($routeName, 'admin.vouchers');
     $isTickets = str_contains($routeName, 'admin.tickets');
     $isStudents = str_contains($routeName, 'admin.users');
     $isSessions = str_contains($routeName, 'admin.sessions');
@@ -84,6 +85,10 @@
         <a href="{{ route('admin.manual-payments.index') }}" class="{{ $isManualPayments ? $navActive : $navIdle }}">
             <span class="material-symbols-outlined">payments</span>
             <span class="font-body-md text-body-md font-medium">Manual Pay</span>
+        </a>
+        <a href="{{ route('admin.vouchers.index') }}" class="{{ $isVouchers ? $navActive : $navIdle }}">
+            <span class="material-symbols-outlined">confirmation_number</span>
+            <span class="font-body-md text-body-md font-medium">Voucher Codes</span>
         </a>
         <a href="{{ route('admin.tickets.index') }}" class="{{ $isTickets ? $navActive : $navIdle }}">
             <span class="material-symbols-outlined">support_agent</span>

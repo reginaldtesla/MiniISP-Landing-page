@@ -11,11 +11,13 @@ use App\Http\Controllers\Admin\SessionController;
 use App\Http\Controllers\Admin\SystemHealthController;
 use App\Http\Controllers\Admin\TicketController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\VoucherController;
 use App\Http\Controllers\Portal\AuthController;
 use App\Http\Controllers\Portal\DashboardController;
 use App\Http\Controllers\Portal\DeviceController;
 use App\Http\Controllers\Portal\ManualPaymentController;
 use App\Http\Controllers\Portal\PaymentController;
+use App\Http\Controllers\Portal\VoucherController as PortalVoucherController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/portal/login');
@@ -51,6 +53,8 @@ Route::prefix('portal')->name('portal.')->group(function () {
         Route::get('manual-payments', [ManualPaymentController::class, 'create'])->name('manual-payments.create');
         Route::post('manual-payments', [ManualPaymentController::class, 'store'])->name('manual-payments.store');
 
+        Route::post('vouchers/redeem', [PortalVoucherController::class, 'redeem'])->name('vouchers.redeem');
+
         Route::get('devices', [DeviceController::class, 'index'])->name('devices.index');
         Route::post('devices/{session}/disconnect', [DeviceController::class, 'disconnect'])->name('devices.disconnect');
     });
@@ -77,6 +81,10 @@ Route::prefix('admin')->name('admin.')->middleware('admin.ip')->group(function (
     Route::post('manual-payments/{manualPaymentRequest}/approve', [AdminManualPaymentController::class, 'approve'])->name('manual-payments.approve');
     Route::post('manual-payments/{manualPaymentRequest}/reject', [AdminManualPaymentController::class, 'reject'])->name('manual-payments.reject');
     Route::get('manual-payments/{manualPaymentRequest}/proof', [AdminManualPaymentController::class, 'proof'])->name('manual-payments.proof');
+
+    Route::get('vouchers', [VoucherController::class, 'index'])->name('vouchers.index');
+    Route::post('vouchers', [VoucherController::class, 'store'])->name('vouchers.store');
+    Route::post('vouchers/{voucher}/revoke', [VoucherController::class, 'revoke'])->name('vouchers.revoke');
 
     Route::get('packages', [PackageController::class, 'index'])->name('packages.index');
     Route::get('packages/create', [PackageController::class, 'create'])->name('packages.create');

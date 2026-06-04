@@ -49,6 +49,36 @@
 
 @include('portal.partials.announcement-modal', ['announcement' => $announcement ?? null])
 
+    {{-- Redeem admin voucher code --}}
+    <div class="{{ $card }} md:col-span-12 p-4 sm:p-6">
+        <div class="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-6">
+            <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-tertiary-container/40 dark:bg-tertiary-container/20 shrink-0">
+                <span class="material-symbols-outlined text-tertiary dark:text-tertiary-fixed-dim text-[28px]">confirmation_number</span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <h2 class="font-title-md text-title-md text-on-background dark:text-inverse-on-surface mb-1">Have a code from admin?</h2>
+                <p class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant mb-4">
+                    If you paid in person or received a voucher code, enter it here to activate your data instantly.
+                </p>
+                <form method="POST" action="{{ route('portal.vouchers.redeem') }}" class="flex flex-col sm:flex-row gap-3 max-w-xl">
+                    @csrf
+                    <label for="voucher-code" class="sr-only">Voucher code</label>
+                    <input type="text" id="voucher-code" name="code" value="{{ old('code') }}" required
+                           autocomplete="off" autocapitalize="characters" spellcheck="false"
+                           placeholder="TES-XXXX-XXXX"
+                           class="flex-1 min-h-[48px] rounded-lg border border-outline-variant/40 bg-surface dark:bg-inverse-surface px-4 font-mono text-base tracking-wide uppercase @error('code') border-error @enderror"/>
+                    <button type="submit"
+                            class="min-h-[48px] px-6 rounded-lg bg-primary text-on-primary dark:bg-primary-fixed-dim dark:text-on-primary-fixed font-label-sm text-label-sm font-semibold hover:opacity-90 transition-opacity active:scale-[0.98] shrink-0">
+                        Activate
+                    </button>
+                </form>
+                @error('code')
+                    <p class="font-label-sm text-label-sm text-error mt-2">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+    </div>
+
     <div class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6">
     {{-- Your Data --}}
     <div class="{{ $card }} md:col-span-12 p-4 sm:p-6 md:p-8 relative overflow-hidden">

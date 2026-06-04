@@ -19,7 +19,7 @@ class PaymentFulfillmentService
         protected HotspotPurchaseService $hotspotPurchase,
     ) {}
 
-    public function fulfill(Transaction $transaction, array $paystackData, bool $useTransaction = true): Transaction
+    public function fulfill(Transaction $transaction, array $paystackData): Transaction
     {
         if ($transaction->status === 'success') {
             return $transaction;
@@ -27,7 +27,11 @@ class PaymentFulfillmentService
 
         $perform = fn () => $this->performFulfill($transaction, $paystackData);
 
-        return $useTransaction ? DB::transaction($perform) : $perform();
+        if (DB::transactionLevel() > 0) {
+            return $perform();
+        }
+
+        return DB::transaction($perform);
     }
 
     protected function performFulfill(Transaction $transaction, array $paystackData): Transaction
@@ -81,7 +85,9 @@ class PaymentFulfillmentService
             ]);
         }
 
-        return $locked->fresh();
+        // Do not call fresh() here — inside an outer DB::transaction it can return null
+        // even though the row was just updated, which breaks the Transaction return type.
+        return $locked;
     }
 
     /**
