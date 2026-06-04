@@ -38,6 +38,7 @@ class PortalAssets
             'portal-announcements.js' => 'resources/js/portal-announcements.js',
             'portal-custom-calculator.js' => 'resources/js/portal-custom-calculator.js',
             'portal-plan-countdown.js' => 'resources/js/portal-plan-countdown.js',
+            'portal-data-refresh.js' => 'resources/js/portal-data-refresh.js',
             'portal-live-usage.js' => 'resources/js/portal-live-usage.js',
             default => null,
         };

@@ -37,6 +37,7 @@ Route::prefix('portal')->name('portal.')->group(function () {
         Route::get('payments/callback', [PaymentController::class, 'callback'])->name('payments.callback');
 
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('dashboard/data-usage', [DashboardController::class, 'dataUsage'])->name('dashboard.data-usage');
         Route::get('about-hotspot', [DashboardController::class, 'aboutHotspot'])->name('about');
         Route::get('support', [DashboardController::class, 'support'])->name('support.index');
         Route::post('logout', [AuthController::class, 'logout'])->name('logout');

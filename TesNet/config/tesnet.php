@@ -76,6 +76,12 @@ return [
     'portal_connected_cache_seconds' => (int) env('TESNET_PORTAL_CONNECTED_CACHE', 15),
 
     /*
+    | Dashboard polls /portal/dashboard/data-usage while the student has an active plan.
+    */
+
+    'dashboard_usage_refresh_seconds' => max(15, (int) env('TESNET_DASHBOARD_USAGE_REFRESH_SECONDS', 60)),
+
+    /*
     |--------------------------------------------------------------------------
     | Per-purchase MikroTik hotspot users (Model A)
     |--------------------------------------------------------------------------

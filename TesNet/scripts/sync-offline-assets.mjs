@@ -20,6 +20,7 @@ const jsEntries = {
     'portal-announcements.js': manifest['resources/js/portal-announcements.js']?.file,
     'portal-custom-calculator.js': manifest['resources/js/portal-custom-calculator.js']?.file,
     'portal-plan-countdown.js': manifest['resources/js/portal-plan-countdown.js']?.file,
+    'portal-data-refresh.js': manifest['resources/js/portal-data-refresh.js']?.file,
     'portal-live-usage.js': manifest['resources/js/portal-live-usage.js']?.file,
 };
 

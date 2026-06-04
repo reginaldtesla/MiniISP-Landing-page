@@ -56,35 +56,46 @@
         <div class="relative z-10 flex flex-col lg:flex-row lg:items-start gap-6 lg:gap-10">
             <div class="flex-1 min-w-0">
                 <h2 class="font-title-md text-title-md text-on-background dark:text-inverse-on-surface mb-1">Your Data</h2>
-                <p class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant mb-4 line-clamp-2">
+                <p id="data-plan-name" class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant mb-4 line-clamp-2">
                     {{ $hasActivePlan ? ($activePackage->package_name ?? 'Current active plan') : 'No active plan' }}
                 </p>
 
                 @if ($hasActivePlan)
+                    <div id="portal-data-usage"
+                         @if (($usageRefreshIntervalMs ?? 0) > 0)
+                             data-refresh-url="{{ route('portal.dashboard.data-usage') }}"
+                             data-refresh-interval-ms="{{ $usageRefreshIntervalMs }}"
+                         @endif>
                     @if ($isUnlimitedData ?? false)
                         <p class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary dark:text-primary-fixed-dim mb-2">Unlimited data</p>
                         <p class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">No data cap on this plan.</p>
                     @else
-                        <p class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary dark:text-primary-fixed-dim tabular-nums mb-1">
+                        <p id="data-remaining-label" class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary dark:text-primary-fixed-dim tabular-nums mb-1">
                             {{ $dataRemainingLabel }} <span class="font-title-md text-title-md text-on-surface-variant dark:text-outline-variant">left</span>
                         </p>
-                        <p class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant mb-4 tabular-nums">
+                        <p id="data-used-label" class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant mb-4 tabular-nums">
                             {{ $dataUsedLabel }} used of {{ $totalPlanLabel }}
                         </p>
                         <div class="mb-2 flex justify-between gap-2 font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant tabular-nums">
-                            <span>{{ $percentRemaining }}% remaining</span>
-                            <span>{{ $percentUsed }}% used</span>
+                            <span id="data-percent-remaining">{{ $percentRemaining }}% remaining</span>
+                            <span id="data-percent-used">{{ $percentUsed }}% used</span>
                         </div>
                         <div class="h-3 sm:h-4 rounded-full bg-surface-variant/50 dark:bg-outline/25 overflow-hidden" role="progressbar"
                              aria-valuenow="{{ $percentRemaining }}" aria-valuemin="0" aria-valuemax="100"
                              aria-label="Share of plan data still available">
-                            <div class="h-full rounded-full bg-primary dark:bg-primary-fixed-dim transition-[width] duration-500"
+                            <div id="data-usage-bar" class="h-full rounded-full bg-primary dark:bg-primary-fixed-dim transition-[width] duration-500"
                                  style="width: {{ $percentRemaining }}%"></div>
                         </div>
                         <p class="font-label-sm text-label-sm text-on-surface-variant/80 dark:text-outline-variant/80 mt-3">
-                            The blue bar is how much of this plan is still left. It updates when you open or refresh this page.
+                            @if (($usageRefreshIntervalMs ?? 0) > 0)
+                                The blue bar is how much of this plan is still left.
+                                <span id="data-refresh-status" class="block mt-1 tabular-nums">Updates every {{ (int) (($usageRefreshIntervalMs ?? 60000) / 1000) }} seconds while this page is open.</span>
+                            @else
+                                The blue bar is how much of this plan is still left. It updates when you open or refresh this page.
+                            @endif
                         </p>
                     @endif
+                    </div>
                 @else
                     <p class="font-title-md text-title-md text-on-surface-variant dark:text-outline-variant mb-4">No active data plan</p>
                     <p class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">Buy a package to get online.</p>
@@ -95,7 +106,7 @@
                 <div class="bg-surface-container-high dark:bg-on-background/50 p-3 sm:p-4 rounded-xl w-full">
                     <div class="flex justify-between items-center mb-2 gap-2">
                         <span class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">Total Plan</span>
-                        <span class="font-label-sm text-label-sm text-on-background dark:text-inverse-on-surface shrink-0 tabular-nums">{{ $hasActivePlan ? (($isUnlimitedData ?? false) ? 'Unlimited' : $totalPlanLabel) : '—' }}</span>
+                        <span id="data-total-plan-label" class="font-label-sm text-label-sm text-on-background dark:text-inverse-on-surface shrink-0 tabular-nums">{{ $hasActivePlan ? (($isUnlimitedData ?? false) ? 'Unlimited' : $totalPlanLabel) : '—' }}</span>
                     </div>
                     <div class="flex justify-between items-center gap-2">
                         <span class="font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant">Validity</span>
@@ -143,5 +154,8 @@
     @include('portal.partials.portal-script', ['file' => 'portal-announcements.js'])
     @if ($hasActivePlan && $planExpiresAt)
         @include('portal.partials.portal-script', ['file' => 'portal-plan-countdown.js'])
+    @endif
+    @if ($hasActivePlan && ($usageRefreshIntervalMs ?? 0) > 0)
+        @include('portal.partials.portal-script', ['file' => 'portal-data-refresh.js'])
     @endif
 @endpush
