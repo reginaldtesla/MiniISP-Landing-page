@@ -28,7 +28,9 @@ class HotspotPurchaseService
             'mikrotik_synced_at' => null,
         ]);
 
-        return $purchase->fresh();
+        $purchase->refresh();
+
+        return $purchase;
     }
 
     public function profileFor(PackagePurchase $purchase): string

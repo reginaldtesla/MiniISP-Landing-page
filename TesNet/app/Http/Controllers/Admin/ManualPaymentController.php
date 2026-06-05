@@ -51,18 +51,20 @@ class ManualPaymentController extends Controller
         }
 
         $approved = false;
+        $transaction = null;
 
         try {
             $fulfillmentMeta = $this->resolveFulfillmentMetadata($manualPaymentRequest);
+            $fulfillmentPayload = [];
 
-            DB::transaction(function () use ($manualPaymentRequest, $request, $fulfillment, $validated, $fulfillmentMeta, &$approved) {
+            $transaction = DB::transaction(function () use ($manualPaymentRequest, $fulfillmentMeta, &$fulfillmentPayload) {
                 $locked = ManualPaymentRequest::query()
                     ->whereKey($manualPaymentRequest->id)
                     ->lockForUpdate()
                     ->firstOrFail();
 
                 if ($locked->status !== 'pending') {
-                    return;
+                    return null;
                 }
 
                 $txType = $locked->type;
@@ -79,7 +81,14 @@ class ManualPaymentController extends Controller
 
                 $reference = 'manual_'.$locked->id.'_'.now()->format('YmdHis');
 
-                $transaction = Transaction::query()->create([
+                $fulfillmentPayload = [
+                    'channel' => 'manual',
+                    'reference' => $locked->reference,
+                    'provider' => $locked->provider,
+                    'method' => $locked->payment_method,
+                ];
+
+                return Transaction::query()->create([
                     'user_id' => $locked->user_id,
                     'type' => $txType,
                     'package_slug' => $packageSlug,
@@ -93,13 +102,23 @@ class ManualPaymentController extends Controller
                     'paystack_response' => null,
                     'paid_at' => null,
                 ]);
+            });
 
-                $fulfillment->fulfill($transaction, [
-                    'channel' => 'manual',
-                    'reference' => $locked->reference,
-                    'provider' => $locked->provider,
-                    'method' => $locked->payment_method,
-                ]);
+            if ($transaction === null) {
+                return back()->withErrors(['request' => 'This request has already been reviewed.']);
+            }
+
+            $fulfillment->fulfill($transaction, $fulfillmentPayload);
+
+            DB::transaction(function () use ($manualPaymentRequest, $request, $validated, $transaction, &$approved) {
+                $locked = ManualPaymentRequest::query()
+                    ->whereKey($manualPaymentRequest->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                if ($locked->status !== 'pending') {
+                    return;
+                }
 
                 $locked->update([
                     'status' => 'approved',
@@ -112,8 +131,12 @@ class ManualPaymentController extends Controller
                 $approved = true;
             });
         } catch (PaymentFulfillmentException $exception) {
+            $this->discardPendingTransaction($transaction);
+
             return back()->withErrors(['request' => $exception->getMessage()]);
         } catch (Throwable $exception) {
+            $this->discardPendingTransaction($transaction);
+
             Log::error('Manual payment approval failed', [
                 'manual_payment_request_id' => $manualPaymentRequest->id,
                 'error' => $exception->getMessage(),
@@ -123,7 +146,7 @@ class ManualPaymentController extends Controller
             $message = trim($exception->getMessage());
 
             if ($exception instanceof \Illuminate\Database\QueryException) {
-                $message = 'Database error while activating the plan. Run php artisan migrate --force on the server, then try again.'
+                $message = 'Database error while saving the approval. Try again or use a voucher code instead.'
                     .($message !== '' ? ' ('.$message.')' : '');
             } elseif ($message === '') {
                 $message = 'Could not approve this request. Check storage/logs/laravel.log on the server.';
@@ -213,6 +236,19 @@ class ManualPaymentController extends Controller
             return CustomDataCalculator::quote((float) $manualPaymentRequest->amount)->toMetadata();
         } catch (\InvalidArgumentException $exception) {
             throw new PaymentFulfillmentException($exception->getMessage());
+        }
+    }
+
+    protected function discardPendingTransaction(?Transaction $transaction): void
+    {
+        if ($transaction === null) {
+            return;
+        }
+
+        $fresh = Transaction::query()->find($transaction->id);
+
+        if ($fresh !== null && $fresh->status === 'pending') {
+            $fresh->delete();
         }
     }
 }

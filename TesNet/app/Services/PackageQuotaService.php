@@ -119,7 +119,7 @@ class PackageQuotaService
 
         $this->hotspotPurchase->ensureProvisioned($purchase, $user);
 
-        return $purchase->fresh();
+        return $purchase->refresh();
     }
 
     protected function blockDataAccess(User $user): void

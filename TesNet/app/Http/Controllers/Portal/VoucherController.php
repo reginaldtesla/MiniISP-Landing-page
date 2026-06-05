@@ -24,9 +24,10 @@ class VoucherController extends Controller
 
         $code = PackageVoucher::normalizeCode($validated['code']);
         $user = $request->user();
+        $transaction = null;
 
         try {
-            DB::transaction(function () use ($code, $user, $fulfillment) {
+            $transaction = DB::transaction(function () use ($code, $user) {
                 $voucher = PackageVoucher::query()
                     ->where('code', $code)
                     ->lockForUpdate()
@@ -47,7 +48,7 @@ class VoucherController extends Controller
 
                 $reference = 'voucher_'.$voucher->id.'_'.now()->format('YmdHis');
 
-                $transaction = Transaction::query()->create([
+                return Transaction::query()->create([
                     'user_id' => $user->id,
                     'type' => 'package',
                     'package_slug' => $voucher->package_slug,
@@ -64,11 +65,22 @@ class VoucherController extends Controller
                     'paystack_response' => null,
                     'paid_at' => null,
                 ]);
+            });
 
-                $fulfillment->fulfill($transaction, [
-                    'channel' => 'voucher',
-                    'code' => $voucher->code,
-                ]);
+            $fulfillment->fulfill($transaction, [
+                'channel' => 'voucher',
+                'code' => $code,
+            ]);
+
+            DB::transaction(function () use ($code, $user, $transaction) {
+                $voucher = PackageVoucher::query()
+                    ->where('code', $code)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                if ($voucher->status !== PackageVoucher::STATUS_AVAILABLE) {
+                    return;
+                }
 
                 $voucher->update([
                     'status' => PackageVoucher::STATUS_REDEEMED,
@@ -78,12 +90,28 @@ class VoucherController extends Controller
                 ]);
             });
         } catch (PaymentFulfillmentException $exception) {
+            $this->discardPendingTransaction($transaction);
+
             return back()->withErrors(['code' => $exception->getMessage()]);
-        } catch (Throwable $exception) {
+        } catch (\Illuminate\Database\QueryException $exception) {
+            $this->discardPendingTransaction($transaction);
+
             Log::error('Voucher redemption failed', [
                 'user_id' => $user->id,
                 'code' => $code,
                 'error' => $exception->getMessage(),
+                'exception' => $exception::class,
+            ]);
+
+            return back()->withErrors(['code' => 'Database error while activating this code. Ask admin to run php artisan migrate --force, then try again.']);
+        } catch (Throwable $exception) {
+            $this->discardPendingTransaction($transaction);
+
+            Log::error('Voucher redemption failed', [
+                'user_id' => $user->id,
+                'code' => $code,
+                'error' => $exception->getMessage(),
+                'exception' => $exception::class,
             ]);
 
             return back()->withErrors(['code' => 'Could not activate this code. Try again or contact support.']);
@@ -92,5 +120,18 @@ class VoucherController extends Controller
         return redirect()
             ->route('portal.dashboard')
             ->with('status', 'Code accepted! Your plan is active — tap Connect to Internet.');
+    }
+
+    protected function discardPendingTransaction(?Transaction $transaction): void
+    {
+        if ($transaction === null) {
+            return;
+        }
+
+        $fresh = Transaction::query()->find($transaction->id);
+
+        if ($fresh !== null && $fresh->status === 'pending') {
+            $fresh->delete();
+        }
     }
 }

@@ -88,6 +88,47 @@ test('student can redeem voucher code on dashboard', function () {
         ->and(PackagePurchase::query()->where('user_id', $student->id)->where('status', 'active')->exists())->toBeTrue();
 });
 
+test('student can redeem voucher with per purchase hotspot enabled', function () {
+    config(['tesnet.per_purchase_hotspot' => true, 'mikrotik.api.enabled' => false]);
+
+    $this->mock(\App\Services\MikrotikApiService::class, function ($mock) {
+        $mock->shouldReceive('isEnabled')->andReturn(false);
+    });
+
+    $student = User::factory()->create(['phone_number' => '233559998877', 'portal_session_version' => 1]);
+
+    DataPackage::query()->create([
+        'slug' => 'voucher-hotspot',
+        'name' => 'Hotspot Voucher',
+        'data_label' => '1 GB',
+        'data_limit_mb' => 1024,
+        'price' => 5,
+        'speed_mbps' => 60,
+        'validity_type' => 'until_finished',
+        'is_active' => true,
+        'sort_order' => 1,
+    ]);
+
+    $voucher = PackageVoucher::query()->create([
+        'code' => 'TES-HSPOT-CODE',
+        'package_slug' => 'voucher-hotspot',
+        'package_name' => 'Hotspot Voucher',
+        'amount' => 5,
+        'amount_pesewas' => 500,
+        'status' => 'available',
+    ]);
+
+    $response = $this->actingAs($student)
+        ->withSession(['portal_session_version' => 1])
+        ->post(route('portal.vouchers.redeem'), [
+            'code' => 'TES-HSPOT-CODE',
+        ]);
+
+    $response->assertRedirect(route('portal.dashboard'));
+    $response->assertSessionHas('status');
+    expect($voucher->fresh()->status)->toBe('redeemed');
+});
+
 test('redeem fails for invalid or used code', function () {
     $student = User::factory()->create(['portal_session_version' => 1]);
 
