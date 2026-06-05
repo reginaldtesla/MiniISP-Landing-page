@@ -128,7 +128,6 @@
             padding: 30px;
             background: var(--card-bg);
             text-align: center;
-            cursor: pointer;
         }
 
         .packages h2 {
@@ -149,8 +148,9 @@
             padding: 20px;
             width: 180px;
             box-shadow: 0 5px 15px var(--card-shadow);
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
             cursor: pointer;
+            border: 3px solid transparent;
         }
 
         body.dark-mode .package-card {
@@ -158,8 +158,66 @@
         }
 
         .package-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .package-card.selected {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.35);
+            transform: translateY(-3px);
+        }
+
+        .package-card.loading {
+            border-color: var(--primary);
+            opacity: 0.85;
+            cursor: wait;
+            pointer-events: none;
+        }
+
+        .package-card.loading .package-name::after {
+            content: " …";
+        }
+
+        .packages.is-paying {
+            pointer-events: none;
+        }
+
+        .packages.is-paying .package-card:not(.loading) {
+            opacity: 0.45;
+        }
+
+        .payment-status {
+            display: none;
+            max-width: 400px;
+            margin: 16px auto 0;
+            padding: 12px 16px;
+            border-radius: 8px;
+            background: var(--payment-info-bg);
+            border-left: 4px solid var(--primary);
+            color: var(--text-color);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .payment-status.visible {
+            display: block;
+        }
+
+        .payment-status .spinner-inline {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            margin-right: 8px;
+            vertical-align: -2px;
+            border: 2px solid var(--input-border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: pkgSpin 0.7s linear infinite;
+        }
+
+        @keyframes pkgSpin {
+            to { transform: rotate(360deg); }
         }
 
         .package-name {
@@ -398,25 +456,25 @@
                     <div class="package-name">Quick Surf</div>
                     <div class="package-data">1GB</div>
                     <div class="package-price">GH¢3.5</div>
-                    <div class="package-speed">5 Mbps</div>
+                    <div class="package-speed">10 Mbps</div>
                 </div>
                 <div class="package-card" data-package="Student Choice">
                     <div class="package-name">Student Choice</div>
                     <div class="package-data">3GB</div>
                     <div class="package-price">GH¢9</div>
-                    <div class="package-speed">10 Mbps</div>
+                    <div class="package-speed">20 Mbps</div>
                 </div>
                 <div class="package-card" data-package="Big Bundle">
                     <div class="package-name">Big Bundle</div>
                     <div class="package-data">7GB</div>
                     <div class="package-price">GH¢18</div>
-                    <div class="package-speed">15 Mbps</div>
+                    <div class="package-speed">25 Mbps</div>
                 </div>
                 <div class="package-card" data-package="Heavy User">
                     <div class="package-name">Heavy User</div>
                     <div class="package-data">15GB</div>
                     <div class="package-price">GH¢35</div>
-                    <div class="package-speed">20 Mbps</div>
+                    <div class="package-speed">30 Mbps</div>
                 </div>
                 <div class="package-card" data-package="Hostel Legend">
                     <div class="package-name">Hostel Legend</div>
@@ -431,6 +489,7 @@
                     <div class="package-speed">3 DAYS UNLIMITED</div>
                 </div> -->
             </div>
+            <p class="payment-status" id="paymentStatus" role="status" aria-live="polite"></p>
         </div>
         <div class="login-section">
             <h2>Pay To Enter Voucher Code</h2>
@@ -539,6 +598,20 @@
                 var name = card.getAttribute('data-package');
                 var slug = PKG_SLUG[name];
                 if (!slug) return;
+
+                var packagesEl = document.querySelector('.packages');
+                var statusEl = document.getElementById('paymentStatus');
+                document.querySelectorAll('.package-card').forEach(function (c) {
+                    c.classList.remove('selected', 'loading');
+                });
+                card.classList.add('selected', 'loading');
+                if (packagesEl) packagesEl.classList.add('is-paying');
+                if (statusEl) {
+                    statusEl.classList.add('visible');
+                    statusEl.innerHTML = '<span class="spinner-inline"></span>Opening Paystack for <strong>' +
+                        name + '</strong>… Please wait.';
+                }
+
                 window.location.href = PAY_BASE + '/buy.php?pkg=' + encodeURIComponent(slug);
             });
         });
