@@ -57,12 +57,12 @@ $noStock = $payment && $payment['status'] === 'paid_no_stock';
                 <div class="label">Your login code</div>
                 <div class="code" id="voucher-code"><?= hp_escape((string) $payment['code']) ?></div>
             </div>
-            <p class="hint">Go back to the Wi‑Fi login page. Enter this code as <strong>username</strong> and <strong>password</strong>.</p>
+            <p class="notice">After payment, your voucher code appears on screen. <strong>Copy it or screenshot it before closing the page.</strong> Use that code on the Wi‑Fi login page (same for username). We don’t send codes by SMS yet.</p>
             <button type="button" class="btn" onclick="copyCode()">Copy code</button>
         <?php else: ?>
             <p id="status-text">Confirming your payment…</p>
             <div class="spinner" aria-hidden="true"></div>
-            <p class="muted">This usually takes a few seconds. Keep this page open.</p>
+            <p class="notice">Keep this page open. Your code will appear here in a few seconds. Copy it or screenshot it before closing — we don’t send codes by SMS yet.</p>
             <script>
                 const ref = <?= json_encode($reference) ?>;
                 let attempts = 0;

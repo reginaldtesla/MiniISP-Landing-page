@@ -42,9 +42,15 @@ h1 {
     font-size: 0.95rem;
 }
 
-.hint {
+.hint,
+.notice {
     font-size: 0.95rem;
-    line-height: 1.5;
+    line-height: 1.55;
+    margin: 1rem 0;
+    padding: 0.85rem 1rem;
+    background: #172554;
+    border-radius: 10px;
+    border-left: 4px solid #fbbf24;
 }
 
 .code-box {
