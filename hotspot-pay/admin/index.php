@@ -53,6 +53,7 @@ $appName = (string) hp_setting('app_name', 'TesNet Pay');
             </tbody>
         </table>
         <div class="links">
+            <a href="sold.php">Sold codes</a>
             <a href="import.php">Import CSV</a>
             <a href="index.php?logout=1">Logout</a>
         </div>

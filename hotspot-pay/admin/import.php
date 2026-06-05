@@ -63,7 +63,7 @@ TNPMZBY84G4H,Quick_Surf_1GB</pre>
             <input type="file" name="csv" accept=".csv,text/csv" required>
             <button class="btn" type="submit">Upload CSV</button>
         </form>
-        <p class="links"><a href="index.php">← Back to stock</a></p>
+        <p class="links"><a href="index.php">← Back to stock</a> · <a href="sold.php">Sold codes</a></p>
     </main>
 </body>
 </html>

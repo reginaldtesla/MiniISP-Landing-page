@@ -65,6 +65,40 @@ function hp_stock_summary(PDO $db): array
     return $stmt->fetchAll();
 }
 
+function hp_sold_codes(PDO $db, int $limit = 100, ?string $packageSlug = null): array
+{
+    $limit = max(1, min($limit, 500));
+    $sql = "SELECT v.code, v.package_slug, v.paystack_reference, v.assigned_at,
+                   p.name AS package_name, p.data_label,
+                   pay.amount_pesewas, pay.paid_at, pay.reference AS payment_reference
+            FROM voucher_codes v
+            JOIN packages p ON p.slug = v.package_slug
+            LEFT JOIN payments pay ON pay.voucher_code_id = v.id
+            WHERE v.status = 'assigned'";
+
+    $params = [];
+    if ($packageSlug !== null && $packageSlug !== '') {
+        $sql .= ' AND v.package_slug = :slug';
+        $params['slug'] = $packageSlug;
+    }
+
+    $sql .= ' ORDER BY COALESCE(v.assigned_at, pay.paid_at) DESC, v.id DESC LIMIT :limit';
+
+    $stmt = $db->prepare($sql);
+    foreach ($params as $key => $value) {
+        $stmt->bindValue(':'.$key, $value);
+    }
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->execute();
+
+    return $stmt->fetchAll();
+}
+
+function hp_format_ghs(int $pesewas): string
+{
+    return 'GH¢'.number_format($pesewas / 100, 2);
+}
+
 function hp_profile_to_slug(string $profile): ?string
 {
     $map = hp_setting('profile_to_slug', []);
