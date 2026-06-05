@@ -1,0 +1,3 @@
+config.local.php
+storage/pool.sqlite
+storage/*.sqlite-journal

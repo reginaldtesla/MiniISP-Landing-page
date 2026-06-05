@@ -1,0 +1,22 @@
+# Apache vhost for ProBook — adjust paths and enable:
+# sudo a2ensite pay.tesnet.xyz.conf && sudo systemctl reload apache2
+
+<VirtualHost *:80>
+    ServerName pay.tesnet.xyz
+
+    DocumentRoot /var/www/MiniISP-Landing-page/TesNet/hotspot-pay/public
+
+    <Directory /var/www/MiniISP-Landing-page/TesNet/hotspot-pay/public>
+        AllowOverride None
+        Require all granted
+    </Directory>
+
+    # Admin UI (outside public docroot)
+    Alias /admin /var/www/MiniISP-Landing-page/TesNet/hotspot-pay/admin
+    <Directory /var/www/MiniISP-Landing-page/TesNet/hotspot-pay/admin>
+        Require all granted
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/pay-tesnet-error.log
+    CustomLog ${APACHE_LOG_DIR}/pay-tesnet-access.log combined
+</VirtualHost>

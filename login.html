@@ -439,11 +439,8 @@
             <div class="error-message">$(error)</div>
 
             <div class="payment-info" id="paymentInfo">
-                <p>To buy data packages, send amount to the number below :</p>
-                <p><b>Use your number as reference.</b><br>You will receive your voucher code via text.</p>
-                <p>Kindly call for any enquiries</p>
-                <p style="font-weight: bold;">📱 Telecel Payment</p>
-                <p class="phone-number">0207482341</p>
+                <p>Tap a package above to pay with <b>MoMo or card</b>.</p>
+                <p>After payment you get your voucher code instantly — enter it below to connect.</p>
             </div>
 
             <form name="sendin" action="$(link-login-only)" method="post">
@@ -471,6 +468,15 @@
     </div>
 
     <script>
+        var PAY_BASE = 'https://pay.tesnet.xyz';
+        var PKG_SLUG = {
+            'Quick Surf': 'quick-surf',
+            'Student Choice': 'student-choice',
+            'Big Bundle': 'big-bundle',
+            'Heavy User': 'heavy-user',
+            'Hostel Legend': 'hostel-legend'
+        };
+
         function doLogin() {
             var code = document.getElementById('code').value.trim();
             if (code === '') {
@@ -518,28 +524,23 @@
             }
         });
 
-        // --- Package click: scroll to payment info and animate ---
-        const paymentInfo = document.getElementById('paymentInfo');
-        const packageCards = document.querySelectorAll('.package-card');
+        // Prefill voucher code when returning from payment (if query string is preserved)
+        (function () {
+            var params = new URLSearchParams(window.location.search);
+            var code = params.get('code');
+            if (code) {
+                document.getElementById('code').value = code;
+            }
+        })();
 
-        function scrollToPaymentAndAnimate() {
-            // Scroll smoothly to the payment info section
-            paymentInfo.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            // Remove previous animation class to allow re-trigger
-            paymentInfo.classList.remove('animate');
-            // Force reflow (small hack to restart animation)
-            void paymentInfo.offsetWidth;
-            // Add animation class
-            paymentInfo.classList.add('animate');
-            // Remove the class after animation ends to allow future triggers
-            setTimeout(() => {
-                paymentInfo.classList.remove('animate');
-            }, 5500);
-        }
-
-        // Attach click listener to each package card
-        packageCards.forEach(card => {
-            card.addEventListener('click', scrollToPaymentAndAnimate);
+        // Package click → Paystack checkout on ProBook
+        document.querySelectorAll('.package-card').forEach(function (card) {
+            card.addEventListener('click', function () {
+                var name = card.getAttribute('data-package');
+                var slug = PKG_SLUG[name];
+                if (!slug) return;
+                window.location.href = PAY_BASE + '/buy.php?pkg=' + encodeURIComponent(slug);
+            });
         });
     </script>
 </body>
