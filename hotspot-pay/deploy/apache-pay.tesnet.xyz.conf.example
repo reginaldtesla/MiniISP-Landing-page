@@ -4,16 +4,16 @@
 <VirtualHost *:80>
     ServerName pay.tesnet.xyz
 
-    DocumentRoot /var/www/MiniISP-Landing-page/TesNet/hotspot-pay/public
+    DocumentRoot /var/www/MiniISP-Landing-page/hotspot-pay/public
 
-    <Directory /var/www/MiniISP-Landing-page/TesNet/hotspot-pay/public>
+    <Directory /var/www/MiniISP-Landing-page/hotspot-pay/public>
         AllowOverride None
         Require all granted
     </Directory>
 
     # Admin UI (outside public docroot)
-    Alias /admin /var/www/MiniISP-Landing-page/TesNet/hotspot-pay/admin
-    <Directory /var/www/MiniISP-Landing-page/TesNet/hotspot-pay/admin>
+    Alias /admin /var/www/MiniISP-Landing-page/hotspot-pay/admin
+    <Directory /var/www/MiniISP-Landing-page/hotspot-pay/admin>
         Require all granted
     </Directory>
 
