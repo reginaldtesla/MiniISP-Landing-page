@@ -11,6 +11,28 @@ function hp_admin_logged_in(): bool
     return ! empty($_SESSION['hp_admin']);
 }
 
+function hp_admin_rate_limited(): bool
+{
+    $until = (int) ($_SESSION['hp_admin_locked_until'] ?? 0);
+
+    return $until > time();
+}
+
+function hp_admin_register_failed_attempt(): void
+{
+    $attempts = (int) ($_SESSION['hp_admin_attempts'] ?? 0) + 1;
+    $_SESSION['hp_admin_attempts'] = $attempts;
+
+    if ($attempts >= 5) {
+        $_SESSION['hp_admin_locked_until'] = time() + 900;
+    }
+}
+
+function hp_admin_clear_attempts(): void
+{
+    unset($_SESSION['hp_admin_attempts'], $_SESSION['hp_admin_locked_until']);
+}
+
 function hp_admin_require_login(): void
 {
     if (hp_admin_logged_in()) {
@@ -24,12 +46,20 @@ function hp_admin_require_login(): void
         exit;
     }
 
+    if (hp_admin_rate_limited()) {
+        http_response_code(429);
+        echo 'Too many failed attempts. Try again in 15 minutes.';
+        exit;
+    }
+
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $attempt = (string) ($_POST['password'] ?? '');
         if (hash_equals($password, $attempt)) {
+            hp_admin_clear_attempts();
             $_SESSION['hp_admin'] = true;
             hp_redirect($_SERVER['REQUEST_URI'] ?? 'index.php');
         }
+        hp_admin_register_failed_attempt();
         $error = 'Wrong password.';
     }
 

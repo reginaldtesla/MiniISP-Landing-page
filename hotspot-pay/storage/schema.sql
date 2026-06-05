@@ -29,6 +29,7 @@ CREATE INDEX IF NOT EXISTS idx_voucher_available
 CREATE TABLE IF NOT EXISTS payments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     reference TEXT NOT NULL UNIQUE,
+    access_token TEXT NOT NULL DEFAULT '',
     package_slug TEXT NOT NULL,
     amount_pesewas INTEGER NOT NULL,
     status TEXT NOT NULL DEFAULT 'pending',

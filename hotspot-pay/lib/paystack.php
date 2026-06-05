@@ -41,6 +41,32 @@ function hp_paystack_verify_signature(string $rawBody, string $signature): bool
     return hash_equals($computed, $signature);
 }
 
+function hp_paystack_verify_transaction(string $reference): array
+{
+    return hp_paystack_request(
+        'GET',
+        'https://api.paystack.co/transaction/verify/'.rawurlencode($reference)
+    );
+}
+
+function hp_paystack_transaction_ok(array $verifyResponse, int $expectedAmountPesewas): bool
+{
+    $data = $verifyResponse['data'] ?? null;
+    if (! is_array($data)) {
+        return false;
+    }
+
+    if (($data['status'] ?? '') !== 'success') {
+        return false;
+    }
+
+    if ((string) ($data['currency'] ?? '') !== 'GHS') {
+        return false;
+    }
+
+    return (int) ($data['amount'] ?? 0) === $expectedAmountPesewas;
+}
+
 function hp_paystack_request(string $method, string $url, ?array $body = null): array
 {
     $ch = curl_init($url);

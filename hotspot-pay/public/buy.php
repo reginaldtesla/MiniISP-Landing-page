@@ -28,10 +28,11 @@ if (hp_stock_count($db, $slug) < 1) {
 }
 
 $reference = hp_reference();
-hp_create_payment($db, $slug, (int) $package['amount_pesewas'], $reference);
+$payment = hp_create_payment($db, $slug, (int) $package['amount_pesewas'], $reference);
+$accessToken = $payment['access_token'];
 
 $appUrl = rtrim((string) hp_setting('app_url', ''), '/');
-$callbackUrl = $appUrl.'/callback.php?ref='.urlencode($reference);
+$callbackUrl = $appUrl.'/callback.php?ref='.urlencode($reference).'&tok='.urlencode($accessToken);
 $email = (string) hp_setting('checkout_email', 'checkout@tesnet.xyz');
 
 try {

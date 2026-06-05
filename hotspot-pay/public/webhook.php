@@ -42,14 +42,40 @@ if ($reference === '') {
     exit;
 }
 
+$db = hp_db();
+$payment = hp_get_payment_by_reference($db, $reference);
+if ($payment === null) {
+    http_response_code(404);
+    echo 'Unknown reference';
+    exit;
+}
+
+try {
+    $verified = hp_paystack_verify_transaction($reference);
+} catch (Throwable $e) {
+    http_response_code(502);
+    echo 'Verify failed';
+    exit;
+}
+
+if (! hp_paystack_transaction_ok($verified, (int) $payment['amount_pesewas'])) {
+    http_response_code(400);
+    echo 'Payment not verified';
+    exit;
+}
+
 $customer = is_array($data['customer'] ?? null) ? $data['customer'] : [];
 $buyerEmail = isset($customer['email']) ? (string) $customer['email'] : null;
 $buyerPhone = isset($customer['phone']) ? (string) $customer['phone'] : null;
 
-$db = hp_db();
-
 try {
-    hp_fulfill_payment($db, $reference, $buyerEmail, $buyerPhone);
+    hp_fulfill_payment(
+        $db,
+        $reference,
+        $buyerEmail,
+        $buyerPhone,
+        (int) ($verified['data']['amount'] ?? 0)
+    );
 } catch (Throwable $e) {
     http_response_code(500);
     echo 'Fulfillment error';

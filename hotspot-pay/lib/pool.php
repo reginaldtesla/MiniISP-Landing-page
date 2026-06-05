@@ -142,29 +142,51 @@ function hp_import_csv(PDO $db, string $csvPath): array
     return compact('imported', 'skipped', 'invalid');
 }
 
-function hp_create_payment(PDO $db, string $packageSlug, int $amountPesewas, string $reference): int
+function hp_create_payment(PDO $db, string $packageSlug, int $amountPesewas, string $reference): array
 {
+    $accessToken = bin2hex(random_bytes(16));
+
     $stmt = $db->prepare(
-        'INSERT INTO payments (reference, package_slug, amount_pesewas, status, created_at)
-         VALUES (:ref, :slug, :amount, :status, datetime(\'now\'))'
+        'INSERT INTO payments (reference, access_token, package_slug, amount_pesewas, status, created_at)
+         VALUES (:ref, :token, :slug, :amount, :status, datetime(\'now\'))'
     );
     $stmt->execute([
         'ref' => $reference,
+        'token' => $accessToken,
         'slug' => $packageSlug,
         'amount' => $amountPesewas,
         'status' => 'pending',
     ]);
 
-    return (int) $db->lastInsertId();
+    return [
+        'id' => (int) $db->lastInsertId(),
+        'reference' => $reference,
+        'access_token' => $accessToken,
+    ];
 }
 
-function hp_get_payment_by_reference(PDO $db, string $reference): ?array
+function hp_payment_access_ok(?array $payment, ?string $accessToken): bool
+{
+    if ($payment === null || $accessToken === null || $accessToken === '') {
+        return false;
+    }
+
+    $stored = (string) ($payment['access_token'] ?? '');
+
+    return $stored !== '' && hash_equals($stored, $accessToken);
+}
+
+function hp_get_payment_by_reference(PDO $db, string $reference, ?string $accessToken = null): ?array
 {
     $stmt = $db->prepare('SELECT * FROM payments WHERE reference = :ref');
     $stmt->execute(['ref' => $reference]);
     $payment = $stmt->fetch();
 
     if (! $payment) {
+        return null;
+    }
+
+    if ($accessToken !== null && ! hp_payment_access_ok($payment, $accessToken)) {
         return null;
     }
 
@@ -179,8 +201,13 @@ function hp_get_payment_by_reference(PDO $db, string $reference): ?array
     return $payment;
 }
 
-function hp_fulfill_payment(PDO $db, string $reference, ?string $buyerEmail, ?string $buyerPhone): array
-{
+function hp_fulfill_payment(
+    PDO $db,
+    string $reference,
+    ?string $buyerEmail,
+    ?string $buyerPhone,
+    ?int $verifiedAmountPesewas = null
+): array {
     $db->beginTransaction();
 
     try {
@@ -192,6 +219,13 @@ function hp_fulfill_payment(PDO $db, string $reference, ?string $buyerEmail, ?st
             $db->rollBack();
 
             return ['ok' => false, 'reason' => 'payment_not_found'];
+        }
+
+        if ($verifiedAmountPesewas !== null
+            && (int) $payment['amount_pesewas'] !== $verifiedAmountPesewas) {
+            $db->rollBack();
+
+            return ['ok' => false, 'reason' => 'amount_mismatch'];
         }
 
         if ($payment['status'] === 'paid' && $payment['voucher_code_id']) {

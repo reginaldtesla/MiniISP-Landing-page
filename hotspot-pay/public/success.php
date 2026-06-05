@@ -3,24 +3,32 @@
 declare(strict_types=1);
 
 require_once dirname(__DIR__).'/lib/bootstrap.php';
+require_once dirname(__DIR__).'/lib/paystack.php';
 
 $reference = trim((string) ($_GET['ref'] ?? ''));
+$accessToken = trim((string) ($_GET['tok'] ?? ''));
 $appUrl = rtrim((string) hp_setting('app_url', ''), '/');
 $appName = (string) hp_setting('app_name', 'TesNet Pay');
 
 $payment = null;
 $package = null;
 $poll = isset($_GET['poll']);
+$accessOk = false;
 
-if ($reference !== '') {
+if ($reference !== '' && $accessToken !== '') {
     $db = hp_db();
-    $payment = hp_get_payment_by_reference($db, $reference);
+    $payment = hp_get_payment_by_reference($db, $reference, $accessToken);
+    $accessOk = $payment !== null;
     if ($payment) {
         $package = hp_get_package($db, (string) $payment['package_slug']);
     }
 }
 
-if ($poll && $reference !== '') {
+if ($poll) {
+    if (! $accessOk) {
+        hp_json_response(['ready' => false, 'status' => 'forbidden'], 403);
+    }
+
     $ready = $payment && $payment['status'] === 'paid' && ! empty($payment['code']);
     hp_json_response([
         'ready' => $ready,
@@ -29,8 +37,9 @@ if ($poll && $reference !== '') {
     ]);
 }
 
-$ready = $payment && $payment['status'] === 'paid' && ! empty($payment['code']);
-$noStock = $payment && $payment['status'] === 'paid_no_stock';
+$ready = $accessOk && $payment && $payment['status'] === 'paid' && ! empty($payment['code']);
+$noStock = $accessOk && $payment && $payment['status'] === 'paid_no_stock';
+$invalidLink = $reference === '' || $accessToken === '' || ! $accessOk;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -44,8 +53,8 @@ $noStock = $payment && $payment['status'] === 'paid_no_stock';
     <main class="card">
         <h1><?= hp_escape($appName) ?></h1>
 
-        <?php if ($reference === ''): ?>
-            <p class="muted">Missing payment reference.</p>
+        <?php if ($invalidLink): ?>
+            <p class="muted">This payment link is invalid or expired. Return to the Wi‑Fi login page and start again.</p>
         <?php elseif ($noStock): ?>
             <p class="error">Payment received but we are out of codes for this package. Please contact support with reference <strong><?= hp_escape($reference) ?></strong>.</p>
         <?php elseif ($ready): ?>
@@ -65,13 +74,18 @@ $noStock = $payment && $payment['status'] === 'paid_no_stock';
             <p class="notice">Keep this page open. Your code will appear here in a few seconds. Copy it or screenshot it before closing — we don’t send codes by SMS yet.</p>
             <script>
                 const ref = <?= json_encode($reference) ?>;
+                const tok = <?= json_encode($accessToken) ?>;
                 let attempts = 0;
                 const statusText = document.getElementById('status-text');
 
                 async function poll() {
                     attempts++;
                     try {
-                        const res = await fetch('success.php?poll=1&ref=' + encodeURIComponent(ref));
+                        const res = await fetch('success.php?poll=1&ref=' + encodeURIComponent(ref) + '&tok=' + encodeURIComponent(tok));
+                        if (res.status === 403) {
+                            statusText.textContent = 'This payment link is invalid. Start again from the Wi‑Fi login page.';
+                            return;
+                        }
                         const data = await res.json();
                         if (data.ready && data.code) {
                             window.location.reload();

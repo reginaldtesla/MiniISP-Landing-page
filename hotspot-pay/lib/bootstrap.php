@@ -55,9 +55,20 @@ function hp_db(): PDO
     $schema = file_get_contents($dir.'/schema.sql');
     $pdo->exec($schema);
 
+    hp_migrate($pdo);
     hp_seed_packages($pdo);
 
     return $pdo;
+}
+
+function hp_migrate(PDO $db): void
+{
+    $columns = $db->query('PRAGMA table_info(payments)')->fetchAll(PDO::FETCH_ASSOC);
+    $names = array_column($columns, 'name');
+
+    if (! in_array('access_token', $names, true)) {
+        $db->exec("ALTER TABLE payments ADD COLUMN access_token TEXT NOT NULL DEFAULT ''");
+    }
 }
 
 function hp_json_response(array $data, int $status = 200): never
