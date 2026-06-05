@@ -41,6 +41,14 @@ See `deploy/apache-pay.tesnet.xyz.conf.example`.
 - Upload updated `login.html` from repo root
 - Walled garden: `pay.tesnet.xyz`, `*.paystack.com`, `js.paystack.co`, `api.paystack.co`
 
+## Refill voucher stock
+
+See **`docs/VOUCHER_REFILL_GUIDE.md`** — MikroTik generate → export `.rsc` → `scripts/rsc-to-csv.py` → admin import.
+
+## Add a new package (new MikroTik profile)
+
+See **`docs/ADD_NEW_PACKAGE.md`** — profile on router + `config.php` + `login.html` + import codes.
+
 ## Test buy URL
 
 `https://pay.tesnet.xyz/buy.php?pkg=quick-surf`
