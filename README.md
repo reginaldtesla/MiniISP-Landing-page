@@ -1,89 +1,67 @@
-# MiniISP Landing Page workspace
+# MiniISP Landing Page
 
-This workspace started as the landing-page project, but it also contains two deployable TesNet services:
+Static landing page for TesNet internet services in Ayeduase / KNUST.
 
-- **`TesNet/`** — Laravel captive portal and billing stack for student Wi-Fi.
-- **`hotspot-pay/`** — plain PHP Paystack voucher-payment service.
+This directory is only for the public MiniISP marketing pages. The TesNet Laravel portal and hotspot-pay voucher app should live in their own sibling folders under Apache `htdocs`.
 
-For local Apache on Windows, keep those services as sibling folders under `htdocs` instead of running them inside the landing-page directory:
+## Folder location
+
+Expected Windows Apache layout:
 
 ```text
 C:\Apache24\htdocs\
-├── MiniISP-Landing-page\   # public landing page and shared docs
-├── TesNet\                 # Laravel portal, Apache DocumentRoot -> TesNet\public
-└── hotspot-pay\            # voucher payment app, Apache DocumentRoot -> hotspot-pay\public
+├── MiniISP-Landing-page\
+├── TesNet\
+└── hotspot-pay\
 ```
 
-If the service folders are still inside `MiniISP-Landing-page`, move them once:
-
-```powershell
-cd C:\Apache24\htdocs
-Move-Item -Path ".\MiniISP-Landing-page\TesNet" -Destination ".\TesNet"
-Move-Item -Path ".\MiniISP-Landing-page\hotspot-pay" -Destination ".\hotspot-pay"
-```
-
-On Ubuntu / HP ProBook, use the same sibling layout:
+This README covers only:
 
 ```text
-/var/www/
-├── MiniISP-Landing-page/
-├── TesNet/
-└── hotspot-pay/
+C:\Apache24\htdocs\MiniISP-Landing-page\
 ```
 
-## TesNet portal
+## Main files
 
-## Architecture
+| File | Purpose |
+| --- | --- |
+| `index.html` | Main landing page: hero, services, pricing, contact, footer |
+| `connect.html` | "Get Started" / connection entry page |
+| `login.html` | Legacy hotspot login page template |
+| `logout.html` | Legacy hotspot logout page template |
+| `status.html` | Legacy hotspot status page template |
+| `login-preview.html` | Browser preview for the hotspot login page |
 
-| Layer | Role |
-| :--- | :--- |
-| **MikroTik** (`192.168.88.1`) | Hotspot, DHCP, walled garden |
-| **Ubuntu / HP ProBook** (`192.168.88.2`) | Laravel, MariaDB, FreeRADIUS |
-| **Students** | Portal login → buy data → connect Wi‑Fi |
+## Open locally
 
-Auth is **not** MAC-based: RADIUS uses the normalized phone number as username (`233…`). Laravel syncs `radcheck` / `radreply` on user and package changes.
+With Apache running, open:
 
-**Production path (HP ProBook):** `/var/www/TesNet` with Apache pointing to `/var/www/TesNet/public`.
-
-## Quick start (development)
-
-```bash
-cd TesNet
-composer install
-cp .env.example .env
-php artisan key:generate
-php artisan migrate --seed
-npm install && npm run build:offline
-php artisan serve --host=0.0.0.0 --port=8080
+```text
+http://localhost/MiniISP-Landing-page/
 ```
 
-`npm run build:offline` copies fonts, Material Symbols icons, CSS, and JS into `public/assets/portal/` so the UI works without CDN or Vite (needed on the hotspot).
+Or open `index.html` directly in a browser for a quick static preview.
 
-| URL | Purpose |
-| :--- | :--- |
-| `/portal/login` | Student login / register |
-| `/portal/forgot-password` | Phone-based password reset |
-| `/admin/login` | Admin hub (packages, students, announcements) |
+## Editing the landing page
 
-Default seeded admin (change in `.env` then `php artisan db:seed`): phone `0550000001`, password from `ADMIN_PASSWORD`.
+Most public content is in `index.html`:
 
-## Documentation
+- Navigation links
+- Hero copy
+- Services section
+- Pricing table
+- Contact details
+- Footer policy text
 
-- **[Full setup — ProBook + MikroTik (from factory reset)](TesNet/docs/PROBOOK_MIKROTIK_FULL_SETUP.md)** — **start here for production**
-- **[Installation — HP ProBook + MikroTik hAP²](installation)** — same topics, reference format
-- **[Hotspot HTML & MikroTik redirect](TesNet/docs/HOTSPOT.md)** — replace legacy `login.html` with Laravel
-- **[Paystack live + HTTPS webhook](TesNet/docs/PAYSTACK.md)** — production keys, `APP_URL`, webhook URL
-- **[Production checklist](TesNet/docs/PRODUCTION_CHECKLIST.md)** — go-live verification (MikroTik, RADIUS, Paystack)
-- **[Daily operations](TesNet/docs/DAILY_OPERATIONS.md)** — outages, manual payments, sessions, backups
-- **[Laravel app README](TesNet/README.md)** — standalone TesNet setup
-- **[hotspot-pay README](hotspot-pay/README.md)** — standalone voucher payment setup
-- **[Voucher refill guide](docs/VOUCHER_REFILL_GUIDE.md)** — MikroTik export to hotspot-pay import
-- **[Add new hotspot package](docs/ADD_NEW_PACKAGE.md)** — router profile + hotspot-pay config
+The page uses Tailwind from the CDN, Google Fonts, and Material Symbols, so no build step is required.
 
-## Legacy files
+## Related projects
 
-Root `login.html` and copies under `flash/hotspot/` are **PHPNuxBill-era** redirects. Production should point the hotspot login URL at the Laravel portal (see `TesNet/docs/HOTSPOT.md`).
+These are separate projects and should not be documented as part of this directory:
 
-## License
+```text
+C:\Apache24\htdocs\TesNet
+C:\Apache24\htdocs\hotspot-pay
+```
 
-Student initiative project — © 2026 TesNet.
+Each project should keep its own README and docs inside its own folder.
