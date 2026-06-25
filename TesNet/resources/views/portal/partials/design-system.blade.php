@@ -1,1 +1,0 @@
-@include('portal.partials.assets')
