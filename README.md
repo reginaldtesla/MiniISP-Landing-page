@@ -69,12 +69,12 @@ Default seeded admin (change in `.env` then `php artisan db:seed`): phone `05500
 
 ## Documentation
 
-- **[Full setup — ProBook + MikroTik (from factory reset)](docs/PROBOOK_MIKROTIK_FULL_SETUP.md)** — **start here for production**
+- **[Full setup — ProBook + MikroTik (from factory reset)](TesNet/docs/PROBOOK_MIKROTIK_FULL_SETUP.md)** — **start here for production**
 - **[Installation — HP ProBook + MikroTik hAP²](installation)** — same topics, reference format
-- **[Hotspot HTML & MikroTik redirect](docs/HOTSPOT.md)** — replace legacy `login.html` with Laravel
-- **[Paystack live + HTTPS webhook](docs/PAYSTACK.md)** — production keys, `APP_URL`, webhook URL
-- **[Production checklist](docs/PRODUCTION_CHECKLIST.md)** — go-live verification (MikroTik, RADIUS, Paystack)
-- **[Daily operations](docs/DAILY_OPERATIONS.md)** — outages, manual payments, sessions, backups
+- **[Hotspot HTML & MikroTik redirect](TesNet/docs/HOTSPOT.md)** — replace legacy `login.html` with Laravel
+- **[Paystack live + HTTPS webhook](TesNet/docs/PAYSTACK.md)** — production keys, `APP_URL`, webhook URL
+- **[Production checklist](TesNet/docs/PRODUCTION_CHECKLIST.md)** — go-live verification (MikroTik, RADIUS, Paystack)
+- **[Daily operations](TesNet/docs/DAILY_OPERATIONS.md)** — outages, manual payments, sessions, backups
 - **[Laravel app README](TesNet/README.md)** — standalone TesNet setup
 - **[hotspot-pay README](hotspot-pay/README.md)** — standalone voucher payment setup
 - **[Voucher refill guide](docs/VOUCHER_REFILL_GUIDE.md)** — MikroTik export to hotspot-pay import
@@ -82,7 +82,7 @@ Default seeded admin (change in `.env` then `php artisan db:seed`): phone `05500
 
 ## Legacy files
 
-Root `login.html` and copies under `flash/hotspot/` are **PHPNuxBill-era** redirects. Production should point the hotspot login URL at the Laravel portal (see `docs/HOTSPOT.md`).
+Root `login.html` and copies under `flash/hotspot/` are **PHPNuxBill-era** redirects. Production should point the hotspot login URL at the Laravel portal (see `TesNet/docs/HOTSPOT.md`).
 
 ## License
 

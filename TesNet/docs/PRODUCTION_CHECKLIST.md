@@ -1,6 +1,6 @@
 # TesNet — Production checklist
 
-Use with **Admin → Health** in the portal and the main [installation](../installation) guide.
+Use with **Admin → Health** in the portal and the main [installation](../../installation) guide.
 
 Full step-by-step (factory reset → go-live): **[PROBOOK_MIKROTIK_FULL_SETUP.md](PROBOOK_MIKROTIK_FULL_SETUP.md)**.  
 Public HTTPS (ngrok → Cloudflare): **[CLOUDFLARE_TUNNEL.md](CLOUDFLARE_TUNNEL.md)**.
@@ -155,7 +155,7 @@ npm install && npm run build:offline
 
 ## Cloudflare Tunnel (recommended for ProBook)
 
-If the portal runs on a private LAN (`192.168.88.2`), use **Cloudflare Tunnel** for stable HTTPS — see **[`docs/CLOUDFLARE_TUNNEL.md`](CLOUDFLARE_TUNNEL.md)**.
+If the portal runs on a private LAN (`192.168.88.2`), use **Cloudflare Tunnel** for stable HTTPS — see **[`CLOUDFLARE_TUNNEL.md`](CLOUDFLARE_TUNNEL.md)**.
 
 Quick checklist:
 

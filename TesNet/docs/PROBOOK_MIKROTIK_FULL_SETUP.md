@@ -6,10 +6,10 @@ Complete guide to deploy TesNet from **zero**: fresh Ubuntu on an HP ProBook and
 
 | Doc | Use for |
 |-----|---------|
-| [`docs/PAYSTACK.md`](PAYSTACK.md) | Paystack keys, webhooks, HTTPS |
-| [`docs/HOTSPOT.md`](HOTSPOT.md) | Captive portal behaviour |
-| [`docs/PRODUCTION_CHECKLIST.md`](PRODUCTION_CHECKLIST.md) | Go-live checklist |
-| [`docs/DAILY_OPERATIONS.md`](DAILY_OPERATIONS.md) | Day-to-day admin |
+| [`PAYSTACK.md`](PAYSTACK.md) | Paystack keys, webhooks, HTTPS |
+| [`HOTSPOT.md`](HOTSPOT.md) | Captive portal behaviour |
+| [`PRODUCTION_CHECKLIST.md`](PRODUCTION_CHECKLIST.md) | Go-live checklist |
+| [`DAILY_OPERATIONS.md`](DAILY_OPERATIONS.md) | Day-to-day admin |
 
 ---
 
@@ -64,7 +64,7 @@ Complete guide to deploy TesNet from **zero**: fresh Ubuntu on an HP ProBook and
 3. Register / log in → buy data (Paystack or manual payment).
 4. Dashboard **Connect to Internet** → POST to MikroTik `http://192.168.88.1/login` (PAP) → RADIUS Accept → internet within plan.
 
-Payment alone does **not** open the internet; **Connect** does (see [`docs/HOTSPOT.md`](HOTSPOT.md)).
+Payment alone does **not** open the internet; **Connect** does (see [`HOTSPOT.md`](HOTSPOT.md)).
 
 ---
 
@@ -915,7 +915,7 @@ sudo certbot renew --dry-run
 
 Use this when the ProBook is on a private LAN but Paystack (and optionally the whole portal) needs **stable HTTPS** without port forwarding.
 
-**Full guide:** [`docs/CLOUDFLARE_TUNNEL.md`](CLOUDFLARE_TUNNEL.md)
+**Full guide:** [`CLOUDFLARE_TUNNEL.md`](CLOUDFLARE_TUNNEL.md)
 
 | Traffic | URL | Certificate |
 |---------|-----|-------------|
@@ -974,10 +974,10 @@ On the ProBook alone:
 Options:
 
 1. **Manual pay only** for the first weeks (simplest on ProBook).
-2. **Cloudflare Tunnel** — stable HTTPS for portal + Paystack ([`docs/CLOUDFLARE_TUNNEL.md`](CLOUDFLARE_TUNNEL.md); replaces ngrok).
+2. **Cloudflare Tunnel** — stable HTTPS for portal + Paystack ([`CLOUDFLARE_TUNNEL.md`](CLOUDFLARE_TUNNEL.md); replaces ngrok).
 3. **Real domain + Let’s Encrypt** on the ProBook (§9.2) or on a VPS later.
 
-Full steps: [`docs/PAYSTACK.md`](PAYSTACK.md).
+Full steps: [`PAYSTACK.md`](PAYSTACK.md).
 
 When you enable HTTPS, update **all** of:
 
@@ -1014,7 +1014,7 @@ The **HP ProBook is the brain** of TesNet. The MikroTik provides Wi‑Fi and hot
 4. Run [§11.4 post-restart checklist](#114-after-a-restart-or-power-return).
 5. Disable outage banner when healthy.
 
-See [`docs/DAILY_OPERATIONS.md`](DAILY_OPERATIONS.md).
+See [`DAILY_OPERATIONS.md`](DAILY_OPERATIONS.md).
 
 ### 11.3 Unplanned power loss
 
@@ -1123,7 +1123,7 @@ Students need the ProBook **up** for normal TesNet operation.
 - [ ] Support phone/email in `.env`
 - [ ] Leak test passed (§8.4)
 
-See also [`docs/PRODUCTION_CHECKLIST.md`](PRODUCTION_CHECKLIST.md).
+See also [`PRODUCTION_CHECKLIST.md`](PRODUCTION_CHECKLIST.md).
 
 ---
 

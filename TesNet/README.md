@@ -67,12 +67,13 @@ php artisan serve --host=0.0.0.0 --port=8080
 * * * * * cd /var/www/TesNet && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-## Related docs
+## Documentation
 
-The shared deployment docs live in the landing-page project under `docs/`:
+The TesNet deployment docs live inside this app folder:
 
-- `docs/PROBOOK_MIKROTIK_FULL_SETUP.md`
-- `docs/PRODUCTION_CHECKLIST.md`
-- `docs/CLOUDFLARE_TUNNEL.md`
-- `docs/HOTSPOT.md`
-- `docs/PAYSTACK.md`
+- [Docs index](docs/README.md)
+- [Full setup — ProBook + MikroTik](docs/PROBOOK_MIKROTIK_FULL_SETUP.md)
+- [Production checklist](docs/PRODUCTION_CHECKLIST.md)
+- [Cloudflare Tunnel](docs/CLOUDFLARE_TUNNEL.md)
+- [Hotspot HTML & MikroTik redirect](docs/HOTSPOT.md)
+- [Paystack live + HTTPS webhook](docs/PAYSTACK.md)
