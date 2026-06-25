@@ -1,40 +1,25 @@
 # MiniISP Landing Page
 
-Static landing page for TesNet internet services in Ayeduase / KNUST.
-
-This directory is only for the public MiniISP marketing pages. The TesNet Laravel portal and hotspot-pay voucher app should live in their own sibling folders under Apache `htdocs`.
-
-## Folder location
-
-Expected Windows Apache layout:
-
-```text
-C:\Apache24\htdocs\
-├── MiniISP-Landing-page\
-├── TesNet\
-└── hotspot-pay\
-```
-
-This README covers only:
+Static marketing landing page for MiniISP internet services in Ayeduase / KNUST.
 
 ```text
 C:\Apache24\htdocs\MiniISP-Landing-page\
 ```
 
-## Main files
+## Project files
 
 | File | Purpose |
 | --- | --- |
-| `index.html` | Main landing page: hero, services, pricing, contact, footer |
-| `connect.html` | "Get Started" / connection entry page |
-| `login.html` | Legacy hotspot login page template |
-| `logout.html` | Legacy hotspot logout page template |
-| `status.html` | Legacy hotspot status page template |
-| `login-preview.html` | Browser preview for the hotspot login page |
+| `index.html` | Main landing page with hero, services, pricing, contact, and footer sections |
+| `connect.html` | Connection/get-started page |
+| `login.html` | Hotspot login page template |
+| `logout.html` | Hotspot logout page template |
+| `status.html` | Hotspot status page template |
+| `login-preview.html` | Browser preview page for checking the hotspot login design |
 
 ## Open locally
 
-With Apache running, open:
+With Apache running, visit:
 
 ```text
 http://localhost/MiniISP-Landing-page/
@@ -42,9 +27,9 @@ http://localhost/MiniISP-Landing-page/
 
 Or open `index.html` directly in a browser for a quick static preview.
 
-## Editing the landing page
+## Editing content
 
-Most public content is in `index.html`:
+Edit `index.html` for the main public website content:
 
 - Navigation links
 - Hero copy
@@ -53,15 +38,14 @@ Most public content is in `index.html`:
 - Contact details
 - Footer policy text
 
-The page uses Tailwind from the CDN, Google Fonts, and Material Symbols, so no build step is required.
+Edit `connect.html`, `login.html`, `logout.html`, `status.html`, and `login-preview.html` only when changing their specific pages.
 
-## Related projects
+## Styling
 
-These are separate projects and should not be documented as part of this directory:
+The pages use:
 
-```text
-C:\Apache24\htdocs\TesNet
-C:\Apache24\htdocs\hotspot-pay
-```
+- Tailwind CSS from CDN
+- Google Fonts
+- Material Symbols
 
-Each project should keep its own README and docs inside its own folder.
+No build step is required.
