@@ -67,19 +67,6 @@ php artisan serve --host=0.0.0.0 --port=8080
 
 Default seeded admin (change in `.env` then `php artisan db:seed`): phone `0550000001`, password from `ADMIN_PASSWORD`.
 
-## Documentation
-
-- **[Full setup — ProBook + MikroTik (from factory reset)](TesNet/docs/PROBOOK_MIKROTIK_FULL_SETUP.md)** — **start here for production**
-- **[Installation — HP ProBook + MikroTik hAP²](installation)** — same topics, reference format
-- **[Hotspot HTML & MikroTik redirect](TesNet/docs/HOTSPOT.md)** — replace legacy `login.html` with Laravel
-- **[Paystack live + HTTPS webhook](TesNet/docs/PAYSTACK.md)** — production keys, `APP_URL`, webhook URL
-- **[Production checklist](TesNet/docs/PRODUCTION_CHECKLIST.md)** — go-live verification (MikroTik, RADIUS, Paystack)
-- **[Daily operations](TesNet/docs/DAILY_OPERATIONS.md)** — outages, manual payments, sessions, backups
-- **[Laravel app README](TesNet/README.md)** — standalone TesNet setup
-- **[hotspot-pay README](hotspot-pay/README.md)** — standalone voucher payment setup
-- **[Voucher refill guide](docs/VOUCHER_REFILL_GUIDE.md)** — MikroTik export to hotspot-pay import
-- **[Add new hotspot package](docs/ADD_NEW_PACKAGE.md)** — router profile + hotspot-pay config
-
 ## Legacy files
 
 Root `login.html` and copies under `flash/hotspot/` are **PHPNuxBill-era** redirects. Production should point the hotspot login URL at the Laravel portal (see `TesNet/docs/HOTSPOT.md`).
