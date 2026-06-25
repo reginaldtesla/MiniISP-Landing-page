@@ -177,7 +177,7 @@ Download `.rsc` → convert → import (see **`docs/VOUCHER_REFILL_GUIDE.md`**).
 **Windows:**
 
 ```powershell
-cd C:\Apache24\htdocs\TesNet\hotspot-pay\scripts
+cd C:\Apache24\htdocs\hotspot-pay\scripts
 python rsc-to-csv.py "C:\Users\RegiTes\Downloads\tesnet-night-owl.rsc" -o "C:\Users\RegiTes\Downloads\night-owl.csv"
 ```
 

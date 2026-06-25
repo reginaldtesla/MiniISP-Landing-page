@@ -1,8 +1,37 @@
-# TesNet — Hostel Mini-ISP (Ayeduase / KNUST)
+# MiniISP Landing Page workspace
 
-TesNet is a Laravel captive-portal and billing stack for student Wi‑Fi: **phone + password** login, **FreeRADIUS**, **MikroTik** hotspot, **Paystack** payments, and separate **student** vs **admin** hubs.
+This workspace started as the landing-page project, but it also contains two deployable TesNet services:
 
-**Application code:** [`TesNet/`](TesNet/) (Laravel 13)
+- **`TesNet/`** — Laravel captive portal and billing stack for student Wi-Fi.
+- **`hotspot-pay/`** — plain PHP Paystack voucher-payment service.
+
+For local Apache on Windows, keep those services as sibling folders under `htdocs` instead of running them inside the landing-page directory:
+
+```text
+C:\Apache24\htdocs\
+├── MiniISP-Landing-page\   # public landing page and shared docs
+├── TesNet\                 # Laravel portal, Apache DocumentRoot -> TesNet\public
+└── hotspot-pay\            # voucher payment app, Apache DocumentRoot -> hotspot-pay\public
+```
+
+If the service folders are still inside `MiniISP-Landing-page`, move them once:
+
+```powershell
+cd C:\Apache24\htdocs
+Move-Item -Path ".\MiniISP-Landing-page\TesNet" -Destination ".\TesNet"
+Move-Item -Path ".\MiniISP-Landing-page\hotspot-pay" -Destination ".\hotspot-pay"
+```
+
+On Ubuntu / HP ProBook, use the same sibling layout:
+
+```text
+/var/www/
+├── MiniISP-Landing-page/
+├── TesNet/
+└── hotspot-pay/
+```
+
+## TesNet portal
 
 ## Architecture
 
@@ -14,7 +43,7 @@ TesNet is a Laravel captive-portal and billing stack for student Wi‑Fi: **phon
 
 Auth is **not** MAC-based: RADIUS uses the normalized phone number as username (`233…`). Laravel syncs `radcheck` / `radreply` on user and package changes.
 
-**Production path (HP ProBook):** after `git clone https://github.com/reginaldtesla/MiniISP-Landing-page.git`, the app is `/var/www/MiniISP-Landing-page/TesNet` (Apache → `…/TesNet/public`).
+**Production path (HP ProBook):** `/var/www/TesNet` with Apache pointing to `/var/www/TesNet/public`.
 
 ## Quick start (development)
 
@@ -46,7 +75,10 @@ Default seeded admin (change in `.env` then `php artisan db:seed`): phone `05500
 - **[Paystack live + HTTPS webhook](docs/PAYSTACK.md)** — production keys, `APP_URL`, webhook URL
 - **[Production checklist](docs/PRODUCTION_CHECKLIST.md)** — go-live verification (MikroTik, RADIUS, Paystack)
 - **[Daily operations](docs/DAILY_OPERATIONS.md)** — outages, manual payments, sessions, backups
-- **[Laravel app README](TesNet/README.md)** — env vars, RADIUS, offline assets (if present)
+- **[Laravel app README](TesNet/README.md)** — standalone TesNet setup
+- **[hotspot-pay README](hotspot-pay/README.md)** — standalone voucher payment setup
+- **[Voucher refill guide](docs/VOUCHER_REFILL_GUIDE.md)** — MikroTik export to hotspot-pay import
+- **[Add new hotspot package](docs/ADD_NEW_PACKAGE.md)** — router profile + hotspot-pay config
 
 ## Legacy files
 

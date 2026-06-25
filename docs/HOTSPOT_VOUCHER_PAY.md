@@ -22,7 +22,7 @@ Laravel (`TesNet/`) stays separate and is **not** used for this flow.
 |-----------|----------|
 | `login.html`, `logout.html`, `status.html` | **MikroTik** (upload from repo root) |
 | `TesNet.png` (logo on login) | MikroTik hotspot HTML directory |
-| **`hotspot-pay/`** (plain PHP) | **ProBook** Apache (`/var/www/.../hotspot-pay` or vhost) |
+| **`hotspot-pay/`** (plain PHP) | **ProBook** Apache (`/var/www/hotspot-pay` or vhost) |
 | Code pool + payment log | SQLite file or MariaDB on ProBook |
 | Paystack webhook | HTTPS URL on ProBook (domain + Cloudflare Tunnel) |
 
@@ -65,26 +65,23 @@ No Composer required for v1 (optional `vlucas/phpdotenv` later).
 
 ---
 
-## Folder layout (new, repo root)
+## Folder layout (standalone deployment)
 
 ```text
-TesNet/                          ← repo root
-├── login.html                   ← upload to MikroTik (edit Pay links)
-├── logout.html                  ← upload to MikroTik (no logic change)
-├── status.html                  ← upload to MikroTik (no logic change)
-├── TesNet.png                   ← logo for login.html
-├── docs/HOTSPOT_VOUCHER_PAY.md  ← this file
-└── hotspot-pay/
+C:\Apache24\htdocs\
+├── MiniISP-Landing-page\        ← landing page + shared docs
+├── TesNet\                      ← Laravel portal, separate from voucher flow
+└── hotspot-pay\
     ├── config.php               ← packages, URLs (no secrets)
     ├── config.local.php.example
     ├── config.local.php         ← PAYSTACK_SECRET, ADMIN_PASSWORD (gitignore)
     ├── lib/
-    │   ├── db.php               ← SQLite PDO
+    │   ├── bootstrap.php        ← config + database bootstrap
     │   ├── pool.php             ← import, assign, stock counts
     │   └── paystack.php         ← initialize, verify webhook
     ├── public/                  ← Apache document root
     │   ├── buy.php              ← start checkout for ?pkg=
-    │   ├── callback.php         ← Paystack redirect (poll until assigned)
+    │   ├── callback.php         ← Paystack redirect
     │   ├── success.php          ← show code
     │   ├── webhook.php          ← Paystack POST
     │   └── assets/style.css     ← minimal success page
@@ -98,7 +95,7 @@ TesNet/                          ← repo root
         └── packages.example.csv ← code import template
 ```
 
-Apache on ProBook: point vhost `pay.yourdomain.com` → `hotspot-pay/public/`.
+Apache on ProBook: point vhost `pay.yourdomain.com` → `/var/www/hotspot-pay/public/`.
 
 ---
 
