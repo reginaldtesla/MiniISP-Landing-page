@@ -6,10 +6,10 @@ Complete guide to deploy TesNet from **zero**: fresh Ubuntu on an HP ProBook and
 
 | Doc | Use for |
 |-----|---------|
-| [`docs/PAYSTACK.md`](PAYSTACK.md) | Paystack keys, webhooks, HTTPS |
-| [`docs/HOTSPOT.md`](HOTSPOT.md) | Captive portal behaviour |
-| [`docs/PRODUCTION_CHECKLIST.md`](PRODUCTION_CHECKLIST.md) | Go-live checklist |
-| [`docs/DAILY_OPERATIONS.md`](DAILY_OPERATIONS.md) | Day-to-day admin |
+| [`PAYSTACK.md`](PAYSTACK.md) | Paystack keys, webhooks, HTTPS |
+| [`HOTSPOT.md`](HOTSPOT.md) | Captive portal behaviour |
+| [`PRODUCTION_CHECKLIST.md`](PRODUCTION_CHECKLIST.md) | Go-live checklist |
+| [`DAILY_OPERATIONS.md`](DAILY_OPERATIONS.md) | Day-to-day admin |
 
 ---
 
@@ -64,7 +64,7 @@ Complete guide to deploy TesNet from **zero**: fresh Ubuntu on an HP ProBook and
 3. Register / log in → buy data (Paystack or manual payment).
 4. Dashboard **Connect to Internet** → POST to MikroTik `http://192.168.88.1/login` (PAP) → RADIUS Accept → internet within plan.
 
-Payment alone does **not** open the internet; **Connect** does (see [`docs/HOTSPOT.md`](HOTSPOT.md)).
+Payment alone does **not** open the internet; **Connect** does (see [`HOTSPOT.md`](HOTSPOT.md)).
 
 ---
 
@@ -306,15 +306,16 @@ sudo mkdir -p /var/www
 sudo chown $USER:$USER /var/www
 cd /var/www
 git clone https://github.com/reginaldtesla/MiniISP-Landing-page.git
-cd MiniISP-Landing-page/TesNet
+cp -a MiniISP-Landing-page/TesNet ./TesNet
+cd TesNet
 ```
 
-Git creates `/var/www/MiniISP-Landing-page/`; the Laravel app lives in the **`TesNet`** subfolder.
+Git creates `/var/www/MiniISP-Landing-page/`; copy the Laravel app out once so production runs from standalone **`/var/www/TesNet`**.
 
-Or clone on your PC and upload with WinSCP to `/var/www/MiniISP-Landing-page/TesNet` (full `TesNet` directory contents).
+Or clone on your PC and upload with WinSCP to `/var/www/TesNet` (full `TesNet` directory contents).
 
 ```bash
-cd /var/www/MiniISP-Landing-page/TesNet
+cd /var/www/TesNet
 composer install --no-dev --optimize-autoloader
 cp .env.example .env
 php artisan key:generate
@@ -390,7 +391,7 @@ Permissions:
 ```bash
 sudo chown -R www-data:www-data storage bootstrap/cache
 sudo chmod -R 775 storage bootstrap/cache
-# full paths: /var/www/MiniISP-Landing-page/TesNet/storage and bootstrap/cache
+# full paths: /var/www/TesNet/storage and bootstrap/cache
 ```
 
 Verify offline assets exist:
@@ -408,9 +409,9 @@ sudo nano /etc/apache2/sites-available/tesnet.conf
 ```apache
 <VirtualHost *:80>
     ServerName 192.168.88.2
-    DocumentRoot /var/www/MiniISP-Landing-page/TesNet/public
+    DocumentRoot /var/www/TesNet/public
 
-    <Directory /var/www/MiniISP-Landing-page/TesNet/public>
+    <Directory /var/www/TesNet/public>
         AllowOverride All
         Require all granted
     </Directory>
@@ -443,13 +444,13 @@ sudo crontab -u www-data -e
 Add:
 
 ```cron
-* * * * * cd /var/www/MiniISP-Landing-page/TesNet && php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd /var/www/TesNet && php artisan schedule:run >> /dev/null 2>&1
 ```
 
 Test manually:
 
 ```bash
-cd /var/www/MiniISP-Landing-page/TesNet
+cd /var/www/TesNet
 php artisan tesnet:monitor
 php artisan tesnet:backup-database
 ```
@@ -914,7 +915,7 @@ sudo certbot renew --dry-run
 
 Use this when the ProBook is on a private LAN but Paystack (and optionally the whole portal) needs **stable HTTPS** without port forwarding.
 
-**Full guide:** [`docs/CLOUDFLARE_TUNNEL.md`](CLOUDFLARE_TUNNEL.md)
+**Full guide:** [`CLOUDFLARE_TUNNEL.md`](CLOUDFLARE_TUNNEL.md)
 
 | Traffic | URL | Certificate |
 |---------|-----|-------------|
@@ -973,10 +974,10 @@ On the ProBook alone:
 Options:
 
 1. **Manual pay only** for the first weeks (simplest on ProBook).
-2. **Cloudflare Tunnel** — stable HTTPS for portal + Paystack ([`docs/CLOUDFLARE_TUNNEL.md`](CLOUDFLARE_TUNNEL.md); replaces ngrok).
+2. **Cloudflare Tunnel** — stable HTTPS for portal + Paystack ([`CLOUDFLARE_TUNNEL.md`](CLOUDFLARE_TUNNEL.md); replaces ngrok).
 3. **Real domain + Let’s Encrypt** on the ProBook (§9.2) or on a VPS later.
 
-Full steps: [`docs/PAYSTACK.md`](PAYSTACK.md).
+Full steps: [`PAYSTACK.md`](PAYSTACK.md).
 
 When you enable HTTPS, update **all** of:
 
@@ -1013,7 +1014,7 @@ The **HP ProBook is the brain** of TesNet. The MikroTik provides Wi‑Fi and hot
 4. Run [§11.4 post-restart checklist](#114-after-a-restart-or-power-return).
 5. Disable outage banner when healthy.
 
-See [`docs/DAILY_OPERATIONS.md`](DAILY_OPERATIONS.md).
+See [`DAILY_OPERATIONS.md`](DAILY_OPERATIONS.md).
 
 ### 11.3 Unplanned power loss
 
@@ -1046,7 +1047,7 @@ curl -sI http://127.0.0.1/portal/login | head -3
 radtest 233551234567 'password' 127.0.0.1 0 testing123
 
 # 5. App health
-cd /var/www/MiniISP-Landing-page/TesNet && php artisan tesnet:monitor
+cd /var/www/TesNet && php artisan tesnet:monitor
 ```
 
 **From Winbox (MikroTik):**
@@ -1122,7 +1123,7 @@ Students need the ProBook **up** for normal TesNet operation.
 - [ ] Support phone/email in `.env`
 - [ ] Leak test passed (§8.4)
 
-See also [`docs/PRODUCTION_CHECKLIST.md`](PRODUCTION_CHECKLIST.md).
+See also [`PRODUCTION_CHECKLIST.md`](PRODUCTION_CHECKLIST.md).
 
 ---
 
@@ -1150,7 +1151,7 @@ See also [`docs/PRODUCTION_CHECKLIST.md`](PRODUCTION_CHECKLIST.md).
 # ProBook
 sudo systemctl status freeradius apache2 mariadb
 sudo journalctl -u freeradius -n 50
-sudo tail -f /var/www/MiniISP-Landing-page/TesNet/storage/logs/laravel.log
+sudo tail -f /var/www/TesNet/storage/logs/laravel.log
 php artisan tesnet:monitor
 
 # MikroTik

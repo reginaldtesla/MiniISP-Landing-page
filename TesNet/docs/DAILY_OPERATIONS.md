@@ -90,4 +90,4 @@ Copy backups off the server weekly (USB or cloud).
 - Set `ADMIN_ALLOWED_IPS` so `/admin` is only reachable on your LAN.
 - Do not expose Winbox or MySQL to the hotspot Wi‑Fi.
 
-See also: [PRODUCTION_CHECKLIST.md](PRODUCTION_CHECKLIST.md), [installation](../installation), [PAYSTACK.md](PAYSTACK.md), [HOTSPOT.md](HOTSPOT.md).
+See also: [PRODUCTION_CHECKLIST.md](PRODUCTION_CHECKLIST.md), [installation](../../installation), [PAYSTACK.md](PAYSTACK.md), [HOTSPOT.md](HOTSPOT.md).

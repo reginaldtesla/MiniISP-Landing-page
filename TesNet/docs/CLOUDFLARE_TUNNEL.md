@@ -136,9 +136,9 @@ Edit `/etc/apache2/sites-available/tesnet.conf` so Apache accepts the Cloudflare
 <VirtualHost *:80>
     ServerName portal.yourdomain.com
     ServerAlias 192.168.88.2
-    DocumentRoot /var/www/MiniISP-Landing-page/TesNet/public
+    DocumentRoot /var/www/TesNet/public
 
-    <Directory /var/www/MiniISP-Landing-page/TesNet/public>
+    <Directory /var/www/TesNet/public>
         AllowOverride All
         Require all granted
     </Directory>
@@ -184,7 +184,7 @@ MIKROTIK_POST_LOGIN_URL=https://portal.yourdomain.com/portal/dashboard
 Apply:
 
 ```bash
-cd /var/www/MiniISP-Landing-page/TesNet
+cd /var/www/TesNet
 php artisan config:clear
 php artisan config:cache
 ```
@@ -278,7 +278,7 @@ Do **not** leave ngrok and Cloudflare both registered as Paystack webhooks — u
 ```bash
 sudo systemctl status cloudflared apache2
 sudo journalctl -u cloudflared -f
-sudo tail -f /var/www/MiniISP-Landing-page/TesNet/storage/logs/laravel.log
+sudo tail -f /var/www/TesNet/storage/logs/laravel.log
 ```
 
 ---

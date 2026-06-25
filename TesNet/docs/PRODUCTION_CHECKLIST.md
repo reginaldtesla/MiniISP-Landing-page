@@ -1,6 +1,6 @@
 # TesNet — Production checklist
 
-Use with **Admin → Health** in the portal and the main [installation](../installation) guide.
+Use with **Admin → Health** in the portal and the main [installation](../../installation) guide.
 
 Full step-by-step (factory reset → go-live): **[PROBOOK_MIKROTIK_FULL_SETUP.md](PROBOOK_MIKROTIK_FULL_SETUP.md)**.  
 Public HTTPS (ngrok → Cloudflare): **[CLOUDFLARE_TUNNEL.md](CLOUDFLARE_TUNNEL.md)**.
@@ -74,12 +74,13 @@ sudo apt install -y certbot python3-certbot-apache
 
 ### 6. Application (not apt — deploy TesNet code)
 
-On the ProBook after packages above (path after default `git clone`):
+On the ProBook after packages above, clone the source repo and place the Laravel app in its standalone directory:
 
 ```bash
 cd /var/www
 git clone https://github.com/reginaldtesla/MiniISP-Landing-page.git
-cd /var/www/MiniISP-Landing-page/TesNet
+cp -a MiniISP-Landing-page/TesNet ./TesNet
+cd TesNet
 composer install --no-dev --optimize-autoloader
 cp .env.example .env && php artisan key:generate
 php artisan migrate --force
@@ -112,13 +113,13 @@ npm install && npm run build:offline
 ## Server (HP ProBook / Ubuntu)
 
 - [ ] `APP_ENV=production`, `APP_DEBUG=false`, correct `APP_URL` (HTTPS in production)
-- [ ] Apache + PHP 8.3+ → `DocumentRoot` `/var/www/MiniISP-Landing-page/TesNet/public`
+- [ ] Apache + PHP 8.3+ → `DocumentRoot` `/var/www/TesNet/public`
 - [ ] `php artisan migrate --force` applied
 - [ ] `npm run build:offline` — `public/assets/portal/` present
 - [ ] `PORTAL_USE_OFFLINE_ASSETS=true`
 - [ ] Cron for Laravel scheduler:
   ```cron
-  * * * * * cd /var/www/MiniISP-Landing-page/TesNet && php artisan schedule:run >> /dev/null 2>&1
+  * * * * * cd /var/www/TesNet && php artisan schedule:run >> /dev/null 2>&1
   ```
 - [ ] `LOG_CHANNEL=daily` (log rotation via daily files)
 - [ ] `TESNET_BACKUP_ENABLED=true` — verify `php artisan tesnet:backup-database` works
@@ -154,7 +155,7 @@ npm install && npm run build:offline
 
 ## Cloudflare Tunnel (recommended for ProBook)
 
-If the portal runs on a private LAN (`192.168.88.2`), use **Cloudflare Tunnel** for stable HTTPS — see **[`docs/CLOUDFLARE_TUNNEL.md`](CLOUDFLARE_TUNNEL.md)**.
+If the portal runs on a private LAN (`192.168.88.2`), use **Cloudflare Tunnel** for stable HTTPS — see **[`CLOUDFLARE_TUNNEL.md`](CLOUDFLARE_TUNNEL.md)**.
 
 Quick checklist:
 
@@ -190,7 +191,7 @@ php artisan route:list --name=admin.system-health
 If `radius.log` shows **Unknown column 'framedipv6address'**, accounting is broken (dashboard usage stays at 0):
 
 ```bash
-cd /var/www/.../TesNet && php artisan migrate --force
+cd /var/www/TesNet && php artisan migrate --force
 sudo systemctl restart freeradius
 sudo tail -f /var/log/freeradius/radius.log   # errors should stop
 ```

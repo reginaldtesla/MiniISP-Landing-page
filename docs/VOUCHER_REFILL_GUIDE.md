@@ -127,7 +127,7 @@ Valid `profile` values (exact Winbox names):
 From the repo folder:
 
 ```powershell
-cd C:\Apache24\htdocs\TesNet\hotspot-pay\scripts
+cd C:\Apache24\htdocs\hotspot-pay\scripts
 python rsc-to-csv.py "C:\Users\RegiTes\Downloads\tesnet-refill-quick.rsc" -o "C:\Users\RegiTes\Downloads\tesnet-refill-quick.csv"
 ```
 
@@ -140,7 +140,7 @@ Output shows how many codes per profile were written.
 After uploading the `.rsc` to the server:
 
 ```bash
-cd /var/www/MiniISP-Landing-page/hotspot-pay
+cd /var/www/hotspot-pay
 
 # Upload file first, e.g. to data/incoming/tesnet-refill-quick.rsc
 php scripts/rsc-to-csv.php data/incoming/tesnet-refill-quick.rsc data/incoming/tesnet-refill-quick.csv
@@ -151,7 +151,7 @@ php scripts/rsc-to-csv.php data/incoming/tesnet-refill-quick.rsc data/incoming/t
 ### Option C — On ProBook (Python)
 
 ```bash
-cd /var/www/MiniISP-Landing-page/hotspot-pay
+cd /var/www/hotspot-pay
 python3 scripts/rsc-to-csv.py data/incoming/tesnet-refill-quick.rsc -o data/incoming/tesnet-refill-quick.csv
 ```
 
@@ -183,7 +183,7 @@ python3 scripts/rsc-to-csv.py data/incoming/tesnet-refill-quick.rsc -o data/inco
 ### Option B — CLI on ProBook
 
 ```bash
-cd /var/www/MiniISP-Landing-page/hotspot-pay
+cd /var/www/hotspot-pay
 php -r 'require "lib/bootstrap.php"; print_r(hp_import_csv(hp_db(), "data/incoming/tesnet-refill-quick.csv"));'
 ```
 
@@ -209,7 +209,7 @@ Array
 ### CLI
 
 ```bash
-cd /var/www/MiniISP-Landing-page/hotspot-pay
+cd /var/www/hotspot-pay
 php -r '
 require "lib/bootstrap.php";
 foreach (hp_stock_summary(hp_db()) as $r) {
