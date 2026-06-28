@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>TesNet Hotspot — Preview</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        (function () {
+            var t = localStorage.getItem('hp-landing-theme');
+            if (t !== 'light') document.documentElement.classList.add('dark');
+        })();
+    </script>
+    <link rel="stylesheet" href="portal.css">
+</head>
+
+<body class="portal-page portal-page--login">
+    <div class="login-layout">
+        <aside class="login-brand" aria-hidden="true">
+            <div class="login-brand-inner">
+                <p class="login-brand-label">TesNet Hotspot</p>
+                <h2 class="login-brand-title">Fast, reliable internet.</h2>
+            </div>
+        </aside>
+
+        <main class="login-main">
+            <div class="login-main-inner">
+                <header class="login-header">
+                    <img src="Logo%20T.png" alt="TesNet" class="login-logo" width="52" height="52">
+                    <div class="login-header-text">
+                        <h1>TesNet</h1>
+                        <p>Connect instantly. Stream infinitely.</p>
+                    </div>
+                </header>
+
+                <div class="login-card">
+                    <div class="view-tabs" role="tablist" aria-label="Portal mode">
+                        <button type="button" class="view-tab is-active" role="tab" id="tab-login" data-portal-view="login" aria-selected="true" aria-controls="view-login">Login</button>
+                        <button type="button" class="view-tab" role="tab" id="tab-buy" data-portal-view="buy" aria-selected="false" aria-controls="view-buy">Buy Internet</button>
+                    </div>
+
+                    <div class="view-panel is-active" id="view-login" role="tabpanel" aria-labelledby="tab-login">
+                        <form name="sendin" action="#" method="post" class="portal-form login-form" onsubmit="return false;">
+                            <div class="portal-field">
+                                <label for="code">Voucher code</label>
+                                <div class="input-wrap">
+                                    <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21a8 8 0 1 0-16 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                                    <input type="text" id="code" class="portal-input" placeholder="Enter your voucher code" maxlength="20" autocomplete="off" enterkeyhint="go" autocapitalize="characters">
+                                </div>
+                            </div>
+                            <div class="hidden-fields">
+                                <input type="hidden" id="username" name="username" value="">
+                                <input type="hidden" id="password" name="password" value="">
+                            </div>
+                            <button type="submit" id="loginBtn" class="portal-btn portal-btn--primary portal-btn--icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 3 14h8l-1 8 10-12h-8l1-8Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+                                <span class="btn-label">Connect to Internet</span>
+                            </button>
+                        </form>
+
+                        <p class="login-hint">Preview only — join TesNet Wi‑Fi to use the live portal.</p>
+                        <button type="button" class="portal-btn portal-btn--outline portal-btn--icon" data-portal-view="buy">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="21" r="1" fill="currentColor"/><circle cx="20" cy="21" r="1" fill="currentColor"/><path d="M1 1h4l2.6 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            Buy Internet Access
+                        </button>
+                    </div>
+
+                    <div class="view-panel" id="view-buy" role="tabpanel" aria-labelledby="tab-buy" hidden>
+                        <div class="buy-section-head">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.3 7 12 12l8.7-5M12 22V12" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                            <span>Select Internet Package</span>
+                        </div>
+
+                        <div class="pricing-tabs-wrap pricing-tabs-wrap--compact" hidden>
+                            <div class="pricing-tabs" role="tablist" aria-label="Plan types">
+                                <button type="button" class="pricing-tab is-active" role="tab" id="tab-data" aria-selected="true" aria-controls="panel-data" data-pricing-tab="data">Data bundles</button>
+                                <button type="button" class="pricing-tab" role="tab" id="tab-time" aria-selected="false" aria-controls="panel-time" data-pricing-tab="time">Time passes</button>
+                            </div>
+                        </div>
+
+                        <div class="packages buy-packages" id="packagesPanel">
+                            <p class="login-hint buy-empty-msg">New packages are being updated. Check back soon or contact support at 020&nbsp;050&nbsp;4248.</p>
+                        </div>
+
+                        <p class="payment-status" id="paymentStatus" role="status" aria-live="polite" hidden></p>
+
+                        <button type="button" id="payBtn" class="portal-btn portal-btn--primary portal-btn--icon" hidden disabled>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                            <span class="btn-label">Proceed to Secure Payment</span>
+                        </button>
+
+                        <p class="login-switch-label">Already have an account?</p>
+                        <button type="button" class="portal-btn portal-btn--ghost portal-btn--icon" data-portal-view="login">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13.8 12H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            Login with Existing Account
+                        </button>
+                    </div>
+                </div>
+
+                <footer class="login-footer">
+                    <button type="button" class="portal-theme-btn" data-theme-toggle aria-label="Toggle theme">
+                        <svg class="theme-icon-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z"/></svg>
+                        <svg class="theme-icon-light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12Zm0-16h0M12 22h0M4.22 4.22h0M19.78 19.78h0M2 12h0M22 12h0M4.22 19.78h0M19.78 4.22h0" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+                    </button>
+                    <p class="login-footer-text">&copy; 2026 TesNet</p>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <script src="portal-theme.js"></script>
+    <script src="portal-login.js"></script>
+    <script src="portal-packages.js"></script>
+    <script>
+        var PAY_BASE = 'https://pay.tesnet.xyz';
+        var PKG_SLUG = {};
+
+        function doLogin() {
+            alert('This is a preview. Join TesNet Wi‑Fi and use the live hotspot login page to connect.');
+            return false;
+        }
+
+        (function () {
+            var loginForm = document.querySelector('.login-form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    doLogin();
+                });
+            }
+
+            var params = new URLSearchParams(window.location.search);
+            var code = params.get('code');
+            if (code) document.getElementById('code').value = code;
+
+            var host = window.location.hostname;
+            if (host === 'localhost' || host === '127.0.0.1') {
+                PAY_BASE = window.location.protocol + '//' + host;
+            }
+
+            var payBtn = document.getElementById('payBtn');
+            if (payBtn) {
+                payBtn.addEventListener('click', function () {
+                    if (Object.keys(PKG_SLUG).length === 0) {
+                        alert('New packages are being updated. Please check back soon.');
+                        return;
+                    }
+                    var selected = document.querySelector('.pkg-row.selected');
+                if (!selected) {
+                    alert('Please select a package first.');
+                    return;
+                }
+                var name = selected.getAttribute('data-package');
+                var slug = PKG_SLUG[name];
+                if (!slug) return;
+
+                var packagesEl = document.getElementById('packagesPanel');
+                var statusEl = document.getElementById('paymentStatus');
+                var payBtn = document.getElementById('payBtn');
+
+                document.querySelectorAll('.pkg-row').forEach(function (r) {
+                    r.classList.remove('loading');
+                });
+                selected.classList.add('loading');
+                if (packagesEl) packagesEl.classList.add('is-paying');
+                payBtn.disabled = true;
+                payBtn.classList.add('loading');
+                if (statusEl) {
+                    statusEl.classList.add('visible');
+                    statusEl.innerHTML = '<span class="spinner-inline"></span>Opening Paystack for <strong>' +
+                        name + '</strong>… Please wait.';
+                }
+                window.location.href = PAY_BASE + '/buy.php?pkg=' + encodeURIComponent(slug);
+                });
+            }
+        })();
+    </script>
+</body>
+
+</html>

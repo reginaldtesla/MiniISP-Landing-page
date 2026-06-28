@@ -8,51 +8,74 @@ Built as a final-year student initiative to bridge the digital divide with trans
 
 | Area | Description |
 |------|-------------|
-| **Marketing site** | Single-page landing site with services, pricing, and contact info |
-| **Hotspot portal** | Captive-portal HTML for MikroTik (login, status, logout) |
-| **Connect flow** | Onboarding page with embedded hotspot preview |
+| **Marketing site** | Single-page landing (`index.html`) — synced from `hotspot-pay/index.html` |
+| **Connect flow** | `connect.html` at repo root — join Wi‑Fi steps + embedded login preview |
+| **Hotspot portal** | Captive-portal HTML for MikroTik under `Mikrotik pages/` |
 | **MikroTik scripts** | RouterOS scripts to bulk-generate voucher users |
 | **Installation guide** | Production setup notes for ProBook + MikroTik stack |
 
-There is **no build step** — everything is static HTML, CSS, and JavaScript. Serve the files directly from Apache, another web server, or upload them to the MikroTik router for hotspot use.
+There is **no build step** — everything is static HTML, CSS, and JavaScript. Serve the marketing site from Apache (or any static host). Upload only the `Mikrotik pages/` portal files to the router.
+
+**Canonical marketing URL:** keep `index.html` in sync with [`hotspot-pay/index.html`](../hotspot-pay/index.html) (or deploy one copy to your public domain).
 
 ## Project structure
 
-```
+```text
 .
-├── index.html              # Main landing page
-├── connect.html            # "Get Started" — join Wi‑Fi + hotspot preview
-├── login.html              # Live MikroTik hotspot login (uses $(...) variables)
-├── login-preview.html      # Static preview of login (for connect.html iframe)
-├── status.html             # Active session status & data usage
-├── logout.html             # Post-logout confirmation
-├── api.json                # Captive-portal discovery metadata
-├── installation            # Production deployment guide (ProBook + MikroTik)
-├── mikrotik/
-│   ├── tesnet-gen-vouchers-seq.rsc    # Sequential voucher codes (TNQS001, …)
-│   └── tesnet-gen-vouchers-random.rsc # Random-format voucher codes
-└── TesNet.png              # Brand asset
+├── index.html                    # Marketing landing (canonical copy of hotspot-pay/index.html)
+├── connect.html                  # Get Started — Wi‑Fi steps + iframe preview
+├── assets/
+│   └── tesnet-logo.png           # Logo for marketing pages
+├── Mikrotik pages/               # Upload these to the router (flat, no subfolder)
+│   ├── login.html                # Live hotspot login ($(…) MikroTik variables)
+│   ├── login-preview.html        # Static preview for connect.html iframe
+│   ├── status.html
+│   ├── logout.html
+│   ├── portal.css
+│   ├── portal-theme.js
+│   ├── portal-login.js
+│   ├── portal-packages.js
+│   ├── api.json
+│   ├── tesnet-logo.png           # Logo on login (canonical filename)
+│   └── Logo T.png                # Legacy alias (same file; optional on router)
+├── mikrotik script for rsv-cvs/
+│   ├── tesnet-gen-vouchers-seq.rsc
+│   └── tesnet-gen-vouchers-random.rsc
+├── installation                  # Production deployment guide
+└── TesNet.png                    # Older brand asset (marketing archive)
 ```
 
 ## Pages
 
-### Public website
-
-- **`index.html`** — Hero, about, services, pricing table, contact, and policies.
-- **`connect.html`** — Step-by-step instructions to join the `TesNet@0207482341` Wi‑Fi network and use the hotspot portal. Embeds `login-preview.html` so visitors can see the login UI before connecting.
-
-### MikroTik hotspot (upload to router)
-
-These files use [MikroTik hotspot variables](https://wiki.mikrotik.com/wiki/Manual:Customizing_Hotspot_login_page) such as `$(link-login-only)`, `$(username)`, and `$(error)`:
+### Public website (repo root)
 
 | File | Role |
 |------|------|
-| `login.html` | Voucher login + package purchase (redirects to Paystack) |
-| `status.html` | Session info, data usage, auto-refresh every 30s |
-| `logout.html` | Logged-out confirmation with return link |
-| `api.json` | Captive portal API hints (`captive`, `user-portal-url`, `venue-info-url`) |
+| `index.html` | Hero, about, services, pricing, contact, policies |
+| `connect.html` | Step-by-step Wi‑Fi onboarding; embeds `Mikrotik pages/login-preview.html` |
+| `assets/tesnet-logo.png` | Logo used by the marketing page |
 
-Package purchases on the live login page redirect to **`https://pay.tesnet.xyz`** (Paystack checkout). After payment, users enter their voucher code on the same login page.
+Nav links: **Get started** → `connect.html`. Payment links point to **`https://pay.tesnet.xyz`**.
+
+### MikroTik hotspot (`Mikrotik pages/` → upload flat to router)
+
+These files use [MikroTik hotspot variables](https://wiki.mikrotik.com/wiki/Manual:Customizing_Hotspot_login_page) such as `$(link-login-only)`, `$(username)`, and `$(error)`:
+
+| File | Upload to router? | Role |
+|------|-------------------|------|
+| `login.html` | Yes | Voucher login + package purchase (Paystack) |
+| `status.html` | Yes | Session info, data usage |
+| `logout.html` | Yes | Logged-out confirmation |
+| `portal.css` | Yes | Shared portal styles |
+| `portal-theme.js` | Yes | Dark/light theme toggle |
+| `portal-login.js` | Yes | Login / Buy view switcher |
+| `portal-packages.js` | Yes | Data / time pricing tabs |
+| `api.json` | Yes | Captive portal discovery metadata |
+| `tesnet-logo.png` | Yes | Login page logo |
+| `login-preview.html` | **No** | Local / marketing preview only |
+| `connect.html` | **No** | Lives at repo root only |
+
+Package purchases redirect to **`https://pay.tesnet.xyz/buy.php?pkg=…`**. After payment, users enter their voucher on `login.html`.
 
 ## Data packages (GHS)
 
@@ -67,10 +90,8 @@ Package purchases on the live login page redirect to **`https://pay.tesnet.xyz`*
 | 4-Hour | Unlimited | 4 hours | 8.00 |
 | 8-Hour | Unlimited | 8 hours | 16.00 |
 | Full Day | Unlimited | 24 hours | 25.00 |
-| 2-Week | Unlimited | 7 days | 199.00 |
-| Month | Unlimited | 30 days | 299.00 |
-
-Pricing is also shown on the landing page pricing section.
+| 2-Week | Unlimited | 14 days | 99.00 |
+| Month | Unlimited | 30 days | 199.00 |
 
 ## Local development
 
@@ -85,8 +106,9 @@ Pricing is also shown on the landing page pricing section.
 
    **Apache** (e.g. `htdocs/MiniISP-Landing-page`):
 
-   ```
+   ```text
    http://localhost/MiniISP-Landing-page/
+   http://localhost/MiniISP-Landing-page/connect.html
    ```
 
    **PHP built-in server:**
@@ -95,26 +117,44 @@ Pricing is also shown on the landing page pricing section.
    php -S localhost:8080
    ```
 
-   **VS Code / Cursor Live Preview** — open `index.html` (default preview path is configured in `.vscode/settings.json`).
+3. Open `index.html` or `connect.html` in a browser.
 
-3. Open `index.html` in a browser, or `connect.html` to preview the hotspot login UI.
+   > **Note:** `login.html` MikroTik placeholders only resolve on the router. Use `login-preview.html` (via `connect.html`) for local UI testing.
 
-> **Note:** `login.html` MikroTik placeholders (`$(error)`, `$(link-login-only)`, etc.) only resolve when the file is served by the router's hotspot. Use `login-preview.html` for local UI testing.
+4. **Pay server (separate repo):** run [`hotspot-pay`](../hotspot-pay/) for checkout. Local preview uses `http://localhost/buy.php?pkg=…` when the pay vhost docroot is `hotspot-pay/public/`.
 
-## MikroTik deployment
+## Deploy checklist
 
-### Hotspot HTML
+### Marketing site (Apache / static host)
 
-1. Copy `login.html`, `status.html`, `logout.html`, and `api.json` to the router (e.g. **Files** in Winbox).
-2. Point the hotspot profile's HTML directory to those files (see your router's hotspot **Server Profiles** settings).
-3. Adjust `api.json` URLs if your router IP or portal path differs from `http://192.168.88.1`.
+```text
+[ ] index.html + assets/tesnet-logo.png at site root
+[ ] connect.html at site root (paths use Mikrotik%20pages/…)
+[ ] Mikrotik pages/login-preview.html present (iframe target; not uploaded to router)
+[ ] Pricing matches hotspot-pay/config.php
+[ ] Payment links use https://pay.tesnet.xyz
+```
 
-### Voucher generation
+### MikroTik router (flat upload from `Mikrotik pages/`)
 
-Two RouterOS scripts are provided under `mikrotik/`:
+```text
+[ ] login.html, status.html, logout.html
+[ ] portal.css, portal-theme.js, portal-login.js, portal-packages.js
+[ ] api.json, tesnet-logo.png
+[ ] Hotspot profile HTML directory points at uploaded files
+[ ] Walled garden: pay.tesnet.xyz, *.paystack.com, js.paystack.co, api.paystack.co
+[ ] Voucher users + profiles exist; codes imported in hotspot-pay admin
+[ ] Test: captive portal → buy → success code → login
+```
 
-- **`tesnet-gen-vouchers-seq.rsc`** — Creates 500 users (100 per profile) with predictable codes (`TNQS001`–`TNQS100`, etc.).
-- **`tesnet-gen-vouchers-random.rsc`** — Creates random-format codes per profile.
+Do **not** upload `login-preview.html`, `connect.html`, or repo-root `index.html` to the router.
+
+## MikroTik voucher generation
+
+Scripts under `mikrotik script for rsv-cvs/`:
+
+- **`tesnet-gen-vouchers-seq.rsc`** — Sequential codes (`TNQS001`–`TNQS100`, …)
+- **`tesnet-gen-vouchers-random.rsc`** — Random-format codes
 
 Import on the router:
 
@@ -122,19 +162,14 @@ Import on the router:
 /import file-name=tesnet-gen-vouchers-seq.rsc
 ```
 
-Or add as a **System → Scripts** entry and run from Winbox.
-
 ## Production stack
 
-The full TesNet ISP stack (billing portal, RADIUS, database, Paystack webhooks) runs on separate infrastructure — typically an **HP ProBook (Ubuntu)** behind a **MikroTik hAP²** gateway. See the **`installation`** file in this repo for network layout, server setup, and deployment steps.
-
-Recommended layout:
+The Paystack billing service runs in **[hotspot-pay](../hotspot-pay/)** on the ProBook (PHP + SQLite). See **`installation`** in this repo and **`docs/HOTSPOT.md`** in hotspot-pay for network layout.
 
 ```text
 [ Internet ] ──► [ MikroTik hAP² 192.168.88.1 ] ──► Wi‑Fi clients
                         │
-                        └──► [ ProBook server 192.168.88.2 ]
-                              Laravel portal, MariaDB, FreeRADIUS
+                        └──► [ ProBook — pay.tesnet.xyz (hotspot-pay) ]
 ```
 
 ## Contact

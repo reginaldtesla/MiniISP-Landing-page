@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>TesNet — Session Status</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="30">
+    <script>
+        (function () {
+            var t = localStorage.getItem('hp-landing-theme');
+            if (t !== 'light') document.documentElement.classList.add('dark');
+        })();
+    </script>
+    <link rel="stylesheet" href="portal.css">
+</head>
+
+<body class="portal-page">
+    <div class="portal-shell portal-shell--narrow">
+
+        <div class="portal-card">
+            <div class="portal-card-body">
+                <h2 class="portal-section-title">Session status</h2>
+                <p class="portal-section-subtitle">Your active connection · refreshes every 30 seconds</p>
+
+                <div class="status-rows">
+                    <div class="status-row">
+                        <span class="status-label">Username</span>
+                        <span class="status-value">$(username)</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-label">IP address</span>
+                        <span class="status-value">$(ip)</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-label">Connected for</span>
+                        <span class="status-value">$(uptime)</span>
+                    </div>
+
+                    $(if limit-bytes-total)
+                    <div class="status-row">
+                        <span class="status-label">Data limit</span>
+                        <span class="status-value">$(limit-bytes-total-nice)</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-label">Downloaded</span>
+                        <span class="status-value">$(bytes-in-nice)</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-label">Uploaded</span>
+                        <span class="status-value">$(bytes-out-nice)</span>
+                    </div>
+                    <div class="status-row" id="downloaded-gb-row" style="display:none;">
+                        <span class="status-label">Downloaded (GB)</span>
+                        <span class="status-value" id="downloaded-gb">0.00 GB</span>
+                    </div>
+                    <div class="status-row" id="uploaded-gb-row" style="display:none;">
+                        <span class="status-label">Uploaded (GB)</span>
+                        <span class="status-value" id="uploaded-gb">0.00 GB</span>
+                    </div>
+                    $(endif)
+
+                    $(if remain-bytes-in)
+                    <div class="status-row">
+                        <span class="status-label">Remaining</span>
+                        <span class="status-value">$(remain-bytes-in-nice)</span>
+                    </div>
+                    <div class="usage-block">
+                        <div class="usage-header">
+                            <span>Data used</span>
+                            <span id="usagePercent">0%</span>
+                        </div>
+                        <div class="usage-bar-track">
+                            <div class="usage-bar-fill" id="usageBar"></div>
+                        </div>
+                    </div>
+                    <script>
+                        var bytesIn = parseInt("$(bytes-in)") || 0;
+                        var bytesOut = parseInt("$(bytes-out)") || 0;
+                        var totalUsed = bytesIn + bytesOut;
+                        var totalLimit = parseInt("$(limit-bytes-total)") || 1;
+                        var percent = Math.min(100, Math.round((totalUsed / totalLimit) * 100));
+                        document.getElementById('usagePercent').textContent = percent + '%';
+                        document.getElementById('usageBar').style.width = percent + '%';
+                        document.getElementById('downloaded-gb').textContent = (bytesIn / 1000000000).toFixed(2) + ' GB';
+                        document.getElementById('uploaded-gb').textContent = (bytesOut / 1000000000).toFixed(2) + ' GB';
+                        document.getElementById('downloaded-gb-row').style.display = 'flex';
+                        document.getElementById('uploaded-gb-row').style.display = 'flex';
+                    </script>
+                    $(endif)
+                </div>
+
+                <a href="$(link-logout)" class="portal-btn portal-btn--danger">Logout</a>
+            </div>
+        </div>
+
+        <footer class="portal-footer">
+            <button type="button" class="portal-theme-btn" data-theme-toggle aria-label="Toggle theme">
+                <svg class="theme-icon-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z"/></svg>
+                <svg class="theme-icon-light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12Zm0-16h0M12 22h0M4.22 4.22h0M19.78 19.78h0M2 12h0M22 12h0M4.22 19.78h0M19.78 4.22h0" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+            </button>
+            <p class="portal-footer-text">&copy; 2026 TesNet — Student initiative, Ayeduase</p>
+        </footer>
+    </div>
+
+    <script src="portal-theme.js"></script>
+</body>
+
+</html>

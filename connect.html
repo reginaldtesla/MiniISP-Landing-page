@@ -1,112 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Get Started — TesNet</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: Inter, system-ui, sans-serif;
-            background: #f6f7f8;
-            color: #0f172a;
-            line-height: 1.5;
-        }
-        .wrap { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
-        .top {
-            background: linear-gradient(135deg, #137fec, #0b5db5);
-            color: #fff;
-            border-radius: 16px;
-            padding: 1.75rem;
-            margin-bottom: 1.5rem;
-        }
-        .top h1 { font-size: 1.75rem; margin-bottom: 0.5rem; }
-        .top p { opacity: 0.95; max-width: 640px; }
-        .steps {
-            display: grid;
-            gap: 1rem;
-            margin: 1.25rem 0 0;
-        }
-        .step {
-            background: rgba(255,255,255,0.12);
-            border-radius: 12px;
-            padding: 1rem 1.25rem;
-        }
-        .step strong { display: block; margin-bottom: 0.25rem; }
-        .note {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            color: #664d03;
-            border-radius: 10px;
-            padding: 1rem 1.25rem;
-            margin-bottom: 1.5rem;
-            font-size: 0.95rem;
-        }
-        .preview-label {
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .frame-wrap {
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            overflow: hidden;
-            border: 1px solid #e2e8f0;
-        }
-        iframe {
-            width: 100%;
-            height: 920px;
-            border: 0;
-            display: block;
-        }
-        .back {
-            display: inline-block;
-            margin-top: 1.5rem;
-            color: #137fec;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        @media (max-width: 640px) {
-            iframe { height: 1100px; }
-        }
-    </style>
+    <meta name="description" content="Connect to TesNet hotspot Wi‑Fi and buy data bundles in Ayeduase, KNUST area.">
+    <script>
+        (function () {
+            var t = localStorage.getItem('hp-landing-theme');
+            if (t !== 'light') document.documentElement.classList.add('dark');
+        })();
+    </script>
+    <link rel="stylesheet" href="Mikrotik%20pages/portal.css">
 </head>
-<body>
-    <div class="wrap">
-        <div class="top">
-            <h1>Connect to TesNet Hotspot <a href="http://tesnet.com">TesNet</a> if you are connected to the network.</h1>
 
+<body class="portal-page">
+    <div class="portal-shell portal-shell--wide">
+
+        <div class="connect-hero">
+            <span class="portal-section-label">Hotspot setup</span>
+            <h1>Connect to TesNet Wi‑Fi</h1>
             <p>Buy data and log in using the hotspot portal below. <strong>Wi‑Fi login only works after you join our network.</strong></p>
-            <div class="steps">
-                <div class="step">
+            <div class="connect-steps">
+                <div class="connect-step">
                     <strong>Step 1 — Join the Wi‑Fi</strong>
-                    On your phone or laptop, open Wi‑Fi settings and connect to the <strong>TesNet@0207482341</strong> hotspot network.
+                    <span>Open Wi‑Fi settings and connect to <strong>TesNet@0207482341</strong>.</span>
                 </div>
-                <div class="step">
+                <div class="connect-step">
                     <strong>Step 2 — Open the login page</strong>
-                    The login page usually opens automatically. If it doesn’t, open your browser — you’ll see the same page as below.
+                    <span>The captive portal usually opens automatically. If not, open your browser — you'll see the page below.</span>
                 </div>
-                <div class="step">
+                <div class="connect-step">
                     <strong>Step 3 — Pay or enter your code</strong>
-                    Tap a package to pay with MoMo/card, copy your code, then enter it below to connect.
+                    <span>Tap a package to pay with MoMo or card, copy your voucher code, then enter it to connect.</span>
                 </div>
             </div>
         </div>
 
-        <div class="note">
-            <strong>Important:</strong> If you are <em>not</em> on TesNet Wi‑Fi yet, you can still <strong>buy a package</strong> (packages open Paystack). To <strong>use your voucher and get internet</strong>, you must connect to the hotspot first — the “Connect to WiFi” button only works from the live hotspot portal.
+        <div class="connect-note">
+            <strong>Not on TesNet Wi‑Fi yet?</strong> You can still buy a package (Paystack opens in your browser). To <strong>use your voucher and get internet</strong>, you must connect to the hotspot first — the "Connect to Wi‑Fi" button only works from the live portal.
         </div>
 
-        <p class="preview-label">Hotspot login page (same as on the router)</p>
-        <div class="frame-wrap">
-            <iframe src="login-preview.html" title="TesNet hotspot login preview"></iframe>
+        <p class="connect-preview-label">Hotspot login preview</p>
+        <div class="connect-frame">
+            <iframe src="Mikrotik%20pages/login-preview.html" title="TesNet hotspot login preview"></iframe>
         </div>
 
-        <a class="back" href="index.html">← Back to TesNet home</a>
+        <a class="connect-back" href="index.html">← Back to TesNet home</a>
+
+        <footer class="portal-footer">
+            <button type="button" class="portal-theme-btn" data-theme-toggle aria-label="Toggle theme">
+                <svg class="theme-icon-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z"/></svg>
+                <svg class="theme-icon-light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12Zm0-16h0M12 22h0M4.22 4.22h0M19.78 19.78h0M2 12h0M22 12h0M4.22 19.78h0M19.78 4.22h0" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+            </button>
+            <p class="portal-footer-text">&copy; 2026 TesNet — Student initiative, Ayeduase</p>
+        </footer>
     </div>
+
+    <script src="Mikrotik%20pages/portal-theme.js"></script>
 </body>
+
 </html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>TesNet — Logged Out</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        (function () {
+            var t = localStorage.getItem('hp-landing-theme');
+            if (t !== 'light') document.documentElement.classList.add('dark');
+        })();
+    </script>
+    <link rel="stylesheet" href="portal.css">
+</head>
+
+<body class="portal-page">
+    <div class="portal-shell portal-shell--narrow">
+
+        <div class="portal-card">
+            <div class="portal-card-body portal-center">
+                <div class="portal-icon-circle" aria-hidden="true">✓</div>
+                <h2>You're disconnected</h2>
+                <p>Thank you for using TesNet. Your hotspot session has ended.</p>
+                <p>To get back online, log in again with your voucher code or buy a new package.</p>
+                <a href="$(link-login)" class="portal-btn portal-btn--primary" style="max-width:280px;margin:1.25rem auto 0;">Return to login</a>
+            </div>
+        </div>
+
+        <footer class="portal-footer">
+            <button type="button" class="portal-theme-btn" data-theme-toggle aria-label="Toggle theme">
+                <svg class="theme-icon-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z"/></svg>
+                <svg class="theme-icon-light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12Zm0-16h0M12 22h0M4.22 4.22h0M19.78 19.78h0M2 12h0M22 12h0M4.22 19.78h0M19.78 4.22h0" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+            </button>
+            <p class="portal-footer-text">&copy; 2026 TesNet — Student initiative, Ayeduase</p>
+        </footer>
+    </div>
+
+    <script src="portal-theme.js"></script>
+</body>
+
+</html>
