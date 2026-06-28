@@ -81,7 +81,7 @@
                             <span>Select Internet Package</span>
                         </div>
 
-                        <div class="pricing-tabs-wrap pricing-tabs-wrap--compact" hidden>
+                        <div class="pricing-tabs-wrap pricing-tabs-wrap--compact" id="pricingTabsWrap" hidden>
                             <div class="pricing-tabs" role="tablist" aria-label="Plan types">
                                 <button type="button" class="pricing-tab is-active" role="tab" id="tab-data" aria-selected="true" aria-controls="panel-data" data-pricing-tab="data">Data bundles</button>
                                 <button type="button" class="pricing-tab" role="tab" id="tab-time" aria-selected="false" aria-controls="panel-time" data-pricing-tab="time">Time passes</button>
@@ -89,7 +89,7 @@
                         </div>
 
                         <div class="packages buy-packages" id="packagesPanel">
-                            <p class="login-hint buy-empty-msg">New packages are being updated. Check back soon or contact support at 020&nbsp;050&nbsp;4248.</p>
+                            <p class="login-hint buy-empty-msg">Loading packages…</p>
                         </div>
 
                         <p class="payment-status" id="paymentStatus" role="status" aria-live="polite" hidden></p>
@@ -121,6 +121,7 @@
     <script src="portal-theme.js"></script>
     <script src="portal-login.js"></script>
     <script src="portal-packages.js"></script>
+    <script src="https://pay.tesnet.xyz/assets/portal-catalog.js"></script>
     <script>
         var PAY_BASE = 'https://pay.tesnet.xyz';
         var PKG_SLUG = {};
@@ -162,7 +163,7 @@
             if (payBtn) {
                 payBtn.addEventListener('click', function () {
                     if (Object.keys(PKG_SLUG).length === 0) {
-                        alert('New packages are being updated. Please check back soon.');
+                        alert('No packages are available right now. Please try again later.');
                         return;
                     }
                     var selected = document.querySelector('.pkg-row.selected');
@@ -192,6 +193,10 @@
                 }
                 window.location.href = PAY_BASE + '/buy.php?pkg=' + encodeURIComponent(slug);
                 });
+            }
+
+            if (window.TesnetPortalCatalog) {
+                window.TesnetPortalCatalog.mount({ payBase: PAY_BASE });
             }
         })();
     </script>

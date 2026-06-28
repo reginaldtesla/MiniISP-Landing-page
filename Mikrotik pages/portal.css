@@ -1081,6 +1081,13 @@ html.dark .login-main::before {
 .buy-packages.is-paying .pkg-row:not(.loading) { opacity: 0.45; }
 .pkg-row.loading { border-color: var(--primary); cursor: wait; }
 
+.pkg-soon-msg {
+    margin-top: 0.75rem;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: var(--text-muted);
+}
+
 .login-footer {
     display: flex;
     flex-direction: column;

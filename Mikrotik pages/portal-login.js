@@ -47,6 +47,8 @@
         });
     }
 
+    window.portalBindPackageRows = initPackageRows;
+
     function init() {
         initViewTabs();
         initPackageRows();
