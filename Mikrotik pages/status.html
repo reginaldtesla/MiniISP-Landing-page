@@ -40,7 +40,7 @@
                     $(if limit-bytes-total)
                     <div class="status-row">
                         <span class="status-label">Data limit</span>
-                        <span class="status-value">$(limit-bytes-total-nice)</span>
+                        <span class="status-value" id="data-limit">—</span>
                     </div>
                     <div class="status-row">
                         <span class="status-label">Downloaded</span>
@@ -50,20 +50,9 @@
                         <span class="status-label">Uploaded</span>
                         <span class="status-value">$(bytes-out-nice)</span>
                     </div>
-                    <div class="status-row" id="downloaded-gb-row" style="display:none;">
-                        <span class="status-label">Downloaded (GB)</span>
-                        <span class="status-value" id="downloaded-gb">0.00 GB</span>
-                    </div>
-                    <div class="status-row" id="uploaded-gb-row" style="display:none;">
-                        <span class="status-label">Uploaded (GB)</span>
-                        <span class="status-value" id="uploaded-gb">0.00 GB</span>
-                    </div>
-                    $(endif)
-
-                    $(if remain-bytes-in)
                     <div class="status-row">
                         <span class="status-label">Remaining</span>
-                        <span class="status-value">$(remain-bytes-in-nice)</span>
+                        <span class="status-value" id="remaining-data">—</span>
                     </div>
                     <div class="usage-block">
                         <div class="usage-header">
@@ -75,17 +64,28 @@
                         </div>
                     </div>
                     <script>
+                        function formatBytes(bytes) {
+                            if (!bytes || bytes <= 0) return '—';
+                            if (bytes >= 1073741824) return (bytes / 1073741824).toFixed(2) + ' GiB';
+                            if (bytes >= 1048576) return (bytes / 1048576).toFixed(1) + ' MiB';
+                            if (bytes >= 1024) return (bytes / 1024).toFixed(1) + ' KiB';
+                            return bytes + ' B';
+                        }
+
                         var bytesIn = parseInt("$(bytes-in)") || 0;
                         var bytesOut = parseInt("$(bytes-out)") || 0;
                         var totalUsed = bytesIn + bytesOut;
-                        var totalLimit = parseInt("$(limit-bytes-total)") || 1;
-                        var percent = Math.min(100, Math.round((totalUsed / totalLimit) * 100));
+                        var totalLimit = parseInt("$(limit-bytes-total)") || 0;
+                        var remainRaw = parseInt("$(remain-bytes-total)") || 0;
+                        var remaining = remainRaw > 0 ? remainRaw : Math.max(0, totalLimit - totalUsed);
+                        var percent = totalLimit > 0 ? Math.min(100, Math.round((totalUsed / totalLimit) * 100)) : 0;
+
+                        var dataLimitEl = document.getElementById('data-limit');
+                        var remainingEl = document.getElementById('remaining-data');
+                        if (dataLimitEl) dataLimitEl.textContent = formatBytes(totalLimit);
+                        if (remainingEl) remainingEl.textContent = formatBytes(remaining);
                         document.getElementById('usagePercent').textContent = percent + '%';
                         document.getElementById('usageBar').style.width = percent + '%';
-                        document.getElementById('downloaded-gb').textContent = (bytesIn / 1000000000).toFixed(2) + ' GB';
-                        document.getElementById('uploaded-gb').textContent = (bytesOut / 1000000000).toFixed(2) + ' GB';
-                        document.getElementById('downloaded-gb-row').style.display = 'flex';
-                        document.getElementById('uploaded-gb-row').style.display = 'flex';
                     </script>
                     $(endif)
                 </div>
