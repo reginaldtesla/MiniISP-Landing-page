@@ -128,11 +128,6 @@
             var code = params.get('code');
             if (code) document.getElementById('code').value = code;
 
-            var host = window.location.hostname;
-            if (host === 'localhost' || host === '127.0.0.1') {
-                PAY_BASE = window.location.protocol + '//' + host;
-            }
-
             if (window.TesnetPortalCatalog) {
                 window.TesnetPortalCatalog.mount({ payBase: PAY_BASE });
             }
