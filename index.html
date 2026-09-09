@@ -166,6 +166,13 @@
       transform: translateY(-1px);
     }
 
+    .btn-primary:disabled {
+      opacity: 0.7;
+      cursor: wait;
+      transform: none;
+      filter: none;
+    }
+
     .service-row {
       border-top: 1px solid rgba(13, 148, 136, 0.18);
       transition: background 0.25s ease, padding-left 0.25s ease;
@@ -209,14 +216,15 @@
       </button>
     </div>
     <div class="flex flex-col gap-1">
+      <a class="mobile-nav-link rounded-lg px-4 py-3 text-sm font-medium text-text-main hover:bg-primary/10 hover:text-primary" href="buy.html" target="_blank" rel="noopener">Buy a code</a>
       <a class="mobile-nav-link rounded-lg px-4 py-3 text-sm font-medium text-text-main hover:bg-primary/10 hover:text-primary" href="#services">Services</a>
       <a class="mobile-nav-link rounded-lg px-4 py-3 text-sm font-medium text-text-main hover:bg-primary/10 hover:text-primary" href="#connectivity">Connectivity</a>
       <a class="mobile-nav-link rounded-lg px-4 py-3 text-sm font-medium text-text-main hover:bg-primary/10 hover:text-primary" href="#how">How it works</a>
       <a class="mobile-nav-link rounded-lg px-4 py-3 text-sm font-medium text-text-main hover:bg-primary/10 hover:text-primary" href="#billing">Billing software</a>
       <a class="mobile-nav-link rounded-lg px-4 py-3 text-sm font-medium text-text-main hover:bg-primary/10 hover:text-primary" href="#contact">Contact</a>
     </div>
-    <a class="btn-primary mt-6 flex items-center justify-center rounded-xl px-5 py-3 text-sm font-bold text-white" href="#contact">
-      Book a consultation
+    <a class="btn-primary mt-6 flex items-center justify-center rounded-xl px-5 py-3 text-sm font-bold text-white" href="buy.html" target="_blank" rel="noopener">
+      Buy a code
     </a>
   </nav>
 
@@ -227,6 +235,7 @@
           <img alt="TesNet" class="h-9 w-auto brightness-0 invert" src="assets/tesnet-logo.png" />
         </a>
         <nav class="hidden items-center gap-1 md:flex">
+          <a class="rounded-lg px-4 py-2 text-sm font-medium text-white/75 transition-colors hover:bg-white/10 hover:text-white" href="buy.html" target="_blank" rel="noopener">Buy a code</a>
           <a class="rounded-lg px-4 py-2 text-sm font-medium text-white/75 transition-colors hover:bg-white/10 hover:text-white" href="#services">Services</a>
           <a class="rounded-lg px-4 py-2 text-sm font-medium text-white/75 transition-colors hover:bg-white/10 hover:text-white" href="#connectivity">Connectivity</a>
           <a class="rounded-lg px-4 py-2 text-sm font-medium text-white/75 transition-colors hover:bg-white/10 hover:text-white" href="#how">How it works</a>
@@ -239,8 +248,8 @@
             <span class="material-symbols-outlined text-xl dark:hidden">dark_mode</span>
             <span class="material-symbols-outlined text-xl hidden dark:inline">light_mode</span>
           </button>
-          <a class="btn-primary hidden items-center justify-center rounded-xl px-4 py-2 text-sm font-bold text-white sm:inline-flex" href="#contact">
-            Book consultation
+          <a class="btn-primary inline-flex items-center justify-center rounded-xl px-3 py-2 text-xs font-bold text-white sm:px-4 sm:text-sm" href="buy.html" target="_blank" rel="noopener">
+            Buy a code
           </a>
           <button class="rounded-lg p-2 text-white md:hidden" type="button" id="navOpen" aria-label="Open menu">
             <span class="material-symbols-outlined">menu</span>
@@ -263,12 +272,12 @@
           TesNet is not an ISP.  We are a company that helps you get online with MTN or Telecel fiber where available, or Starlink if you prefer. Want everyone online free? Or a paid hotspot? We set up either.
         </p>
         <div class="hero-cta mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <a class="btn-primary inline-flex items-center justify-center gap-2 rounded-xl px-8 py-3.5 text-sm font-bold text-white" href="#contact">
-            Book a consultation
-            <span class="material-symbols-outlined text-lg">arrow_forward</span>
+          <a class="btn-primary inline-flex items-center justify-center gap-2 rounded-xl px-8 py-3.5 text-sm font-bold text-white" href="buy.html" target="_blank" rel="noopener">
+            Buy a code
+            <span class="material-symbols-outlined text-lg">open_in_new</span>
           </a>
-          <a class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 px-8 py-3.5 text-sm font-bold text-white transition-colors hover:border-white hover:bg-white/10" href="#services">
-            See what we offer
+          <a class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 px-8 py-3.5 text-sm font-bold text-white transition-colors hover:border-white hover:bg-white/10" href="#contact">
+            Book a consultation
           </a>
         </div>
       </div>
@@ -569,6 +578,7 @@
           <div class="md:col-span-3">
             <h3 class="text-sm font-semibold text-white">Explore</h3>
             <ul class="mt-4 space-y-2 text-sm">
+              <li><a class="transition-colors hover:text-white" href="buy.html" target="_blank" rel="noopener">Buy a code</a></li>
               <li><a class="transition-colors hover:text-white" href="#services">Services</a></li>
               <li><a class="transition-colors hover:text-white" href="#connectivity">Connectivity</a></li>
               <li><a class="transition-colors hover:text-white" href="#how">How it works</a></li>
