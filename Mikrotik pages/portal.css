@@ -1022,10 +1022,53 @@ html.dark .login-main::before {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    max-height: 16.5rem;
-    overflow-y: auto;
-    padding-right: 0.15rem;
     margin-bottom: 0.25rem;
+}
+
+/* PC / tablet: show full list, no scrollbar */
+@media (min-width: 641px) {
+    .pkg-list {
+        max-height: none;
+        overflow: visible;
+        padding-right: 0;
+    }
+}
+
+/* Phone: capped list with a thin teal scrollbar */
+@media (max-width: 640px) {
+    .pkg-list {
+        max-height: 14rem;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-right: 0.35rem;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary) transparent;
+    }
+
+    .pkg-list::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .pkg-list::-webkit-scrollbar-track {
+        background: transparent;
+        border-radius: 999px;
+    }
+
+    .pkg-list::-webkit-scrollbar-thumb {
+        background: var(--primary);
+        border-radius: 999px;
+    }
+
+    .pkg-list::-webkit-scrollbar-thumb:hover {
+        background: var(--primary-dark);
+    }
+
+    .pkg-list::-webkit-scrollbar-button {
+        display: none;
+        height: 0;
+        width: 0;
+    }
 }
 
 .pkg-row.is-duration-hidden {
@@ -1124,8 +1167,4 @@ html.dark .login-main::before {
     .login-brand { display: flex; flex-direction: column; }
     .login-main { padding: 2rem; }
     .login-main-inner { max-width: 26rem; }
-}
-
-@media (max-width: 640px) {
-    .pkg-list { max-height: 14rem; }
 }

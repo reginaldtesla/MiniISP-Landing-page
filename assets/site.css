@@ -599,7 +599,7 @@ section.block h2 {
 }
 
 .preview-label {
-  margin: 28px 0 10px;
+  margin: 0 0 12px;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -607,10 +607,15 @@ section.block h2 {
   color: var(--mute);
 }
 
+.buy-preview {
+  margin-top: 48px;
+  padding-bottom: 24px;
+}
+
 .preview-frame {
-  margin: 0 0 8px;
+  margin: 0;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
   box-shadow: var(--shadow);
   background: var(--paper);
@@ -619,13 +624,21 @@ section.block h2 {
 .preview-frame iframe {
   display: block;
   width: 100%;
-  height: 720px;
+  height: min(88vh, 900px);
+  min-height: 720px;
   border: 0;
   background: #0b2f2b;
 }
 
 @media (max-width: 640px) {
-  .preview-frame iframe { height: 820px; }
+  .buy-preview { margin-top: 36px; }
+  .preview-frame {
+    border-radius: 12px;
+  }
+  .preview-frame iframe {
+    height: 80vh;
+    min-height: 620px;
+  }
 }
 
 .status { margin: 16px 0; font-size: 15px; }
