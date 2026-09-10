@@ -51,7 +51,45 @@
         statusEl.classList.toggle('dark:text-red-400', !!isError);
     }
 
-    function renderCard(pkg) {
+    function packageSpeed(pkg) {
+        if (pkg.speed_mbps) {
+            return Number(pkg.speed_mbps);
+        }
+        var match = String(pkg.name || '').match(/^(\d+)\s*Mbps/i);
+        return match ? Number(match[1]) : 0;
+    }
+
+    function packageDuration(pkg) {
+        var parts = String(pkg.name || '').split('\u00b7');
+        if (parts.length > 1) {
+            return parts.slice(1).join('\u00b7').trim();
+        }
+        return pkg.data_label || pkg.name;
+    }
+
+    function groupBySpeed(packages) {
+        var groups = {};
+        var order = [];
+        packages.forEach(function (pkg) {
+            var speed = packageSpeed(pkg);
+            var key = String(speed);
+            if (!groups[key]) {
+                groups[key] = [];
+                order.push(speed);
+            }
+            groups[key].push(pkg);
+        });
+        order.sort(function (a, b) { return a - b; });
+        return order.map(function (speed) {
+            return {
+                speed: speed,
+                label: speed + ' Mbps',
+                packages: groups[String(speed)]
+            };
+        });
+    }
+
+    function renderCard(pkg, title) {
         var inStock = !!pkg.in_stock;
         var stockNote = inStock && pkg.available
             ? '<p class="mt-2 text-xs font-medium text-primary">' + escapeHtml(String(pkg.available)) + ' codes left</p>'
@@ -69,7 +107,7 @@
         return (
             '<article class="' + cardClass + '">' +
                 '<div class="flex items-start justify-between gap-3">' +
-                    '<h3 class="font-display text-lg font-bold text-text-main">' + escapeHtml(pkg.name) + '</h3>' +
+                    '<h3 class="font-display text-lg font-bold text-text-main">' + escapeHtml(title || pkg.name) + '</h3>' +
                     (inStock
                         ? '<span class="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary">In stock</span>'
                         : '<span class="rounded-full bg-gray-200 px-2.5 py-0.5 text-xs font-bold text-text-muted dark:bg-teal-900">Soon</span>') +
@@ -92,19 +130,47 @@
             return;
         }
         sectionEl.hidden = false;
-        gridEl.innerHTML = packages.map(renderCard).join('');
+        gridEl.innerHTML = packages.map(function (pkg) { return renderCard(pkg); }).join('');
+    }
+
+    function renderSpeedGroups(container, packages) {
+        if (!container) {
+            return;
+        }
+        if (!packages.length) {
+            container.innerHTML = '';
+            container.hidden = true;
+            return;
+        }
+        container.hidden = false;
+        container.innerHTML = groupBySpeed(packages).map(function (group, index) {
+            return (
+                '<section class="' + (index === 0 ? 'mt-10' : 'mt-12') + '">' +
+                    '<h2 class="text-xs font-bold uppercase tracking-[0.14em] text-primary">' +
+                        escapeHtml(group.label) +
+                    '</h2>' +
+                    '<div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">' +
+                        group.packages.map(function (pkg) {
+                            return renderCard(pkg, packageDuration(pkg));
+                        }).join('') +
+                    '</div>' +
+                '</section>'
+            );
+        }).join('');
     }
 
     function renderCatalog(data) {
         var emptyEl = document.getElementById('buyEmpty');
         var contentEl = document.getElementById('buyContent');
         var subtitleEl = document.getElementById('buySubtitle');
+        var unlimitedEl = document.getElementById('buyUnlimited');
         var dataGrid = document.getElementById('buyDataGrid');
         var timeGrid = document.getElementById('buyTimeGrid');
         var dataSection = document.getElementById('buyDataSection');
         var timeSection = document.getElementById('buyTimeSection');
         var packages = data.packages || [];
-        var dataPkgs = packages.filter(function (p) { return p.kind !== 'time'; });
+        var unlimitedPkgs = packages.filter(function (p) { return p.kind === 'unlimited'; });
+        var dataPkgs = packages.filter(function (p) { return p.kind === 'data'; });
         var timePkgs = packages.filter(function (p) { return p.kind === 'time'; });
 
         if (!packages.length) {
@@ -122,6 +188,7 @@
                 : 'Plans are listed, but no codes are in stock right now. Check back soon.';
         }
 
+        renderSpeedGroups(unlimitedEl, unlimitedPkgs);
         fillGrid(dataSection, dataGrid, dataPkgs);
         fillGrid(timeSection, timeGrid, timePkgs);
     }
