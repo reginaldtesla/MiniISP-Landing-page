@@ -47,8 +47,7 @@
         }
         statusEl.hidden = false;
         statusEl.textContent = message;
-        statusEl.classList.toggle('text-red-600', !!isError);
-        statusEl.classList.toggle('dark:text-red-400', !!isError);
+        statusEl.classList.toggle('is-error', !!isError);
     }
 
     function packageSpeed(pkg) {
@@ -91,30 +90,18 @@
 
     function renderCard(pkg, title) {
         var inStock = !!pkg.in_stock;
-        var stockNote = inStock && pkg.available
-            ? '<p class="mt-2 text-xs font-medium text-primary">' + escapeHtml(String(pkg.available)) + ' codes left</p>'
-            : '';
-        var cardClass = 'flex flex-col rounded-2xl border p-6 text-left';
-        cardClass += inStock
-            ? ' border-primary/20 bg-white dark:border-teal-800 dark:bg-surface-dark'
-            : ' border-dashed border-gray-300 bg-gray-50 opacity-90 dark:border-teal-900 dark:bg-teal-950/40';
-
         var action = inStock
-            ? '<button type="button" class="btn-primary mt-6 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-bold text-white" data-buy-slug="' +
-                escapeHtml(pkg.slug) + '">Buy a code</button>'
-            : '<span class="mt-6 inline-flex w-full items-center justify-center rounded-xl border border-gray-300 px-4 py-3 text-sm font-semibold text-text-muted dark:border-teal-800">Sold out</span>';
+            ? '<button type="button" class="btn" data-buy-slug="' + escapeHtml(pkg.slug) + '">Buy a code</button>'
+            : '<span class="pkg-sold">Sold out</span>';
 
         return (
-            '<article class="' + cardClass + '">' +
-                '<div class="flex items-start justify-between gap-3">' +
-                    '<h3 class="font-display text-lg font-bold text-text-main">' + escapeHtml(title || pkg.name) + '</h3>' +
-                    (inStock
-                        ? '<span class="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary">In stock</span>'
-                        : '<span class="rounded-full bg-gray-200 px-2.5 py-0.5 text-xs font-bold text-text-muted dark:bg-teal-900">Soon</span>') +
+            '<article class="pkg' + (inStock ? '' : ' is-out') + '">' +
+                '<div class="pkg-top">' +
+                    '<h3>' + escapeHtml(title || pkg.name) + '</h3>' +
+                    '<span class="pkg-stock">' + (inStock ? 'In stock' : 'Soon') + '</span>' +
                 '</div>' +
-                '<p class="mt-2 font-display text-3xl font-extrabold text-primary">' + escapeHtml(formatGhs(pkg.price_ghs)) + '</p>' +
-                '<p class="mt-1 text-sm text-text-muted">' + escapeHtml(pkg.data_label) + '</p>' +
-                stockNote +
+                '<p class="pkg-price">' + escapeHtml(formatGhs(pkg.price_ghs)) + '</p>' +
+                '<p class="pkg-meta">' + escapeHtml(pkg.data_label) + '</p>' +
                 action +
             '</article>'
         );
@@ -143,13 +130,11 @@
             return;
         }
         container.hidden = false;
-        container.innerHTML = groupBySpeed(packages).map(function (group, index) {
+        container.innerHTML = groupBySpeed(packages).map(function (group) {
             return (
-                '<section class="' + (index === 0 ? 'mt-10' : 'mt-12') + '">' +
-                    '<h2 class="text-xs font-bold uppercase tracking-[0.14em] text-primary">' +
-                        escapeHtml(group.label) +
-                    '</h2>' +
-                    '<div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">' +
+                '<section class="pkg-section">' +
+                    '<h2>' + escapeHtml(group.label) + '</h2>' +
+                    '<div class="pkg-grid cols-4">' +
                         group.packages.map(function (pkg) {
                             return renderCard(pkg, packageDuration(pkg));
                         }).join('') +

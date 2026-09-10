@@ -3,11 +3,9 @@
 
 <head>
   <meta charset="utf-8" />
-  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-  <meta
-    content="TesNet is not an ISP. We help anyone with connectivity — homes, hostels, offices, and more. Open shared Wi-Fi or a paid hotspot, with MTN/Telecel fiber or Starlink, devices, setup, and optional billing software."
-    name="description" />
-  <title>TesNet — Connectivity Help for Anyone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="TesNet sets up Wi‑Fi for homes, hostels, and shops around Ayeduase and KNUST. Fibre or Starlink into the building, then coverage — open for everyone or a paid hotspot." />
+  <title>TesNet — Wi‑Fi that covers the building</title>
   <link rel="icon" href="/favicon.ico" sizes="48x48">
   <link rel="icon" href="/favicon-48.png" type="image/png" sizes="48x48">
   <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
@@ -15,620 +13,285 @@
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" sizes="180x180">
   <script>
     (function () {
-      var t = localStorage.getItem('hp-landing-theme');
-      if (t !== 'light') document.documentElement.classList.add('dark');
+      if (localStorage.getItem('hp-landing-theme') === 'dark') {
+        document.documentElement.classList.add('dark');
+      }
     })();
   </script>
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <link href="https://fonts.googleapis.com" rel="preconnect" />
-  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
-    rel="stylesheet" />
-  <script>
-    tailwind.config = {
-      darkMode: "class",
-      theme: {
-        extend: {
-          colors: {
-            primary: "#0d9488",
-            "primary-dark": "#0f766e",
-            "background-light": "#f3f6f5",
-            "background-dark": "#071210",
-            "surface-light": "#ffffff",
-            "surface-dark": "#0c1a17",
-            "text-main": "#0c1916",
-            "text-muted": "#5a6f6a",
-          },
-          fontFamily: {
-            display: ["Syne", "sans-serif"],
-            sans: ["Manrope", "sans-serif"],
-          },
-          boxShadow: {
-            glow: "0 0 60px -12px rgba(13, 148, 136, 0.4)",
-          },
-        },
-      },
-    }
-  </script>
-  <style>
-    :root {
-      --teal: #0d9488;
-      --teal-deep: #0f766e;
-      --ink: #0c1916;
-      --mist: #5a6f6a;
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      font-family: 'Manrope', sans-serif;
-    }
-
-    .font-display {
-      font-family: 'Syne', sans-serif;
-    }
-
-    .material-symbols-outlined {
-      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-    }
-
-    html.dark body { background-color: #071210; color: #e8f2ef; }
-    html.dark .text-text-main { color: #e8f2ef; }
-    html.dark .text-text-muted { color: #8aa39c; }
-
-    .hero-plane {
-      background:
-        linear-gradient(160deg, rgba(7, 18, 16, 0.55) 0%, rgba(7, 18, 16, 0.78) 55%, rgba(7, 18, 16, 0.92) 100%),
-        url("https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=2000&q=80") center/cover no-repeat;
-    }
-
-    html:not(.dark) .hero-plane {
-      background:
-        linear-gradient(160deg, rgba(12, 25, 22, 0.45) 0%, rgba(12, 25, 22, 0.72) 50%, rgba(12, 25, 22, 0.88) 100%),
-        url("https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=2000&q=80") center/cover no-repeat;
-    }
-
-    .hero-brand {
-      animation: brandIn 0.9s ease both;
-    }
-
-    .hero-line {
-      animation: riseIn 0.85s ease 0.15s both;
-    }
-
-    .hero-cta {
-      animation: riseIn 0.85s ease 0.3s both;
-    }
-
-    @keyframes brandIn {
-      from { opacity: 0; transform: translateY(18px) scale(0.98); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    @keyframes riseIn {
-      from { opacity: 0; transform: translateY(22px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .section-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--teal-deep);
-    }
-
-    html.dark .section-label { color: #2dd4bf; }
-
-    .reveal {
-      opacity: 0;
-      transform: translateY(24px);
-      transition: opacity 0.65s ease, transform 0.65s ease;
-    }
-
-    .reveal.is-visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .mobile-nav {
-      transform: translateX(100%);
-      transition: transform 0.3s ease;
-    }
-
-    .mobile-nav.is-open { transform: translateX(0); }
-
-    .nav-overlay {
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-    }
-
-    .nav-overlay.is-open {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #14b8a6 0%, #0f766e 100%);
-      box-shadow: 0 4px 18px rgba(13, 148, 136, 0.35);
-      transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
-    }
-
-    .btn-primary:hover {
-      filter: brightness(1.06);
-      box-shadow: 0 8px 24px rgba(13, 148, 136, 0.45);
-      transform: translateY(-1px);
-    }
-
-    .btn-primary:disabled {
-      opacity: 0.7;
-      cursor: wait;
-      transform: none;
-      filter: none;
-    }
-
-    .service-row {
-      border-top: 1px solid rgba(13, 148, 136, 0.18);
-      transition: background 0.25s ease, padding-left 0.25s ease;
-    }
-
-    .service-row:hover {
-      background: rgba(13, 148, 136, 0.06);
-      padding-left: 0.5rem;
-    }
-
-    html.dark .service-row {
-      border-top-color: rgba(45, 212, 191, 0.15);
-    }
-
-    html.dark .service-row:hover {
-      background: rgba(45, 212, 191, 0.06);
-    }
-
-    .mesh {
-      background-image:
-        radial-gradient(ellipse 80% 50% at 10% 0%, rgba(13, 148, 136, 0.12), transparent),
-        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(15, 118, 110, 0.1), transparent);
-    }
-
-    html.dark .mesh {
-      background-image:
-        radial-gradient(ellipse 80% 50% at 10% 0%, rgba(45, 212, 191, 0.1), transparent),
-        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(13, 148, 136, 0.08), transparent);
-    }
-  </style>
+  <link rel="stylesheet" href="assets/site.css">
 </head>
 
-<body class="bg-background-light text-text-main antialiased selection:bg-primary selection:text-white transition-colors duration-200">
-  <div class="nav-overlay fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" id="navOverlay" aria-hidden="true"></div>
+<body>
+  <div class="nav-overlay" id="navOverlay"></div>
 
-  <nav class="mobile-nav fixed inset-y-0 right-0 z-50 flex w-72 flex-col border-l border-gray-200 bg-white p-6 shadow-2xl dark:border-teal-900/40 dark:bg-surface-dark" id="mobileNav" aria-label="Mobile navigation">
-    <div class="mb-8 flex items-center justify-between">
-      <img alt="TesNet" class="h-8 w-auto dark:brightness-0 dark:invert" src="assets/tesnet-logo.png" />
-      <button type="button" id="navClose" class="rounded-lg p-2 text-text-muted hover:bg-gray-100 dark:hover:bg-teal-950" aria-label="Close menu">
-        <span class="material-symbols-outlined">close</span>
-      </button>
-    </div>
-    <div class="flex flex-col gap-1">
-      <a class="mobile-nav-link rounded-lg px-4 py-3 text-sm font-medium text-text-main hover:bg-primary/10 hover:text-primary" href="buy.html" target="_blank" rel="noopener">Buy a code</a>
-      <a class="mobile-nav-link rounded-lg px-4 py-3 text-sm font-medium text-text-main hover:bg-primary/10 hover:text-primary" href="#services">Services</a>
-      <a class="mobile-nav-link rounded-lg px-4 py-3 text-sm font-medium text-text-main hover:bg-primary/10 hover:text-primary" href="#connectivity">Connectivity</a>
-      <a class="mobile-nav-link rounded-lg px-4 py-3 text-sm font-medium text-text-main hover:bg-primary/10 hover:text-primary" href="#how">How it works</a>
-      <a class="mobile-nav-link rounded-lg px-4 py-3 text-sm font-medium text-text-main hover:bg-primary/10 hover:text-primary" href="#billing">Billing software</a>
-      <a class="mobile-nav-link rounded-lg px-4 py-3 text-sm font-medium text-text-main hover:bg-primary/10 hover:text-primary" href="#contact">Contact</a>
-    </div>
-    <a class="btn-primary mt-6 flex items-center justify-center rounded-xl px-5 py-3 text-sm font-bold text-white" href="buy.html" target="_blank" rel="noopener">
-      Buy a code
-    </a>
+  <nav class="mobile-nav" id="mobileNav" aria-label="Mobile navigation">
+    <header>
+      <img alt="TesNet" src="assets/tesnet-logo.png" height="28" />
+      <button type="button" class="text-btn" id="navClose">Close</button>
+    </header>
+    <a class="mobile-nav-link" href="buy.html">Buy a code</a>
+    <a class="mobile-nav-link" href="#services">Services</a>
+    <a class="mobile-nav-link" href="#connectivity">Backhaul</a>
+    <a class="mobile-nav-link" href="#how">How it works</a>
+    <a class="mobile-nav-link" href="#billing">Hotspot billing</a>
+    <a class="mobile-nav-link" href="#contact">Contact</a>
   </nav>
 
-  <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
-    <header class="absolute top-0 z-30 w-full px-4 py-4">
-      <div class="mx-auto flex max-w-6xl items-center justify-between">
-        <a href="#" class="flex items-center gap-3">
-          <img alt="TesNet" class="h-9 w-auto brightness-0 invert" src="assets/tesnet-logo.png" />
-        </a>
-        <nav class="hidden items-center gap-1 md:flex">
-          <a class="rounded-lg px-4 py-2 text-sm font-medium text-white/75 transition-colors hover:bg-white/10 hover:text-white" href="buy.html" target="_blank" rel="noopener">Buy a code</a>
-          <a class="rounded-lg px-4 py-2 text-sm font-medium text-white/75 transition-colors hover:bg-white/10 hover:text-white" href="#services">Services</a>
-          <a class="rounded-lg px-4 py-2 text-sm font-medium text-white/75 transition-colors hover:bg-white/10 hover:text-white" href="#connectivity">Connectivity</a>
-          <a class="rounded-lg px-4 py-2 text-sm font-medium text-white/75 transition-colors hover:bg-white/10 hover:text-white" href="#how">How it works</a>
-          <a class="rounded-lg px-4 py-2 text-sm font-medium text-white/75 transition-colors hover:bg-white/10 hover:text-white" href="#billing">Billing</a>
-          <a class="rounded-lg px-4 py-2 text-sm font-medium text-white/75 transition-colors hover:bg-white/10 hover:text-white" href="#contact">Contact</a>
-        </nav>
-        <div class="flex items-center gap-2">
-          <button type="button" id="themeToggle" aria-label="Toggle dark mode"
-            class="flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 text-white/80 transition-colors hover:border-white/40 hover:text-white">
-            <span class="material-symbols-outlined text-xl dark:hidden">dark_mode</span>
-            <span class="material-symbols-outlined text-xl hidden dark:inline">light_mode</span>
-          </button>
-          <a class="btn-primary inline-flex items-center justify-center rounded-xl px-3 py-2 text-xs font-bold text-white sm:px-4 sm:text-sm" href="buy.html" target="_blank" rel="noopener">
-            Buy a code
-          </a>
-          <button class="rounded-lg p-2 text-white md:hidden" type="button" id="navOpen" aria-label="Open menu">
-            <span class="material-symbols-outlined">menu</span>
-          </button>
-        </div>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="logo" href="#"><img alt="TesNet" src="assets/tesnet-logo.png" /></a>
+      <nav class="nav-links">
+        <a href="buy.html">Buy a code</a>
+        <a href="#services">Services</a>
+        <a href="#connectivity">Backhaul</a>
+        <a href="#how">How it works</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <div class="header-actions">
+        <button type="button" class="text-btn" id="themeToggle">Night</button>
+        <a class="btn" href="tel:+233200504248">Call now</a>
+        <button type="button" class="text-btn menu-btn" id="navOpen">Menu</button>
       </div>
-    </header>
+    </div>
+  </header>
 
-    <!-- Hero -->
-    <section class="hero-plane relative flex min-h-[100svh] items-end pb-16 pt-28 sm:items-center sm:pb-24 sm:pt-20">
-      <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(20,184,166,0.25),transparent_45%)]"></div>
-      <div class="relative z-10 mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
-        <p class="hero-brand font-display text-5xl font-extrabold tracking-tight text-white sm:text-6xl lg:text-7xl">
-          TesNet
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <p class="eyebrow">Ayeduase · KNUST area</p>
+        <h1>No more dead rooms.</h1>
+        <p>
+          Power your house, hostel, or shop with Wi‑Fi that actually reaches, fibre or Starlink into the building, then a network built for the space.
         </p>
-        <h1 class="hero-line mt-4 max-w-3xl font-display text-2xl font-bold leading-snug tracking-tight text-white/95 sm:text-3xl lg:text-4xl">
-          Connectivity help for anyone — shared Wi‑Fi or a network that pays.
-        </h1>
-        <p class="hero-line mt-5 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">
-          TesNet is not an ISP.  We are a company that helps you get online with MTN or Telecel fiber where available, or Starlink if you prefer. Want everyone online free? Or a paid hotspot? We set up either.
+        <p>
+          Want everyone online free? Or a hotspot where people buy codes with MoMo? We set up either.
         </p>
-        <div class="hero-cta mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <a class="btn-primary inline-flex items-center justify-center gap-2 rounded-xl px-8 py-3.5 text-sm font-bold text-white" href="buy.html" target="_blank" rel="noopener">
-            Buy a code
-            <span class="material-symbols-outlined text-lg">open_in_new</span>
-          </a>
-          <a class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 px-8 py-3.5 text-sm font-bold text-white transition-colors hover:border-white hover:bg-white/10" href="#contact">
-            Book a consultation
-          </a>
+        <p class="phone-big">Call / WhatsApp <a href="tel:+233538850222">0538850222</a></p>
+        <div class="hero-actions">
+          <a class="btn" href="buy.html">Buy a code</a>
+          <a class="btn-ghost" href="https://wa.me/233538850222" target="_blank" rel="noopener">WhatsApp us</a>
+        </div>
+        <ul class="hero-points">
+          <li>MTN / Telecel fibre or Starlink</li>
+          <li>Open Wi‑Fi or paid hotspot</li>
+          <li>Same-day call back</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="block" id="services">
+      <div class="wrap">
+        <h2>What we offer</h2>
+        <p class="lead">
+          TesNet is not an ISP. We get the line in, install the gear, and leave you with coverage that works — for home, hostel, office, or a network that earns.
+        </p>
+
+        <div class="split split-2">
+          <div class="card tint">
+            <strong>Open / shared Wi‑Fi</strong>
+            <p>One network for everyone on site. No vouchers. Ideal when internet is part of the rent or just for the household.</p>
+          </div>
+          <div class="card tint">
+            <strong>Paid hotspot</strong>
+            <p>Captive portal, packages, MoMo or card. Students and guests buy a code. You track what sold.</p>
+          </div>
+        </div>
+
+        <ul class="jobs">
+          <li class="card">
+            <h3>Site check &amp; plan</h3>
+            <p>We walk the rooms, check what line can reach you, and map open Wi‑Fi vs paid access before anyone buys gear.</p>
+          </li>
+          <li class="card">
+            <h3>Network hardware</h3>
+            <p>MikroTik routers, access points, switches, and cabling sized for your building not one leftover router in the corridor.</p>
+          </li>
+          <li class="card">
+            <h3>Install &amp; configure</h3>
+            <p>Mount, cable, tune coverage and speeds. Add a login portal if you want people to pay for access.</p>
+          </li>
+          <li class="card">
+            <h3>Hotspot billing</h3>
+            <p>Optional. Package catalog, Paystack / MoMo, instant vouchers. Skip it completely if Wi‑Fi stays free.</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="block alt" id="connectivity">
+      <div class="wrap">
+        <h2>We connect you through real providers</h2>
+        <p class="lead">
+          You stay the customer of MTN, Telecel, or Starlink. We help get that link into the building, then build the Wi‑Fi on top.
+        </p>
+        <div class="split split-3">
+          <div class="card">
+            <strong>MTN fibre</strong>
+            Where the street has it, this is usually the first option we check for stable backhaul.
+          </div>
+          <div class="card">
+            <strong>Telecel fibre</strong>
+            Same approach, we pick whoever can actually reach your location.
+          </div>
+          <div class="card">
+            <strong>Starlink</strong>
+            When fibre is weak or missing. We still set up indoor coverage so the dish isn’t wasted on one room.
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- Services -->
-    <section class="mesh bg-surface-light py-20 dark:bg-surface-dark" id="services">
-      <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div class="reveal max-w-2xl">
-          <span class="section-label">Services</span>
-          <h2 class="mt-3 font-display text-3xl font-bold tracking-tight text-text-main sm:text-4xl">
-            Connectivity help for any site
-          </h2>
-          <p class="mt-4 text-lg text-text-muted">
-            We are not an ISP. We help you choose backhaul, install the network, and — if you want — add paid access. Open shared Wi‑Fi for occupants is just as valid.
-          </p>
-        </div>
-
-        <div class="reveal mt-10 grid gap-4 sm:grid-cols-2">
-          <div class="rounded-2xl border border-primary/20 bg-primary/5 p-6 dark:bg-primary/10">
-            <p class="text-xs font-bold uppercase tracking-[0.14em] text-primary">Open / shared Wi‑Fi</p>
-            <p class="mt-3 text-sm leading-relaxed text-text-muted">Everyone on site gets internet without buying vouchers — ideal when Wi‑Fi is an amenity, not a product.</p>
-          </div>
-          <div class="rounded-2xl border border-primary/20 bg-primary/5 p-6 dark:bg-primary/10">
-            <p class="text-xs font-bold uppercase tracking-[0.14em] text-primary">Paid hotspot</p>
-            <p class="mt-3 text-sm leading-relaxed text-text-muted">Users buy packages through a captive portal. Optional — only when you want the network to earn.</p>
-          </div>
-        </div>
-
-        <div class="reveal mt-12">
-          <article class="service-row grid gap-4 py-8 sm:grid-cols-[auto_1fr_1.2fr] sm:items-start sm:gap-8">
-            <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <span class="material-symbols-outlined text-2xl">handshake</span>
-            </span>
-            <div>
-              <h3 class="font-display text-xl font-bold text-text-main">Connectivity consultation</h3>
-              <p class="mt-1 text-sm font-medium text-primary">Any property, any goal</p>
-            </div>
-            <p class="text-text-muted leading-relaxed">
-              We assess your site, recommend backhaul, and map a plan — whether you want open internet for occupants or a paid Wi‑Fi setup with packages and day-to-day operations.
-            </p>
-          </article>
-
-          <article class="service-row grid gap-4 py-8 sm:grid-cols-[auto_1fr_1.2fr] sm:items-start sm:gap-8">
-            <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <span class="material-symbols-outlined text-2xl">router</span>
-            </span>
-            <div>
-              <h3 class="font-display text-xl font-bold text-text-main">Network devices</h3>
-              <p class="mt-1 text-sm font-medium text-primary">Routers, APs &amp; cabling</p>
-            </div>
-            <p class="text-text-muted leading-relaxed">
-              Buy the right MikroTik routers, access points, switches, and cabling sized for your space — homes, multi-room buildings, hostels, offices, and denser sites.
-            </p>
-          </article>
-
-          <article class="service-row grid gap-4 py-8 sm:grid-cols-[auto_1fr_1.2fr] sm:items-start sm:gap-8">
-            <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <span class="material-symbols-outlined text-2xl">settings_input_antenna</span>
-            </span>
-            <div>
-              <h3 class="font-display text-xl font-bold text-text-main">Network setup</h3>
-              <p class="mt-1 text-sm font-medium text-primary">Install &amp; configure</p>
-            </div>
-            <p class="text-text-muted leading-relaxed">
-              We install and configure on top of your backhaul: coverage, bandwidth limits, and either open shared access or a hotspot with captive portal and vouchers.
-            </p>
-          </article>
-
-          <article class="service-row grid gap-4 border-b border-primary/20 py-8 sm:grid-cols-[auto_1fr_1.2fr] sm:items-start sm:gap-8 dark:border-teal-400/15">
-            <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <span class="material-symbols-outlined text-2xl">payments</span>
-            </span>
-            <div>
-              <h3 class="font-display text-xl font-bold text-text-main">Billing software</h3>
-              <p class="mt-1 text-sm font-medium text-primary">Optional — when you sell access</p>
-            </div>
-            <p class="text-text-muted leading-relaxed">
-              If you want users to pay, our billing platform lets them buy packages with Mobile Money or card, get vouchers instantly, and lets you track sales. Skip it entirely for open Wi‑Fi.
-            </p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- Connectivity / backhaul -->
-    <section class="bg-background-light py-20 dark:bg-background-dark" id="connectivity">
-      <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div class="reveal max-w-2xl">
-          <span class="section-label">Backhaul</span>
-          <h2 class="mt-3 font-display text-3xl font-bold tracking-tight text-text-main sm:text-4xl">
-            We connect you through real providers
-          </h2>
-          <p class="mt-4 text-lg text-text-muted">
-            TesNet does not sell internet as an ISP. We help you get a working link into the building, then set up Wi‑Fi the way you need it — open for everyone, or paid.
-          </p>
-        </div>
-
-        <div class="reveal mt-12 grid gap-8 sm:grid-cols-3">
-          <div>
-            <span class="material-symbols-outlined text-3xl text-primary">cable</span>
-            <h3 class="mt-4 font-display text-lg font-bold text-text-main">MTN fiber</h3>
-            <p class="mt-2 text-sm leading-relaxed text-text-muted">Where MTN fiber is available at your location, we help you get it installed and use it as the backhaul into your network.</p>
-          </div>
-          <div>
-            <span class="material-symbols-outlined text-3xl text-primary">settings_ethernet</span>
-            <h3 class="mt-4 font-display text-lg font-bold text-text-main">Telecel fiber</h3>
-            <p class="mt-2 text-sm leading-relaxed text-text-muted">Same approach with Telecel fiber — we recommend based on coverage and availability where your site sits.</p>
-          </div>
-          <div>
-            <span class="material-symbols-outlined text-3xl text-primary">satellite_alt</span>
-            <h3 class="mt-4 font-display text-lg font-bold text-text-main">Starlink</h3>
-            <p class="mt-2 text-sm leading-relaxed text-text-muted">If fiber is weak or you prefer satellite, we can design and configure your setup around Starlink as the uplink.</p>
-          </div>
-        </div>
-        <p class="reveal mt-10 max-w-2xl text-sm text-text-muted">
-          The choice depends on your location and which service can actually reach the site. You stay the customer of MTN, Telecel, or Starlink; we make the connectivity and on-site Wi‑Fi work together.
-        </p>
-      </div>
-    </section>
-
-    <!-- How it works -->
-    <section class="bg-surface-light py-20 dark:bg-surface-dark" id="how">
-      <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div class="reveal mx-auto max-w-2xl text-center">
-          <span class="section-label">How it works</span>
-          <h2 class="mt-3 font-display text-3xl font-bold tracking-tight text-text-main sm:text-4xl">
-            From empty site to working Wi‑Fi
-          </h2>
-          <p class="mt-4 text-lg text-text-muted">Four clear stages. You own the setup; we help with connectivity and the tech.</p>
-        </div>
-
-        <ol class="reveal mt-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-          <li class="relative">
-            <span class="font-display text-5xl font-extrabold text-primary/25">01</span>
-            <h3 class="mt-3 font-display text-lg font-bold text-text-main">Consult</h3>
-            <p class="mt-2 text-sm leading-relaxed text-text-muted">Site walkthrough, capacity, open vs paid access, and which backhaul fits.</p>
+    <section class="block" id="how">
+      <div class="wrap">
+        <h2>How it works</h2>
+        <p class="lead">Four steps. You own the setup; we handle the connectivity and the tech.</p>
+        <ol class="steps">
+          <li class="card">
+            <span class="step-num">1</span>
+            <strong>Call</strong>
+            Tell us the area and whether you want free Wi‑Fi or paid codes.
           </li>
-          <li class="relative">
-            <span class="font-display text-5xl font-extrabold text-primary/25">02</span>
-            <h3 class="mt-3 font-display text-lg font-bold text-text-main">Connect</h3>
-            <p class="mt-2 text-sm leading-relaxed text-text-muted">Get the uplink in place and supply the routers, APs, and materials for your design.</p>
+          <li class="card">
+            <span class="step-num">2</span>
+            <strong>Visit</strong>
+            We check the rooms and any existing line on site.
           </li>
-          <li class="relative">
-            <span class="font-display text-5xl font-extrabold text-primary/25">03</span>
-            <h3 class="mt-3 font-display text-lg font-bold text-text-main">Configure</h3>
-            <p class="mt-2 text-sm leading-relaxed text-text-muted">Install and tune coverage — open for everyone, or hotspot packages if you want to charge.</p>
+          <li class="card">
+            <span class="step-num">3</span>
+            <strong>Install</strong>
+            Routers, APs, cable configured for your building.
           </li>
-          <li class="relative">
-            <span class="font-display text-5xl font-extrabold text-primary/25">04</span>
-            <h3 class="mt-3 font-display text-lg font-bold text-text-main">Go live</h3>
-            <p class="mt-2 text-sm leading-relaxed text-text-muted">Occupants browse freely, or plug into billing so users pay online — your call.</p>
+          <li class="card">
+            <span class="step-num">4</span>
+            <strong>Go live</strong>
+            People browse freely, or buy a code on the login page.
           </li>
         </ol>
       </div>
     </section>
 
-    <!-- Billing software -->
-    <section class="relative overflow-hidden bg-background-light py-20 dark:bg-background-dark" id="billing">
-      <div class="pointer-events-none absolute -right-24 top-0 h-80 w-80 rounded-full bg-primary/10 blur-3xl"></div>
-      <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div class="reveal grid items-center gap-12 lg:grid-cols-2">
-          <div>
-            <span class="section-label">Billing software</span>
-            <h2 class="mt-3 font-display text-3xl font-bold tracking-tight text-text-main sm:text-4xl">
-              Billing when you want users to pay — skip it when you don’t
-            </h2>
-            <p class="mt-4 text-lg leading-relaxed text-text-muted">
-              Selling access is optional. When you do, use the same billing stack we run in the field: package catalog, MoMo/card checkout, voucher delivery, and session control on MikroTik.
-            </p>
-            <ul class="mt-8 space-y-4">
-              <li class="flex gap-3 text-sm text-text-muted">
-                <span class="material-symbols-outlined shrink-0 text-primary">check_circle</span>
-                Users buy data or time passes from the captive portal
-              </li>
-              <li class="flex gap-3 text-sm text-text-muted">
-                <span class="material-symbols-outlined shrink-0 text-primary">check_circle</span>
-                Paystack / Mobile Money payments settle automatically
-              </li>
-              <li class="flex gap-3 text-sm text-text-muted">
-                <span class="material-symbols-outlined shrink-0 text-primary">check_circle</span>
-                You manage packages and track sales — or run open Wi‑Fi with no billing at all
-              </li>
-            </ul>
-            <a class="btn-primary mt-8 inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-bold text-white" href="#contact">
-              Ask about billing access
-            </a>
+    <section class="block alt" id="billing">
+      <div class="wrap">
+        <h2>Sell access when you want, skip it when you don’t</h2>
+        <p class="lead">
+          Same billing stack we already run on the hotspot: packages, MoMo / card, vouchers, MikroTik sessions.
+        </p>
+        <ul class="plain-list">
+          <li>Users join the Wi‑Fi and land on the login page</li>
+          <li>They pay for data or time and get a code instantly</li>
+          <li>You see sales — or leave billing off and keep Wi‑Fi open</li>
+        </ul>
+        <div class="hero-actions" style="margin-top:0">
+          <a class="btn" href="buy.html">Buy a code</a>
+          <a class="btn-ghost" href="#contact" style="border-color:var(--line);color:var(--ink)!important">Ask about billing</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="audience">
+      <div class="wrap">
+        <h2>Built for places that need it done right</h2>
+        <div class="split split-2">
+          <div class="card">
+            <strong>Homes &amp; apartments</strong>
+            Stable Wi‑Fi through every room — open for the household, no vouchers needed.
           </div>
-          <div class="relative overflow-hidden rounded-3xl border border-primary/15 bg-gradient-to-br from-teal-950 to-background-dark p-8 text-white shadow-glow">
-            <p class="text-xs font-bold uppercase tracking-[0.2em] text-teal-300">When you sell access</p>
-            <div class="mt-8 space-y-6">
-              <div>
-                <p class="font-display text-2xl font-bold">Captive portal</p>
-                <p class="mt-1 text-sm text-white/60">Login + buy flow on your Wi‑Fi</p>
-              </div>
-              <div class="h-px bg-white/10"></div>
-              <div>
-                <p class="font-display text-2xl font-bold">Payment rails</p>
-                <p class="mt-1 text-sm text-white/60">MoMo &amp; card via Paystack</p>
-              </div>
-              <div class="h-px bg-white/10"></div>
-              <div>
-                <p class="font-display text-2xl font-bold">Voucher control</p>
-                <p class="mt-1 text-sm text-white/60">Instant codes tied to your MikroTik</p>
-              </div>
-            </div>
+          <div class="card">
+            <strong>Hostels &amp; lodges</strong>
+            Shared amenity Wi‑Fi, or a paid hotspot if guests should buy access.
+          </div>
+          <div class="card">
+            <strong>Shops &amp; offices</strong>
+            Staff and guest networks with gear and backhaul that fit the location.
+          </div>
+          <div class="card">
+            <strong>Already have a line?</strong>
+            Fibre or Starlink in, but weak coverage or no billing? We finish the job.
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Who it's for -->
-    <section class="bg-surface-light py-20 dark:bg-surface-dark" id="audience">
-      <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div class="reveal mx-auto max-w-2xl text-center">
-          <span class="section-label">Who we serve</span>
-          <h2 class="mt-3 font-display text-3xl font-bold tracking-tight text-text-main sm:text-4xl">
-            Built for anyone who needs a site connected properly
-          </h2>
-        </div>
-        <div class="reveal mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          <div>
-            <h3 class="font-display text-lg font-bold text-text-main">Homes &amp; apartments</h3>
-            <p class="mt-2 text-sm leading-relaxed text-text-muted">Stable Wi‑Fi for a household or whole block — open for residents, no vouchers required.</p>
-          </div>
-          <div>
-            <h3 class="font-display text-lg font-bold text-text-main">Hostels &amp; lodges</h3>
-            <p class="mt-2 text-sm leading-relaxed text-text-muted">Shared amenity Wi‑Fi for all occupants, or a paid hotspot if you want guests to buy access.</p>
-          </div>
-          <div>
-            <h3 class="font-display text-lg font-bold text-text-main">Offices &amp; shops</h3>
-            <p class="mt-2 text-sm leading-relaxed text-text-muted">Reliable staff and guest networks with the right gear and backhaul for your location.</p>
-          </div>
-          <div>
-            <h3 class="font-display text-lg font-bold text-text-main">Existing setups</h3>
-            <p class="mt-2 text-sm leading-relaxed text-text-muted">Already have fiber or Starlink but weak coverage or no billing? We finish the job.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Contact -->
-    <section class="bg-surface-light py-20 dark:bg-surface-dark" id="contact">
-      <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div class="reveal overflow-hidden rounded-[2rem] bg-[#071210] px-8 py-12 sm:px-12 sm:py-16 lg:px-16">
-          <div class="grid items-end gap-12 lg:grid-cols-2">
-            <div>
-              <span class="text-xs font-bold uppercase tracking-[0.14em] text-teal-400">Contact</span>
-              <h2 class="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                Need help getting a place connected?
-              </h2>
-              <p class="mt-4 max-w-md text-lg text-white/55">
-                Tell us your location and whether you want open Wi‑Fi or paid access. We’ll advise on MTN or Telecel fiber vs Starlink, then gear and setup.
-              </p>
-            </div>
-            <dl class="space-y-6">
-              <div class="flex items-start gap-4">
-                <span class="material-symbols-outlined text-teal-400">location_on</span>
-                <div>
-                  <dt class="text-xs font-medium uppercase tracking-wide text-white/40">Location</dt>
-                  <dd class="mt-1 text-white">Ayeduase, Kumasi — near KNUST</dd>
-                </div>
-              </div>
-              <div class="flex items-start gap-4">
-                <span class="material-symbols-outlined text-teal-400">call</span>
-                <div>
-                  <dt class="text-xs font-medium uppercase tracking-wide text-white/40">Phone / WhatsApp</dt>
-                  <dd class="mt-1"><a class="text-white transition-colors hover:text-teal-300" href="tel:+233200504248">020 050 4248</a></dd>
-                </div>
-              </div>
-              <div class="flex items-start gap-4">
-                <span class="material-symbols-outlined text-teal-400">mail</span>
-                <div>
-                  <dt class="text-xs font-medium uppercase tracking-wide text-white/40">Email</dt>
-                  <dd class="mt-1"><a class="text-white transition-colors hover:text-teal-300" href="mailto:tesnet5532@gmail.com">tesnet5532@gmail.com</a></dd>
-                </div>
-              </div>
-              <a class="btn-primary mt-2 inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-bold text-white" href="https://wa.me/233200504248" target="_blank" rel="noopener">
-                Message on WhatsApp
-                <span class="material-symbols-outlined text-lg">open_in_new</span>
-              </a>
+    <section class="block contact-block" id="contact">
+      <div class="wrap">
+        <div class="contact-band">
+          <div class="contact-copy">
+            <h2>Ready to get the place online?</h2>
+            <p class="lead">Ayeduase, Kumasi near KNUST. Call or WhatsApp; we reply fast.</p>
+            <dl>
+              <dt>Phone / WhatsApp</dt>
+              <dd><a class="tel" href="tel:+233538850222">0538850222</a></dd>
+              <dt>Email</dt>
+              <dd><a href="mailto:tesnet5532@gmail.com">tesnet5532@gmail.com</a></dd>
             </dl>
+            <div class="contact-actions">
+              <a class="btn" href="https://wa.me/233538850222" target="_blank" rel="noopener">WhatsApp us</a>
+              <a class="btn-ghost" href="tel:+233538850222">Call now</a>
+            </div>
           </div>
+          <figure class="contact-visual">
+            <img
+              src="https://images.unsplash.com/photo-1534536281715-e28d76689b4d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80"
+              alt="Customer support on the phone"
+              width="1470"
+              height="980"
+              loading="lazy"
+            />
+          </figure>
         </div>
       </div>
     </section>
+  </main>
 
-    <!-- Footer -->
-    <footer class="border-t border-teal-950/40 bg-background-dark py-12 text-slate-400">
-      <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div class="grid gap-10 md:grid-cols-12">
-          <div class="md:col-span-5">
-            <img alt="TesNet" class="h-7 w-auto brightness-0 invert" src="assets/tesnet-logo.png" />
-            <p class="mt-4 max-w-sm text-sm leading-relaxed">
-              Connectivity helpers — not an ISP. For homes, hostels, offices, and more. Open shared Wi‑Fi or paid hotspot, with MTN/Telecel fiber or Starlink, devices, setup, and optional billing.
-            </p>
-          </div>
-          <div class="md:col-span-3">
-            <h3 class="text-sm font-semibold text-white">Explore</h3>
-            <ul class="mt-4 space-y-2 text-sm">
-              <li><a class="transition-colors hover:text-white" href="buy.html" target="_blank" rel="noopener">Buy a code</a></li>
-              <li><a class="transition-colors hover:text-white" href="#services">Services</a></li>
-              <li><a class="transition-colors hover:text-white" href="#connectivity">Connectivity</a></li>
-              <li><a class="transition-colors hover:text-white" href="#how">How it works</a></li>
-              <li><a class="transition-colors hover:text-white" href="#billing">Billing software</a></li>
-              <li><a class="transition-colors hover:text-white" href="#contact">Contact</a></li>
-            </ul>
-          </div>
-          <div class="md:col-span-4">
-            <h3 class="text-sm font-semibold text-white">Note</h3>
-            <p class="mt-4 text-xs leading-relaxed">
-              Internet access is provided by MTN, Telecel, or Starlink under your account. TesNet helps with planning, hardware, and configuration — billing only if you choose to sell access. Scope agreed per project.
-            </p>
-          </div>
-        </div>
-        <div class="mt-10 border-t border-white/10 pt-8 text-center text-xs text-gray-500">
-          © 2026 TesNet Solutions. All rights reserved.
-        </div>
-      </div>
-    </footer>
-  </div>
+  <footer class="site-footer">
+    <div class="wrap">
+      <a class="logo" href="#"><img alt="TesNet" src="assets/tesnet-logo.png" /></a>
+      <p>
+        Connectivity setup around Ayeduase  not an ISP. Internet is from MTN, Telecel, or Starlink under your name. We handle planning, hardware, and Wi‑Fi.
+      </p>
+      <nav>
+        <a href="buy.html">Buy a code</a>
+        <a href="#services">Services</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <p>© 2026 TesNet, Ayeduase</p>
+    </div>
+  </footer>
 
   <script>
     (function () {
       var themeKey = 'hp-landing-theme';
+      var toggle = document.getElementById('themeToggle');
 
-      function setTheme(theme) {
-        document.documentElement.classList.toggle('dark', theme === 'dark');
-        localStorage.setItem(themeKey, theme);
+      function isDark() {
+        return document.documentElement.classList.contains('dark');
       }
 
-      function getTheme() {
-        return localStorage.getItem(themeKey) === 'light' ? 'light' : 'dark';
+      function paintToggle() {
+        if (toggle) toggle.textContent = isDark() ? 'Day' : 'Night';
       }
 
-      document.getElementById('themeToggle')?.addEventListener('click', function () {
-        setTheme(getTheme() === 'dark' ? 'light' : 'dark');
+      paintToggle();
+
+      toggle?.addEventListener('click', function () {
+        var next = isDark() ? 'light' : 'dark';
+        document.documentElement.classList.toggle('dark', next === 'dark');
+        localStorage.setItem(themeKey, next);
+        paintToggle();
       });
 
       var nav = document.getElementById('mobileNav');
       var overlay = document.getElementById('navOverlay');
 
       function openNav() {
-        nav?.classList.add('is-open');
-        overlay?.classList.add('is-open');
+        nav.classList.add('is-open');
+        overlay.classList.add('is-open');
         document.body.style.overflow = 'hidden';
       }
 
       function closeNav() {
-        nav?.classList.remove('is-open');
-        overlay?.classList.remove('is-open');
+        nav.classList.remove('is-open');
+        overlay.classList.remove('is-open');
         document.body.style.overflow = '';
       }
 
@@ -638,26 +301,6 @@
       document.querySelectorAll('.mobile-nav-link').forEach(function (link) {
         link.addEventListener('click', closeNav);
       });
-
-      if ('IntersectionObserver' in window) {
-        var observer = new IntersectionObserver(function (entries) {
-          entries.forEach(function (entry) {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('is-visible');
-              observer.unobserve(entry.target);
-            }
-          });
-        }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-
-        document.querySelectorAll('.reveal').forEach(function (el, i) {
-          el.style.transitionDelay = (i % 4) * 0.08 + 's';
-          observer.observe(el);
-        });
-      } else {
-        document.querySelectorAll('.reveal').forEach(function (el) {
-          el.classList.add('is-visible');
-        });
-      }
     })();
   </script>
 </body>

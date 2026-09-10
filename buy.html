@@ -3,143 +3,88 @@
 
 <head>
   <meta charset="utf-8" />
-  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-  <meta content="Buy a TesNet voucher code with MoMo or card. Send it to someone on a TesNet hotspot, or use it yourself." name="description" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Buy a TesNet voucher with MoMo or card. Send it to someone on the hotspot, or use it yourself." />
   <title>Buy a code — TesNet</title>
   <link rel="icon" href="/favicon.ico" sizes="48x48">
   <link rel="icon" href="/assets/favicon.png" type="image/png" sizes="32x32">
   <script>
     (function () {
-      var t = localStorage.getItem('hp-landing-theme');
-      if (t !== 'light') document.documentElement.classList.add('dark');
+      if (localStorage.getItem('hp-landing-theme') === 'dark') {
+        document.documentElement.classList.add('dark');
+      }
     })();
   </script>
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <link href="https://fonts.googleapis.com" rel="preconnect" />
-  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
-  <script>
-    tailwind.config = {
-      darkMode: "class",
-      theme: {
-        extend: {
-          colors: {
-            primary: "#0d9488",
-            "primary-dark": "#0f766e",
-            "background-light": "#f3f6f5",
-            "background-dark": "#071210",
-            "surface-light": "#ffffff",
-            "surface-dark": "#0c1a17",
-            "text-main": "#0c1916",
-            "text-muted": "#5a6f6a",
-          },
-          fontFamily: {
-            display: ["Syne", "sans-serif"],
-            sans: ["Manrope", "sans-serif"],
-          },
-        },
-      },
-    }
-  </script>
-  <style>
-    body { font-family: 'Manrope', sans-serif; }
-    .font-display { font-family: 'Syne', sans-serif; }
-    html.dark body { background-color: #071210; color: #e8f2ef; }
-    html.dark .text-text-main { color: #e8f2ef; }
-    html.dark .text-text-muted { color: #8aa39c; }
-    .section-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: #0f766e;
-    }
-    html.dark .section-label { color: #2dd4bf; }
-    .btn-primary {
-      background: linear-gradient(135deg, #14b8a6 0%, #0f766e 100%);
-      box-shadow: 0 4px 18px rgba(13, 148, 136, 0.35);
-      transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
-    }
-    .btn-primary:hover {
-      filter: brightness(1.06);
-      box-shadow: 0 8px 24px rgba(13, 148, 136, 0.45);
-      transform: translateY(-1px);
-    }
-    .btn-primary:disabled {
-      opacity: 0.7;
-      cursor: wait;
-      transform: none;
-      filter: none;
-    }
-  </style>
+  <link rel="stylesheet" href="assets/site.css">
 </head>
 
-<body class="bg-background-light text-text-main antialiased">
-  <header class="sticky top-0 z-30 w-full border-b border-teal-900/10 bg-white/90 px-4 py-3 backdrop-blur-md dark:border-teal-800/40 dark:bg-surface-dark/90">
-    <div class="mx-auto flex max-w-6xl items-center justify-between">
-      <a href="index.html" class="flex items-center gap-3">
-        <img alt="TesNet" class="h-9 w-auto dark:brightness-0 dark:invert" src="assets/tesnet-logo.png" />
-      </a>
-      <div class="flex items-center gap-2">
-        <button type="button" id="themeToggle" aria-label="Toggle dark mode"
-          class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-text-muted hover:text-primary dark:border-teal-800">
-          <span class="material-symbols-outlined text-xl dark:hidden">dark_mode</span>
-          <span class="material-symbols-outlined text-xl hidden dark:inline">light_mode</span>
-        </button>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="logo" href="index.html"><img alt="TesNet" src="assets/tesnet-logo.png" /></a>
+      <div class="header-actions">
+        <a href="index.html">Home</a>
+        <button type="button" class="text-btn" id="themeToggle">Night</button>
       </div>
     </div>
   </header>
 
-  <main class="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-    <span class="section-label">Vouchers</span>
-    <h1 class="mt-3 font-display text-3xl font-bold tracking-tight text-text-main sm:text-4xl" id="buyTitle">Buy a code</h1>
-    <p class="mt-4 max-w-2xl text-lg text-text-muted" id="buySubtitle">
-      For yourself or someone on a TesNet hotspot. Pay with MoMo or card — we only sell a code if that plan is in stock.
-    </p>
-
-    <div class="mt-8 rounded-2xl border border-primary/20 bg-primary/5 p-5 dark:bg-primary/10">
-      <p class="text-sm leading-relaxed text-text-muted">
-        <strong class="text-text-main">Buying for someone else?</strong>
-        Choose a plan, pay, then send them the voucher. They join the TesNet Wi‑Fi and enter the code on the login page.
+  <section class="buy-hero">
+    <div class="wrap">
+      <h1 id="buyTitle">Buy a hotspot code</h1>
+      <p class="lead" id="buySubtitle">
+        MoMo or card. For yourself or someone on TesNet Wi‑Fi — we only sell a code if that plan has stock.
       </p>
     </div>
+  </section>
 
-    <p class="mt-4 text-sm text-text-muted" id="buyStatus" hidden></p>
-
-    <div class="mt-10 rounded-2xl border border-primary/15 bg-white p-10 text-center dark:border-teal-800 dark:bg-surface-dark" id="buyEmpty" hidden>
-      <p class="font-display text-lg font-bold text-text-main">Packages coming soon</p>
-      <p class="mt-2 text-sm text-text-muted">No codes are listed right now. Call 020 050 4248 if you need help.</p>
-    </div>
-
-    <div id="buyContent">
-      <div id="buyUnlimited"></div>
-
-      <div class="mt-12" id="buyDataSection" hidden>
-        <h2 class="text-xs font-bold uppercase tracking-[0.14em] text-primary">Data bundles</h2>
-        <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" id="buyDataGrid"></div>
+  <main class="buy-main">
+    <div class="wrap">
+      <div class="note">
+        <strong>Buying for someone else?</strong>
+        No need to join the Wi‑Fi. Pay here, send the voucher. They connect to TesNet Wi‑Fi and enter the code on the login page.
       </div>
 
-      <div class="mt-12" id="buyTimeSection" hidden>
-        <h2 class="text-xs font-bold uppercase tracking-[0.14em] text-primary">Time passes</h2>
-        <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" id="buyTimeGrid"></div>
-      </div>
-    </div>
+      <p class="status" id="buyStatus" hidden></p>
 
-    <p class="mt-10 text-sm text-text-muted">
-      Already have a voucher? Join the TesNet Wi‑Fi and enter it on the hotspot login page.
-    </p>
+      <div class="empty" id="buyEmpty" hidden>
+        <p><strong>Nothing listed right now.</strong></p>
+        <p class="lead">Call 020 050 4248 if you need a code.</p>
+      </div>
+
+      <div id="buyContent">
+        <div id="buyUnlimited"></div>
+
+        <div class="pkg-section" id="buyDataSection" hidden>
+          <h2>Data bundles</h2>
+          <div class="pkg-grid cols-3" id="buyDataGrid"></div>
+        </div>
+
+        <div class="pkg-section" id="buyTimeSection" hidden>
+          <h2>Time passes</h2>
+          <div class="pkg-grid cols-3" id="buyTimeGrid"></div>
+        </div>
+      </div>
+
+      <p class="foot-note">
+        Already have a voucher? Join the TesNet Wi‑Fi and enter it on the hotspot login page.
+      </p>
+    </div>
   </main>
 
   <script>
-    document.getElementById('themeToggle').addEventListener('click', function () {
-      var next = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
-      document.documentElement.classList.toggle('dark', next === 'dark');
-      localStorage.setItem('hp-landing-theme', next);
-    });
+    (function () {
+      var toggle = document.getElementById('themeToggle');
+      function isDark() { return document.documentElement.classList.contains('dark'); }
+      function paint() { if (toggle) toggle.textContent = isDark() ? 'Day' : 'Night'; }
+      paint();
+      toggle.addEventListener('click', function () {
+        var next = isDark() ? 'light' : 'dark';
+        document.documentElement.classList.toggle('dark', next === 'dark');
+        localStorage.setItem('hp-landing-theme', next);
+        paint();
+      });
+    })();
   </script>
   <script src="assets/landing-catalog.js"></script>
 </body>
