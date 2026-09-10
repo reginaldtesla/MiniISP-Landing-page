@@ -1000,8 +1000,9 @@ html.dark .login-main::before {
 
 .pricing-tabs-wrap--compact .pricing-tab {
     border-radius: 0.5rem;
-    padding: 0.5rem 0.35rem;
-    font-size: 0.72rem;
+    padding: 0.5rem 0.3rem;
+    font-size: 0.7rem;
+    white-space: nowrap;
 }
 
 .pkg-group-label {

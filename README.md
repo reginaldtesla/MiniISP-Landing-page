@@ -175,7 +175,7 @@ The Paystack billing service runs in **[hotspot-pay](../hotspot-pay/)** on the P
 ## Contact
 
 - **Location:** Ayeduase, Kumasi, Ghana (near KNUST campus)
-- **Phone:** [020 050 4248](tel:+233200504248)
+- **Phone:** [0538850222](tel:+233538850222)
 - **Email:** [tesnet5532@gmail.com](mailto:tesnet5532@gmail.com)
 
 ## License

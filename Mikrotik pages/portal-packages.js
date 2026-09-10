@@ -34,6 +34,12 @@
     }
 
     function init() {
+        var first = document.querySelector('[data-pricing-tab]');
+        var key = first ? first.getAttribute('data-pricing-tab') : '';
+        if (key !== 'data' && key !== 'time') {
+            return;
+        }
+
         document.querySelectorAll('[data-pricing-tab]').forEach(function (btn) {
             btn.addEventListener('click', function () {
                 setPricingTab(btn.getAttribute('data-pricing-tab'));
