@@ -99,10 +99,11 @@
 
     function renderPkgRow(pkg, title) {
         var featured = pkg.featured ? ' pkg-row--featured' : '';
+        var duration = durationId(pkg);
         return (
-            '<button type="button" class="pkg-row' + featured + '" data-package="' + escapeHtml(pkg.name) + '" data-slug="' + escapeHtml(pkg.slug) + '" data-buy-url="' + escapeHtml(pkg.buy_url) + '" aria-pressed="false">' +
+            '<button type="button" class="pkg-row' + featured + '" data-package="' + escapeHtml(pkg.name) + '" data-slug="' + escapeHtml(pkg.slug) + '" data-buy-url="' + escapeHtml(pkg.buy_url) + '" data-duration="' + escapeHtml(duration) + '" aria-pressed="false">' +
                 '<span class="pkg-row-info">' +
-                    '<span class="pkg-row-name">' + escapeHtml(title || pkg.name) + '</span>' +
+                    '<span class="pkg-row-name">' + escapeHtml(title || speedLabel(pkg) || pkg.name) + '</span>' +
                     '<span class="pkg-row-meta">' + escapeHtml(pkg.data_label) + '</span>' +
                 '</span>' +
                 '<span class="pkg-row-price">' + escapeHtml(formatGhs(pkg.price_ghs)) + '</span>' +
@@ -110,7 +111,7 @@
         );
     }
 
-    function renderDurationList(packages) {
+    function renderAllDurationPackages(packages) {
         if (!packages.length) {
             return '<p class="login-hint buy-empty-msg">No packages for this duration right now.</p>';
         }
@@ -218,14 +219,34 @@
 
         function showDuration(id) {
             activeDuration = id;
-            if (tabsWrap) {
-                tabsWrap.querySelectorAll('[data-pricing-tab]').forEach(function (btn) {
-                    var active = btn.getAttribute('data-pricing-tab') === id;
-                    btn.classList.toggle('is-active', active);
-                    btn.setAttribute('aria-selected', active ? 'true' : 'false');
-                });
+            if (typeof window.portalSetDuration === 'function') {
+                window.portalSetDuration(id);
+                return;
             }
-            panel.innerHTML = renderDurationList(durationGroups[id] || []) + extraHtml;
+            if (tabsWrap) {
+                var buttons = tabsWrap.querySelectorAll('[data-pricing-tab]');
+                var i;
+                for (i = 0; i < buttons.length; i += 1) {
+                    var on = buttons[i].getAttribute('data-pricing-tab') === id;
+                    if (on) {
+                        buttons[i].classList.add('is-active');
+                        buttons[i].setAttribute('aria-selected', 'true');
+                    } else {
+                        buttons[i].classList.remove('is-active');
+                        buttons[i].setAttribute('aria-selected', 'false');
+                    }
+                }
+            }
+            var rows = panel.querySelectorAll('.pkg-row');
+            var j;
+            for (j = 0; j < rows.length; j += 1) {
+                var rowDur = rows[j].getAttribute('data-duration');
+                if (rowDur === id) {
+                    rows[j].classList.remove('is-duration-hidden');
+                } else if (rowDur) {
+                    rows[j].classList.add('is-duration-hidden');
+                }
+            }
         }
 
         panel.innerHTML = '<p class="login-hint buy-empty-msg">Loading packages\u2026</p>';
@@ -234,9 +255,15 @@
             .then(function (data) {
                 syncPkgSlugMap(data.packages || []);
                 var packages = data.packages || [];
-                var unlimitedPkgs = packages.filter(function (p) { return p.kind === 'unlimited'; });
-                var dataPkgs = packages.filter(function (p) { return p.kind === 'data'; });
-                var timePkgs = packages.filter(function (p) { return p.kind === 'time'; });
+                var unlimitedPkgs = packages.filter(function (p) {
+                    return p.kind === 'unlimited' || durationId(p) !== '';
+                });
+                var dataPkgs = packages.filter(function (p) {
+                    return p.kind === 'data' && durationId(p) === '';
+                });
+                var timePkgs = packages.filter(function (p) {
+                    return p.kind === 'time' && durationId(p) === '';
+                });
                 var unlimitedInStock = unlimitedPkgs.filter(function (p) { return p.in_stock; });
                 var dataInStock = dataPkgs.filter(function (p) { return p.in_stock; });
                 var timeInStock = timePkgs.filter(function (p) { return p.in_stock; });
@@ -274,21 +301,16 @@
                 activeDuration = firstStockedDuration(durationGroups);
 
                 if (unlimitedInStock.length > 0) {
+                    var allDurationPkgs = [];
+                    var d;
+                    for (d = 0; d < DURATION_TABS.length; d += 1) {
+                        allDurationPkgs = allDurationPkgs.concat(durationGroups[DURATION_TABS[d].id] || []);
+                    }
+                    panel.innerHTML = renderAllDurationPackages(allDurationPkgs) + extraHtml;
                     if (tabsWrap) {
                         var tabsEl = tabsWrap.querySelector('.pricing-tabs');
                         if (tabsEl) {
                             tabsEl.setAttribute('aria-label', 'Package duration');
-                            tabsEl.innerHTML = renderDurationTabs(activeDuration);
-                        }
-                        if (tabsWrap.getAttribute('data-duration-bound') !== '1') {
-                            tabsWrap.setAttribute('data-duration-bound', '1');
-                            tabsWrap.addEventListener('click', function (event) {
-                                var btn = event.target.closest('[data-pricing-tab]');
-                                if (!btn || !tabsWrap.contains(btn)) {
-                                    return;
-                                }
-                                showDuration(btn.getAttribute('data-pricing-tab'));
-                            });
                         }
                         tabsWrap.hidden = false;
                     }

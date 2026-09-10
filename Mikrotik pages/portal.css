@@ -1028,6 +1028,10 @@ html.dark .login-main::before {
     margin-bottom: 0.25rem;
 }
 
+.pkg-row.is-duration-hidden {
+    display: none !important;
+}
+
 .pkg-row {
     display: flex;
     align-items: center;

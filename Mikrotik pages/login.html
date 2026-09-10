@@ -17,6 +17,9 @@
         .error-message {
             display: $(if error)block$(else)none$(endif);
         }
+        .pkg-row.is-duration-hidden {
+            display: none !important;
+        }
     </style>
 </head>
 
@@ -32,7 +35,7 @@
         <main class="login-main">
             <div class="login-main-inner">
                 <header class="login-header">
-                    <img src="tesnet-logo.png" alt="JJKA" class="login-logo" width="52" height="52">
+                    <!-- <img src="tesnet-logo.png" alt="JJKA" class="login-logo" width="52" height="52"> -->
                     <div class="login-header-text">
                         <h1>JJKA</h1>
                         <p>Connect instantly. Stream infinitely.</p>
@@ -78,12 +81,12 @@
                             <span>Select Internet Package</span>
                         </div>
 
-                        <div class="pricing-tabs-wrap pricing-tabs-wrap--compact" id="pricingTabsWrap" hidden>
+                        <div class="pricing-tabs-wrap pricing-tabs-wrap--compact" id="pricingTabsWrap">
                             <div class="pricing-tabs" role="tablist" aria-label="Package duration">
-                                <button type="button" class="pricing-tab is-active" role="tab" id="tab-24h" aria-selected="true" aria-controls="packagesPanel" data-pricing-tab="24h">24 hr</button>
-                                <button type="button" class="pricing-tab" role="tab" id="tab-3d" aria-selected="false" aria-controls="packagesPanel" data-pricing-tab="3d">3 days</button>
-                                <button type="button" class="pricing-tab" role="tab" id="tab-7d" aria-selected="false" aria-controls="packagesPanel" data-pricing-tab="7d">1 week</button>
-                                <button type="button" class="pricing-tab" role="tab" id="tab-30d" aria-selected="false" aria-controls="packagesPanel" data-pricing-tab="30d">1 month</button>
+                                <button type="button" class="pricing-tab is-active" role="tab" id="tab-24h" aria-selected="true" aria-controls="packagesPanel" data-pricing-tab="24h" onclick="return portalSelectDuration('24h')">24 hr</button>
+                                <button type="button" class="pricing-tab" role="tab" id="tab-3d" aria-selected="false" aria-controls="packagesPanel" data-pricing-tab="3d" onclick="return portalSelectDuration('3d')">3 days</button>
+                                <button type="button" class="pricing-tab" role="tab" id="tab-7d" aria-selected="false" aria-controls="packagesPanel" data-pricing-tab="7d" onclick="return portalSelectDuration('7d')">1 week</button>
+                                <button type="button" class="pricing-tab" role="tab" id="tab-30d" aria-selected="false" aria-controls="packagesPanel" data-pricing-tab="30d" onclick="return portalSelectDuration('30d')">1 month</button>
                             </div>
                         </div>
 
@@ -116,11 +119,74 @@
 
     <script src="portal-theme.js"></script>
     <script src="portal-login.js"></script>
-    <script src="portal-packages.js"></script>
     <script src="portal-catalog.js"></script>
     <script>
         var PAY_BASE = 'https://pay.tesnet.xyz';
         var PKG_SLUG = {};
+        var PORTAL_DURATION = '24h';
+
+        function portalRowDuration(row) {
+            var tagged = row.getAttribute('data-duration');
+            if (tagged) return tagged;
+            var name = String(row.getAttribute('data-package') || '') + ' ' + String(row.textContent || '');
+            name = name.toLowerCase();
+            if (name.indexOf('24 hour') !== -1 || name.indexOf('24h') !== -1) return '24h';
+            if (name.indexOf('3 day') !== -1) return '3d';
+            if (name.indexOf('7 day') !== -1 || name.indexOf('week') !== -1) return '7d';
+            if (name.indexOf('30 day') !== -1 || name.indexOf('month') !== -1) return '30d';
+            return '';
+        }
+
+        function portalSelectDuration(id) {
+            if (!id) return false;
+            PORTAL_DURATION = id;
+            var tabs = document.querySelectorAll('[data-pricing-tab]');
+            var i;
+            for (i = 0; i < tabs.length; i += 1) {
+                var on = tabs[i].getAttribute('data-pricing-tab') === id;
+                var cls = ' ' + tabs[i].className + ' ';
+                cls = cls.replace(/ is-active /g, ' ');
+                if (on) cls += 'is-active ';
+                tabs[i].className = cls.replace(/^\s+|\s+$/g, '').replace(/\s+/g, ' ');
+                tabs[i].setAttribute('aria-selected', on ? 'true' : 'false');
+            }
+
+            var panel = document.getElementById('packagesPanel');
+            var shown = 0;
+            var total = 0;
+            if (panel) {
+                var rows = panel.querySelectorAll('.pkg-row');
+                var j;
+                for (j = 0; j < rows.length; j += 1) {
+                    total += 1;
+                    var match = portalRowDuration(rows[j]) === id;
+                    var rowCls = ' ' + rows[j].className + ' ';
+                    rowCls = rowCls.replace(/ is-duration-hidden /g, ' ');
+                    if (match) {
+                        rows[j].style.display = '';
+                        shown += 1;
+                    } else {
+                        rowCls += 'is-duration-hidden ';
+                        rows[j].style.display = 'none';
+                    }
+                    rows[j].className = rowCls.replace(/^\s+|\s+$/g, '').replace(/\s+/g, ' ');
+                }
+                var empty = document.getElementById('durationEmptyMsg');
+                if (!empty) {
+                    empty = document.createElement('p');
+                    empty.id = 'durationEmptyMsg';
+                    empty.className = 'login-hint buy-empty-msg';
+                    empty.textContent = 'No packages for this duration right now.';
+                    panel.appendChild(empty);
+                }
+                empty.style.display = (total > 0 && shown === 0) ? '' : 'none';
+            }
+            return false;
+        }
+
+        window.portalSelectDuration = portalSelectDuration;
+        window.portalSetDuration = portalSelectDuration;
+        window.portalSetDuration = portalSelectDuration;
 
         function doLogin() {
             var btn = document.getElementById('loginBtn');
@@ -158,6 +224,21 @@
             if (window.TesnetPortalCatalog) {
                 window.TesnetPortalCatalog.mount({ payBase: PAY_BASE });
             }
+
+            var panel = document.getElementById('packagesPanel');
+            if (panel && typeof MutationObserver === 'function') {
+                var obsTimer = null;
+                var obs = new MutationObserver(function () {
+                    if (obsTimer) clearTimeout(obsTimer);
+                    obsTimer = setTimeout(function () {
+                        portalSelectDuration(PORTAL_DURATION || '24h');
+                    }, 50);
+                });
+                obs.observe(panel, { childList: true, subtree: true });
+            }
+            setTimeout(function () {
+                portalSelectDuration(PORTAL_DURATION || '24h');
+            }, 300);
         })();
     </script>
 </body>
