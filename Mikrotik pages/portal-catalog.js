@@ -111,7 +111,7 @@
         );
     }
 
-    function renderAllDurationPackages(packages) {
+    function renderDurationList(packages) {
         if (!packages.length) {
             return '<p class="login-hint buy-empty-msg">No packages for this duration right now.</p>';
         }
@@ -218,10 +218,13 @@
         }
 
         function showDuration(id) {
+            window.__tesnetShowDuration = showDuration;
+            if (!durationGroups[id]) {
+                id = firstStockedDuration(durationGroups);
+            }
             activeDuration = id;
-            if (typeof window.portalSetDuration === 'function') {
-                window.portalSetDuration(id);
-                return;
+            if (typeof window.PORTAL_DURATION !== 'undefined') {
+                window.PORTAL_DURATION = id;
             }
             if (tabsWrap) {
                 var buttons = tabsWrap.querySelectorAll('[data-pricing-tab]');
@@ -237,16 +240,7 @@
                     }
                 }
             }
-            var rows = panel.querySelectorAll('.pkg-row');
-            var j;
-            for (j = 0; j < rows.length; j += 1) {
-                var rowDur = rows[j].getAttribute('data-duration');
-                if (rowDur === id) {
-                    rows[j].classList.remove('is-duration-hidden');
-                } else if (rowDur) {
-                    rows[j].classList.add('is-duration-hidden');
-                }
-            }
+            panel.innerHTML = renderDurationList(durationGroups[id] || []);
         }
 
         panel.innerHTML = '<p class="login-hint buy-empty-msg">Loading packages\u2026</p>';
@@ -301,16 +295,25 @@
                 activeDuration = firstStockedDuration(durationGroups);
 
                 if (unlimitedInStock.length > 0) {
-                    var allDurationPkgs = [];
-                    var d;
-                    for (d = 0; d < DURATION_TABS.length; d += 1) {
-                        allDurationPkgs = allDurationPkgs.concat(durationGroups[DURATION_TABS[d].id] || []);
-                    }
-                    panel.innerHTML = renderAllDurationPackages(allDurationPkgs) + extraHtml;
                     if (tabsWrap) {
                         var tabsEl = tabsWrap.querySelector('.pricing-tabs');
                         if (tabsEl) {
                             tabsEl.setAttribute('aria-label', 'Package duration');
+                        }
+                        if (tabsWrap.getAttribute('data-duration-bound') !== '1') {
+                            tabsWrap.setAttribute('data-duration-bound', '1');
+                            tabsWrap.addEventListener('click', function (event) {
+                                var el = event.target;
+                                while (el && el !== tabsWrap) {
+                                    var tab = el.getAttribute && el.getAttribute('data-pricing-tab');
+                                    if (tab) {
+                                        event.preventDefault();
+                                        showDuration(tab);
+                                        return;
+                                    }
+                                    el = el.parentNode;
+                                }
+                            });
                         }
                         tabsWrap.hidden = false;
                     }
@@ -346,6 +349,11 @@
         mount: mountPortal,
         fetch: fetchCatalog,
         formatGhs: formatGhs,
-        startCheckout: startCheckout
+        startCheckout: startCheckout,
+        showDuration: function (id) {
+            if (typeof window.__tesnetShowDuration === 'function') {
+                window.__tesnetShowDuration(id);
+            }
+        }
     };
 })();

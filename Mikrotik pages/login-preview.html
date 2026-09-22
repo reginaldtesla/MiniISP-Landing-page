@@ -22,10 +22,12 @@
 
 <body class="portal-page portal-page--login">
     <div class="login-layout">
-        <aside class="login-brand" aria-hidden="true">
-            <div class="login-brand-inner">
+        <aside class="login-brand">
+            <div class="login-ad-stage js-ad-stage" id="loginAdStage" hidden></div>
+            <div class="login-brand-inner" id="loginAdFallback">
                 <p class="login-brand-label">JJKA Hotspot</p>
-                <h2 class="login-brand-title">Fast, reliable internet.</h2>
+                <h2 class="login-brand-title">Advertise here</h2>
+                <p class="login-brand-pitch">Put your poster on this screen. Ask the desk or TesNet.</p>
             </div>
         </aside>
 
@@ -37,6 +39,10 @@
                         <h1>JJKA</h1>
                         <p>Connect instantly. Stream infinitely.</p>
                     </div>
+                    <p class="login-support">
+                        Support:
+                        <a href="tel:+233538850222">053 885 0222</a>
+                    </p>
                 </header>
 
                 <div class="login-card">
@@ -98,6 +104,14 @@
                     </div>
                 </div>
 
+                <aside class="phone-ad-strip" id="phoneAdStrip" aria-label="Advertisement">
+                    <div class="phone-ad-stage js-ad-stage" id="phoneAdStage"></div>
+                    <div class="phone-ad-fallback">
+                        <span class="phone-ad-kicker">Ad</span>
+                        <p class="phone-ad-copy">Advertise here</p>
+                    </div>
+                </aside>
+
                 <footer class="login-footer">
                     <button type="button" class="portal-theme-btn" data-theme-toggle aria-label="Toggle theme">
                         <svg class="theme-icon-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z"/></svg>
@@ -112,8 +126,11 @@
     <script src="portal-theme.js"></script>
     <script src="portal-login.js"></script>
     <script src="portal-catalog.js"></script>
+    <script src="portal-ads.js"></script>
     <script>
         var PAY_BASE = 'https://pay.tesnet.xyz';
+        /* Must match the site slug selected in pay.tesnet.xyz/admin (Sites). */
+        var SITE_SLUG = 'default';
         var PKG_SLUG = {};
         var PORTAL_DURATION = '24h';
 
@@ -198,7 +215,10 @@
             if (code) document.getElementById('code').value = code;
 
             if (window.TesnetPortalCatalog) {
-                window.TesnetPortalCatalog.mount({ payBase: PAY_BASE });
+                window.TesnetPortalCatalog.mount({ payBase: PAY_BASE, siteSlug: SITE_SLUG });
+            }
+            if (window.TesnetPortalAds) {
+                window.TesnetPortalAds.mount({ payBase: PAY_BASE, siteSlug: SITE_SLUG });
             }
 
             var panel = document.getElementById('packagesPanel');

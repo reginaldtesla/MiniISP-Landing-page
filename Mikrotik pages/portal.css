@@ -734,13 +734,70 @@ html.dark .portal-section-label { color: #34d399; }
 
 .login-brand {
     display: none;
+    flex-direction: column;
     width: 38%;
     max-width: 28rem;
     background: linear-gradient(160deg, #063d2f 0%, #0a5240 45%, #052a21 100%);
     color: #fff;
-    padding: 2.5rem;
+    padding: 0;
     position: relative;
     overflow: hidden;
+}
+
+.login-ad-stage {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+}
+
+.login-ad {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #052a21;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+}
+
+.login-ad.is-active {
+    opacity: 1;
+    z-index: 1;
+}
+
+.login-ad img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+}
+
+.login-brand.has-ads {
+    padding: 0;
+}
+
+.login-brand.has-ads .login-ad-stage {
+    z-index: 1;
+}
+
+.login-brand.has-ads .login-brand-inner {
+    display: flex;
+    justify-content: flex-end;
+    z-index: 3;
+    pointer-events: none;
+    color: #111;
+    text-shadow: none;
+}
+
+.login-brand.has-ads .login-brand-label {
+    display: none;
+}
+
+.login-brand.has-ads .login-brand-title,
+.login-brand.has-ads .login-brand-pitch {
+    color: #111;
+    opacity: 1;
 }
 
 .login-brand::before {
@@ -756,8 +813,14 @@ html.dark .portal-section-label { color: #34d399; }
 .login-brand-inner {
     position: relative;
     z-index: 1;
-    margin-top: auto;
-    padding-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    height: 100%;
+    margin: 0;
+    padding: 2rem 1rem;
 }
 
 .login-brand-label {
@@ -775,6 +838,15 @@ html.dark .portal-section-label { color: #34d399; }
     line-height: 1.2;
     letter-spacing: -0.02em;
     max-width: 16rem;
+    margin: 0;
+}
+
+.login-brand-pitch {
+    margin: 0.85rem 0 0;
+    max-width: 16rem;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    opacity: 0.88;
 }
 
 .login-main {
@@ -844,6 +916,22 @@ html.dark .login-main::before {
     font-size: 0.875rem;
     color: var(--primary);
     font-weight: 500;
+}
+
+.login-support {
+    margin: 0.15rem 0 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.login-support a {
+    color: var(--primary);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.login-support a:hover {
+    text-decoration: underline;
 }
 
 .login-card {
@@ -1163,8 +1251,106 @@ html.dark .login-main::before {
     text-align: center;
 }
 
+/* Ads: login left panel on desktop; banner on phone + on status/logout at all sizes. */
+.phone-ad-strip {
+    display: none;
+}
+
+@media (max-width: 899px) {
+    .phone-ad-strip {
+        display: block;
+        position: relative;
+        width: 100%;
+        min-height: 6.5rem;
+        margin-top: 1.15rem;
+        border-radius: 12px;
+        overflow: hidden;
+        background: linear-gradient(160deg, #063d2f 0%, #0a5240 55%, #052a21 100%);
+        color: #fff;
+        box-shadow: var(--shadow);
+    }
+}
+
+.portal-shell .phone-ad-strip {
+    display: block;
+    position: relative;
+    width: 100%;
+    min-height: 6.5rem;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    border-radius: 12px;
+    overflow: hidden;
+    background: linear-gradient(160deg, #063d2f 0%, #0a5240 55%, #052a21 100%);
+    color: #fff;
+    box-shadow: var(--shadow);
+}
+
+.phone-ad-stage {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+}
+
+.phone-ad-fallback {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 6.5rem;
+    padding: 0.75rem 1rem;
+}
+
+.phone-ad-kicker {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.7;
+}
+
+.phone-ad-copy {
+    margin: 0.15rem 0 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.phone-ad-strip.has-ads .phone-ad-fallback {
+    display: none;
+}
+
+.phone-ad-strip .login-ad {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #052a21;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+}
+
+.phone-ad-strip .login-ad.is-active {
+    position: relative;
+    inset: auto;
+    opacity: 1;
+    z-index: 1;
+}
+
+.phone-ad-strip .login-ad img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: min(42vh, 22rem);
+    object-fit: contain;
+    object-position: center;
+}
+
 @media (min-width: 900px) {
     .login-brand { display: flex; flex-direction: column; }
     .login-main { padding: 2rem; }
     .login-main-inner { max-width: 26rem; }
+    .portal-shell .phone-ad-strip .login-ad img {
+        max-height: min(36vh, 18rem);
+    }
 }

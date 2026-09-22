@@ -6,7 +6,8 @@
     <link rel="icon" href="favicon.png" type="image/png" sizes="32x32">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="refresh" content="30">
+    <meta http-equiv="Cache-Control" content="no-store">
+    <meta http-equiv="refresh" content="60">
     <script>
         (function () {
             var t = localStorage.getItem('hp-landing-theme');
@@ -19,10 +20,18 @@
 <body class="portal-page">
     <div class="portal-shell portal-shell--narrow">
 
+        <aside class="phone-ad-strip" id="phoneAdStrip" aria-label="Advertisement">
+            <div class="phone-ad-stage js-ad-stage" id="phoneAdStage"></div>
+            <div class="phone-ad-fallback">
+                <span class="phone-ad-kicker">Ad</span>
+                <p class="phone-ad-copy">Advertise here</p>
+            </div>
+        </aside>
+
         <div class="portal-card">
             <div class="portal-card-body">
                 <h2 class="portal-section-title">Session status</h2>
-                <p class="portal-section-subtitle">Your active connection · refreshes every 30 seconds</p>
+                <p class="portal-section-subtitle">This connection only. The pack still ends on the clock from your first login, even if you reconnect.</p>
 
                 <div class="status-rows">
                     <div class="status-row">
@@ -33,10 +42,149 @@
                         <span class="status-label">IP address</span>
                         <span class="status-value">$(ip)</span>
                     </div>
+
                     <div class="status-row">
-                        <span class="status-label">Connected for</span>
-                        <span class="status-value">$(uptime)</span>
+                        <span class="status-label">Online this session</span>
+                        <span class="status-value" id="online-for">$(uptime)</span>
                     </div>
+
+                    $(if session-time-left)
+                    <div class="status-row">
+                        <span class="status-label">Online time left</span>
+                        <span class="status-value" id="time-left">$(session-time-left)</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-label">This session + leftover</span>
+                        <span class="status-value" id="time-total">—</span>
+                    </div>
+                    <p class="login-hint">This number pauses when you disconnect. It can look like 23h again after you log back in. The 24-hour pack still ends from first login.</p>
+                    <div class="usage-block">
+                        <div class="usage-header">
+                            <span>Used this session</span>
+                            <span id="timePercent">0%</span>
+                        </div>
+                        <div class="usage-bar-track">
+                            <div class="usage-bar-fill" id="timeBar"></div>
+                        </div>
+                    </div>
+                    <script>
+                        (function () {
+                            function pad(n) { return n < 10 ? '0' + n : String(n); }
+
+                            function formatDuration(totalSecs) {
+                                totalSecs = Math.max(0, Math.floor(totalSecs || 0));
+                                var d = Math.floor(totalSecs / 86400);
+                                var h = Math.floor((totalSecs % 86400) / 3600);
+                                var m = Math.floor((totalSecs % 3600) / 60);
+                                var s = totalSecs % 60;
+                                var parts = [];
+                                if (d > 0) parts.push(d + 'd');
+                                if (h > 0 || d > 0) parts.push(h + 'h');
+                                if (m > 0 || h > 0 || d > 0) parts.push(m + 'm');
+                                parts.push(s + 's');
+                                return parts.join(' ');
+                            }
+
+                            var usedSecs = parseInt('$(uptime-secs)', 10) || 0;
+                            var leftSecs = parseInt('$(session-time-left-secs)', 10) || 0;
+                            var started = Date.now();
+                            var baseUsed = usedSecs;
+                            var baseLeft = leftSecs;
+                            var totalSecs = baseUsed + baseLeft;
+
+                            var onlineEl = document.getElementById('online-for');
+                            var leftEl = document.getElementById('time-left');
+                            var totalEl = document.getElementById('time-total');
+                            var pctEl = document.getElementById('timePercent');
+                            var barEl = document.getElementById('timeBar');
+
+                            if (totalEl && totalSecs > 0) {
+                                totalEl.textContent = formatDuration(totalSecs);
+                            }
+
+                            function tick() {
+                                var elapsed = Math.floor((Date.now() - started) / 1000);
+                                var used = baseUsed + elapsed;
+                                var left = Math.max(0, baseLeft - elapsed);
+                                if (onlineEl) onlineEl.textContent = formatDuration(used);
+                                if (leftEl) leftEl.textContent = formatDuration(left);
+                                if (totalSecs > 0 && pctEl && barEl) {
+                                    var pct = Math.min(100, Math.round((used / totalSecs) * 100));
+                                    pctEl.textContent = pct + '%';
+                                    barEl.style.width = pct + '%';
+                                }
+                                if (left <= 0 && leftEl) {
+                                    leftEl.textContent = '0s';
+                                }
+                            }
+
+                            tick();
+                            setInterval(tick, 1000);
+                        })();
+                    </script>
+                    $(else)
+                    <div class="status-row">
+                        <span class="status-label">Time left</span>
+                        <span class="status-value" id="pack-left">…</span>
+                    </div>
+                    <p class="login-hint">Ends on the clock from first login. Disconnecting does not pause this. Logout only ends this Wi‑Fi session.</p>
+                    <script>
+                        (function () {
+                            function formatDuration(totalSecs) {
+                                totalSecs = Math.max(0, Math.floor(totalSecs || 0));
+                                var d = Math.floor(totalSecs / 86400);
+                                var h = Math.floor((totalSecs % 86400) / 3600);
+                                var m = Math.floor((totalSecs % 3600) / 60);
+                                var s = totalSecs % 60;
+                                var parts = [];
+                                if (d > 0) parts.push(d + 'd');
+                                if (h > 0 || d > 0) parts.push(h + 'h');
+                                if (m > 0 || h > 0 || d > 0) parts.push(m + 'm');
+                                parts.push(s + 's');
+                                return parts.join(' ');
+                            }
+
+                            function unixMs(n) {
+                                if (!isFinite(n) || n <= 0) return 0;
+                                if (n > 1e16) n = Math.floor(n / 1e9);
+                                else if (n > 1e12) n = Math.floor(n / 1e3);
+                                return n > 1e12 ? n : n * 1000;
+                            }
+
+                            var leftEl = document.getElementById('pack-left');
+                            var user = '$(username)';
+                            var storeKey = 'tesnet-pack-exp:' + user;
+                            var expMs = parseInt(localStorage.getItem(storeKey), 10) || 0;
+                            var timer = null;
+
+                            function tick() {
+                                if (!leftEl || !expMs) return;
+                                var left = Math.max(0, Math.floor((expMs - Date.now()) / 1000));
+                                leftEl.textContent = left > 0 ? formatDuration(left) : 'Expired';
+                            }
+
+                            function startTick(ms) {
+                                if (!ms) return;
+                                expMs = ms;
+                                localStorage.setItem(storeKey, String(ms));
+                                tick();
+                                if (!timer) timer = setInterval(tick, 1000);
+                            }
+
+                            if (expMs > Date.now()) startTick(expMs);
+
+                            fetch('/e-' + encodeURIComponent(user) + '.txt', { cache: 'no-store' })
+                                .then(function (r) { return r.ok ? r.text() : Promise.reject(); })
+                                .then(function (text) {
+                                    var ms = unixMs(parseInt(String(text).replace(/[^\d]/g, ''), 10));
+                                    if (ms) startTick(ms);
+                                })
+                                .catch(function () {
+                                    if (!expMs && leftEl) leftEl.textContent = '—';
+                                });
+                        })();
+                    </script>
+                    $(endif)
 
                     $(if limit-bytes-total)
                     <div class="status-row">
@@ -52,7 +200,7 @@
                         <span class="status-value">$(bytes-out-nice)</span>
                     </div>
                     <div class="status-row">
-                        <span class="status-label">Remaining</span>
+                        <span class="status-label">Data remaining</span>
                         <span class="status-value" id="remaining-data">—</span>
                     </div>
                     <div class="usage-block">
@@ -73,11 +221,11 @@
                             return bytes + ' B';
                         }
 
-                        var bytesIn = parseInt("$(bytes-in)") || 0;
-                        var bytesOut = parseInt("$(bytes-out)") || 0;
+                        var bytesIn = parseInt('$(bytes-in)', 10) || 0;
+                        var bytesOut = parseInt('$(bytes-out)', 10) || 0;
                         var totalUsed = bytesIn + bytesOut;
-                        var totalLimit = parseInt("$(limit-bytes-total)") || 0;
-                        var remainRaw = parseInt("$(remain-bytes-total)") || 0;
+                        var totalLimit = parseInt('$(limit-bytes-total)', 10) || 0;
+                        var remainRaw = parseInt('$(remain-bytes-total)', 10) || 0;
                         var remaining = remainRaw > 0 ? remainRaw : Math.max(0, totalLimit - totalUsed);
                         var percent = totalLimit > 0 ? Math.min(100, Math.round((totalUsed / totalLimit) * 100)) : 0;
 
@@ -91,7 +239,10 @@
                     $(endif)
                 </div>
 
-                <a href="$(link-logout)" class="portal-btn portal-btn--danger">Logout</a>
+                <form action="$(link-logout)" method="get">
+                    <input type="hidden" name="erase-cookie" value="true">
+                    <button type="submit" class="portal-btn portal-btn--danger">Logout</button>
+                </form>
             </div>
         </div>
 
@@ -105,6 +256,14 @@
     </div>
 
     <script src="portal-theme.js"></script>
+    <script src="portal-ads.js"></script>
+    <script>
+        var PAY_BASE = 'https://pay.tesnet.xyz';
+        var SITE_SLUG = 'default';
+        if (window.TesnetPortalAds) {
+            window.TesnetPortalAds.mount({ payBase: PAY_BASE, siteSlug: SITE_SLUG });
+        }
+    </script>
 </body>
 
 </html>

@@ -25,10 +25,12 @@
 
 <body class="portal-page portal-page--login">
     <div class="login-layout">
-        <aside class="login-brand" aria-hidden="true">
-            <div class="login-brand-inner">
-                <p class="login-brand-label">JJKA Hotspot</p>
-                <h2 class="login-brand-title">Fast, reliable internet.</h2>
+        <aside class="login-brand">
+            <div class="login-ad-stage js-ad-stage" id="loginAdStage" hidden></div>
+            <div class="login-brand-inner" id="loginAdFallback">
+                <p class="login-brand-label">STARLINK@053885022</p>
+                <h2 class="login-brand-title">Advertise here</h2>
+                <p class="login-brand-pitch">Put your poster on this screen. Ask the hotspot owner.</p>
             </div>
         </aside>
 
@@ -37,9 +39,13 @@
                 <header class="login-header">
                     <!-- <img src="tesnet-logo.png" alt="JJKA" class="login-logo" width="52" height="52"> -->
                     <div class="login-header-text">
-                        <h1>JJKA</h1>
+                        <h1>STARLINK@0538850222</h1>
                         <p>Connect instantly. Stream infinitely.</p>
                     </div>
+                    <p class="login-support">
+                        Support:
+                        <a href="tel:+233538850222">0538850222</a>
+                    </p>
                 </header>
 
                 <div class="login-card">
@@ -97,6 +103,7 @@
                         <p class="payment-status" id="paymentStatus" role="status" aria-live="polite" hidden></p>
 
                         <p class="login-hint" id="buyTapHint" hidden>Tap a package above to pay with MoMo or card.</p>
+                        <p class="login-hint">Pay on this page. Approve the MoMo prompt on your phone — you do not need Safari.</p>
 
                         <p class="login-switch-label">Already have an account?</p>
                         <button type="button" class="portal-btn portal-btn--ghost portal-btn--icon" data-portal-view="login">
@@ -105,6 +112,14 @@
                         </button>
                     </div>
                 </div>
+
+                <aside class="phone-ad-strip" id="phoneAdStrip" aria-label="Advertisement">
+                    <div class="phone-ad-stage js-ad-stage" id="phoneAdStage"></div>
+                    <div class="phone-ad-fallback">
+                        <span class="phone-ad-kicker">Ad</span>
+                        <p class="phone-ad-copy">Advertise here</p>
+                    </div>
+                </aside>
 
                 <footer class="login-footer">
                     <button type="button" class="portal-theme-btn" data-theme-toggle aria-label="Toggle theme">
@@ -120,8 +135,11 @@
     <script src="portal-theme.js"></script>
     <script src="portal-login.js"></script>
     <script src="portal-catalog.js"></script>
+    <script src="portal-ads.js"></script>
     <script>
         var PAY_BASE = 'https://pay.tesnet.xyz';
+        /* Must match the site slug selected in pay.tesnet.xyz/admin (Sites). */
+        var SITE_SLUG = 'default';
         var PKG_SLUG = {};
         var PORTAL_DURATION = '24h';
 
@@ -140,6 +158,10 @@
         function portalSelectDuration(id) {
             if (!id) return false;
             PORTAL_DURATION = id;
+            if (window.TesnetPortalCatalog && typeof window.TesnetPortalCatalog.showDuration === 'function') {
+                window.TesnetPortalCatalog.showDuration(id);
+                return false;
+            }
             var tabs = document.querySelectorAll('[data-pricing-tab]');
             var i;
             for (i = 0; i < tabs.length; i += 1) {
@@ -222,23 +244,17 @@
             if (code) document.getElementById('code').value = code;
 
             if (window.TesnetPortalCatalog) {
-                window.TesnetPortalCatalog.mount({ payBase: PAY_BASE });
+                window.TesnetPortalCatalog.mount({ payBase: PAY_BASE, siteSlug: SITE_SLUG });
+            }
+            if (window.TesnetPortalAds) {
+                window.TesnetPortalAds.mount({ payBase: PAY_BASE, siteSlug: SITE_SLUG });
             }
 
-            var panel = document.getElementById('packagesPanel');
-            if (panel && typeof MutationObserver === 'function') {
-                var obsTimer = null;
-                var obs = new MutationObserver(function () {
-                    if (obsTimer) clearTimeout(obsTimer);
-                    obsTimer = setTimeout(function () {
-                        portalSelectDuration(PORTAL_DURATION || '24h');
-                    }, 50);
-                });
-                obs.observe(panel, { childList: true, subtree: true });
-            }
             setTimeout(function () {
-                portalSelectDuration(PORTAL_DURATION || '24h');
-            }, 300);
+                if (window.TesnetPortalCatalog && typeof window.TesnetPortalCatalog.showDuration === 'function') {
+                    window.TesnetPortalCatalog.showDuration(PORTAL_DURATION || '24h');
+                }
+            }, 400);
         })();
     </script>
 </body>

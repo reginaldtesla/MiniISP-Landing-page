@@ -1,5 +1,4 @@
 {
-    "captive": true,
-    "user-portal-url": "http://192.168.88.1/login",
-    "venue-info-url": "http://192.168.88.1"
+    "captive": $(if logged-in == 'yes')false$(else)true$(endif),
+    "user-portal-url": "$(link-login-only)"
 }
