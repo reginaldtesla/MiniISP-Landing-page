@@ -5,7 +5,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="TesNet builds Wi‑Fi for homes, hostels, and shops around Ayeduase and KNUST — and runs Hotspot Pay: MoMo packages, instant voucher codes, and a desk for each location." />
-  <title>TesNet — Wi‑Fi installs &amp; Hotspot Pay</title>
+  <title>TesNet — Wi‑Fi that covers the building</title>
   <link rel="icon" href="/favicon.ico" sizes="48x48">
   <link rel="icon" href="/favicon-48.png" type="image/png" sizes="48x48">
   <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96">
@@ -37,7 +37,7 @@
     <a class="mobile-nav-link" href="#contact">Contact</a>
   </nav>
 
-  <header class="site-header">
+  <header class="site-header" id="siteHeader">
     <div class="wrap">
       <a class="logo" href="#"><img alt="TesNet" src="assets/tesnet-logo.png" /></a>
       <nav class="nav-links">
@@ -49,7 +49,7 @@
       </nav>
       <div class="header-actions">
         <button type="button" class="text-btn" id="themeToggle">Night</button>
-        <a class="btn" href="tel:+233247295735">Call now</a>
+        <a class="btn" href="tel:+233247295735">Get started</a>
         <button type="button" class="text-btn menu-btn" id="navOpen">Menu</button>
       </div>
     </div>
@@ -58,12 +58,11 @@
   <main>
     <section class="hero">
       <div class="wrap">
-        <p class="eyebrow">TesNet · Ayeduase · KNUST area</p>
+        <p class="eyebrow">Ayeduase · KNUST area</p>
         <h1>TesNet</h1>
-        <p class="hero-tagline">Wi‑Fi that covers the building — and a billing platform that sells the access.</p>
+        <p class="hero-tagline">Wi‑Fi that covers the building. Billing that sells the access.</p>
         <p>
-          We install fibre or Starlink into homes, hostels, and shops, then leave you with open Wi‑Fi or a paid hotspot.
-          Hotspot Pay is our MoMo voucher system: students buy a package, get a code, and go online.
+          We install fibre or Starlink, set up the network, and run Hotspot Pay so students buy with MoMo and get a voucher code instantly.
         </p>
         <p class="phone-big">Call / WhatsApp <a href="tel:+233247295735">024 729 5735</a></p>
         <div class="hero-actions">
@@ -78,62 +77,82 @@
       </div>
     </section>
 
-    <section class="block" id="services">
+    <section class="trust">
       <div class="wrap">
-        <h2>Services we offer</h2>
-        <p class="lead">
-          TesNet is not an ISP. You stay on MTN, Telecel, or Starlink under your name.
-          We plan the site, install the gear, and — if you want — run Hotspot Pay so the network can earn.
-        </p>
-
-        <div class="split split-3">
-          <div class="card tint">
-            <strong>Coverage install</strong>
-            <p>Site check, MikroTik / APs, cabling, and Wi‑Fi that reaches the rooms — open/shared or separated guest access.</p>
+        <div class="trust-grid">
+          <div class="trust-item">
+            <strong>Install + bill</strong>
+            <span>Coverage and MoMo vouchers in one stack</span>
           </div>
-          <div class="card tint">
-            <strong>Hotspot Pay</strong>
-            <p>Packages, MoMo or card, instant voucher codes, stock import, and a hostel desk so each location sees its own sales.</p>
+          <div class="trust-item">
+            <strong>MoMo ready</strong>
+            <span>Paystack / Kowri checkout for packages</span>
           </div>
-          <div class="card tint">
-            <strong>Operator onboarding</strong>
-            <p>Already have a router or several hostels? Contact us — we set your site on the platform and deliver codes from your pool.</p>
+          <div class="trust-item">
+            <strong>Many sites</strong>
+            <span>Each hostel keeps its own stock and sales</span>
+          </div>
+          <div class="trust-item">
+            <strong>Local support</strong>
+            <span>Based in Ayeduase, near KNUST</span>
           </div>
         </div>
+      </div>
+    </section>
 
-        <ul class="jobs">
-          <li class="card">
-            <h3>Site check &amp; plan</h3>
-            <p>We walk the rooms, check which line can reach you, and decide open Wi‑Fi vs paid hotspot before anyone buys gear.</p>
-          </li>
-          <li class="card">
-            <h3>Network hardware</h3>
-            <p>Routers, access points, switches, and cabling sized for the building — not one leftover router in the corridor.</p>
-          </li>
-          <li class="card">
-            <h3>Install &amp; configure</h3>
-            <p>Mount, cable, tune coverage. Add a captive portal login page when people should pay for access.</p>
-          </li>
-          <li class="card">
-            <h3>Ongoing billing</h3>
-            <p>Voucher stock, MoMo checkout, success page with the code, desk login for the hostel, billing hold if fees lapse.</p>
-          </li>
-        </ul>
+    <section class="block" id="services">
+      <div class="wrap">
+        <p class="section-kicker">Everything you need</p>
+        <h2>Coverage, billing, or both</h2>
+        <p class="lead">
+          TesNet is not an ISP. You stay on MTN, Telecel, or Starlink. We make the Wi‑Fi work — and sell access when you want the network to earn.
+        </p>
+
+        <div class="feature-grid">
+          <article class="card feature-feature">
+            <span class="chip">Most used</span>
+            <strong>Hotspot Pay</strong>
+            <p>
+              Students pick a package on the login page, pay with Mobile Money, and get a voucher code instantly.
+              Codes already sit on your MikroTik — we hand out the next free one after payment clears.
+            </p>
+            <div class="feature-meta">
+              <span>MoMo / card</span>
+              <span>Instant codes</span>
+              <span>Desk per site</span>
+            </div>
+          </article>
+          <article class="card">
+            <strong>Coverage install</strong>
+            <p>Site check, MikroTik / APs, cabling, and Wi‑Fi that reaches the rooms — open/shared or paid hotspot.</p>
+          </article>
+          <article class="card">
+            <strong>Operator onboarding</strong>
+            <p>Already have a router or several hostels? We put your site on the platform and sell from your pool.</p>
+          </article>
+          <article class="card">
+            <strong>Backhaul help</strong>
+            <p>MTN fibre, Telecel fibre, or Starlink — we pick what can actually reach the building.</p>
+          </article>
+          <article class="card">
+            <strong>Ongoing ops</strong>
+            <p>Import vouchers, settlements, support lookup, and a hold switch if billing fees lapse.</p>
+          </article>
+        </div>
       </div>
     </section>
 
     <section class="block alt" id="hotspot-pay">
       <div class="wrap">
-        <h2>Hotspot Pay — sell Wi‑Fi with MoMo</h2>
+        <p class="section-kicker">Hotspot Pay</p>
+        <h2>Sell Wi‑Fi with MoMo</h2>
         <p class="lead">
-          The same stack we run on live hotspots: students pick a package on the login page, pay with Mobile Money,
-          and get a voucher code instantly. Codes already exist on your MikroTik; we hand out the next free one after payment clears.
+          The same stack we run on live hotspots. Many locations on one platform — each site has its own stock and sales.
         </p>
         <ul class="plain-list">
-          <li>Many locations on one platform — each site has its own stock and sales</li>
-          <li>Paystack or Kowri for charges; shelf price stays yours, gateway can add customer fees</li>
-          <li>Hostel desk: one URL, unique password per shop — staff only see their location</li>
-          <li>Admin for you: import codes, settlements, support lookup, put a shop on hold</li>
+          <li>Paystack or Kowri for charges; shelf price stays yours</li>
+          <li>Hostel desk: one URL, unique password — staff only see their location</li>
+          <li>Admin for you: import codes, settlements, put a shop on hold</li>
         </ul>
         <div class="hero-actions" style="margin-top:0">
           <a class="btn" href="buy.html">Buy a code now</a>
@@ -144,46 +163,55 @@
 
     <section class="block" id="partners">
       <div class="wrap">
-        <h2>For hostel &amp; shop operators</h2>
-        <p class="lead">
-          Want TesNet Hotspot Pay on your network? Contact us. We create your site, wire the captive portal buy links,
-          import voucher stock, and give your desk password. You sell; we deliver the codes.
-        </p>
+        <p class="section-kicker">Who it’s for</p>
+        <h2>Built for homes and operators</h2>
+        <p class="lead">One platform. Different jobs — depending on whether you just need coverage or you sell access.</p>
         <div class="split split-2">
-          <div class="card">
-            <strong>What you get</strong>
-            <p>Your own site slug, package list, MikroTik link, desk for sales/stock, and MoMo checkout that hands out codes from your pool only.</p>
+          <div class="audience-panel">
+            <h3>For homes &amp; hostels</h3>
+            <ul>
+              <li>Wi‑Fi that reaches every room</li>
+              <li>Open shared access when internet is amenity</li>
+              <li>Or Hotspot Pay if guests buy codes</li>
+              <li>Shops and small offices too</li>
+            </ul>
+            <div class="hero-actions">
+              <a class="btn" href="#contact">Book a visit</a>
+            </div>
           </div>
-          <div class="card">
-            <strong>How to start</strong>
-            <p>WhatsApp or email with your location and whether the router is ready. We onboard you, then you refill vouchers as you grow.</p>
+          <div class="audience-panel">
+            <h3>For operators</h3>
+            <ul>
+              <li>Your own site slug and package list</li>
+              <li>Captive portal buy links wired for you</li>
+              <li>Desk password for sales and stock</li>
+              <li>Refill vouchers as you grow</li>
+            </ul>
+            <div class="hero-actions">
+              <a class="btn" href="https://wa.me/233247295735?text=Hi%20TesNet%2C%20I%20want%20Hotspot%20Pay%20on%20my%20site" target="_blank" rel="noopener">WhatsApp to onboard</a>
+            </div>
           </div>
-        </div>
-        <div class="hero-actions">
-          <a class="btn" href="https://wa.me/233247295735?text=Hi%20TesNet%2C%20I%20want%20Hotspot%20Pay%20on%20my%20site" target="_blank" rel="noopener">WhatsApp to onboard</a>
-          <a class="btn-ghost" href="mailto:tesnet5532@gmail.com?subject=Hotspot%20Pay%20for%20my%20location" style="border-color:var(--line);color:var(--ink)!important">Email TesNet</a>
         </div>
       </div>
     </section>
 
     <section class="block alt" id="connectivity">
       <div class="wrap">
-        <h2>We connect you through real providers</h2>
-        <p class="lead">
-          You stay the customer of MTN, Telecel, or Starlink. We help get that link into the building, then build the Wi‑Fi on top.
-        </p>
+        <p class="section-kicker">Backhaul</p>
+        <h2>Real providers. Real link.</h2>
+        <p class="lead">You stay the customer of MTN, Telecel, or Starlink. We get that link into the building, then build the Wi‑Fi on top.</p>
         <div class="split split-3">
           <div class="card">
             <strong>MTN fibre</strong>
-            Where the street has it, this is usually the first option we check for stable backhaul.
+            <p>Where the street has it, this is usually the first option we check.</p>
           </div>
           <div class="card">
             <strong>Telecel fibre</strong>
-            Same approach — we pick whoever can actually reach your location.
+            <p>Same approach — we pick whoever can actually reach your location.</p>
           </div>
           <div class="card">
             <strong>Starlink</strong>
-            When fibre is weak or missing. We still set up indoor coverage so the dish isn’t wasted on one room.
+            <p>When fibre is weak or missing. Indoor coverage so the dish isn’t wasted on one room.</p>
           </div>
         </div>
       </div>
@@ -191,8 +219,9 @@
 
     <section class="block" id="how">
       <div class="wrap">
-        <h2>How it works</h2>
-        <p class="lead">Four steps. You own the setup; we handle connectivity, install, and optional billing.</p>
+        <p class="section-kicker">How it works</p>
+        <h2>Four clear steps</h2>
+        <p class="lead">You own the setup. We handle connectivity, install, and optional billing.</p>
         <ol class="steps">
           <li class="card">
             <span class="step-num">1</span>
@@ -218,25 +247,27 @@
       </div>
     </section>
 
-    <section class="block alt" id="audience">
+    <section class="block alt" id="why">
       <div class="wrap">
-        <h2>Who it’s for</h2>
-        <div class="split split-2">
-          <div class="card">
-            <strong>Homes &amp; apartments</strong>
-            Stable Wi‑Fi through every room — open for the household, no vouchers needed.
+        <p class="section-kicker">Why TesNet</p>
+        <h2>Local work. Clear tools.</h2>
+        <p class="lead">We’re not another vague “tech partner.” We install, bill, and answer the phone.</p>
+        <div class="why-grid">
+          <div class="why-item">
+            <strong>On-site installs</strong>
+            <p>We walk the building before anyone buys gear. A 2-bedroom is not a 40-bed hostel.</p>
           </div>
-          <div class="card">
-            <strong>Hostels &amp; lodges</strong>
-            Shared amenity Wi‑Fi, or Hotspot Pay if guests buy access with MoMo.
+          <div class="why-item">
+            <strong>Billing that fits Ghana</strong>
+            <p>MoMo first. Instant voucher. Desk staff see only their location.</p>
           </div>
-          <div class="card">
-            <strong>Shops &amp; offices</strong>
-            Staff and guest networks with gear and backhaul that fit the location.
+          <div class="why-item">
+            <strong>Honest positioning</strong>
+            <p>We’re not an ISP. MTN, Telecel, or Starlink stays under your name.</p>
           </div>
-          <div class="card">
-            <strong>Operators with a router already</strong>
-            Fibre or Starlink in, but weak coverage or no billing? We finish the job and put you on Hotspot Pay.
+          <div class="why-item">
+            <strong>Near KNUST</strong>
+            <p>Ayeduase base. WhatsApp is the fastest way to reach us.</p>
           </div>
         </div>
       </div>
@@ -247,7 +278,7 @@
         <div class="contact-band">
           <div class="contact-copy">
             <h2>Ready to get online — or sell access?</h2>
-            <p class="lead">Ayeduase, Kumasi near KNUST. Installs, Hotspot Pay, or both — call or WhatsApp.</p>
+            <p class="lead">Ayeduase, Kumasi near KNUST. Installs, Hotspot Pay, or both.</p>
             <dl>
               <dt>Phone / WhatsApp</dt>
               <dd><a class="tel" href="tel:+233247295735">024 729 5735</a></dd>
@@ -278,7 +309,7 @@
       <a class="logo" href="#"><img alt="TesNet" src="assets/tesnet-logo.png" /></a>
       <p>
         TesNet — connectivity setup and Hotspot Pay around Ayeduase. Not an ISP.
-        Internet is from MTN, Telecel, or Starlink under your name. We handle planning, hardware, Wi‑Fi, and voucher billing.
+        Internet is from MTN, Telecel, or Starlink under your name.
       </p>
       <nav>
         <a href="buy.html">Buy a code</a>
@@ -295,6 +326,7 @@
     (function () {
       var themeKey = 'hp-landing-theme';
       var toggle = document.getElementById('themeToggle');
+      var header = document.getElementById('siteHeader');
 
       function isDark() {
         return document.documentElement.classList.contains('dark');
@@ -312,6 +344,13 @@
         localStorage.setItem(themeKey, next);
         paintToggle();
       });
+
+      function onScroll() {
+        if (!header) return;
+        header.classList.toggle('is-scrolled', window.scrollY > 8);
+      }
+      onScroll();
+      window.addEventListener('scroll', onScroll, { passive: true });
 
       var nav = document.getElementById('mobileNav');
       var overlay = document.getElementById('navOverlay');
