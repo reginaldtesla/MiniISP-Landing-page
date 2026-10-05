@@ -54,6 +54,10 @@ There is **no build step** — everything is static HTML, CSS, and JavaScript. S
 | `index.html` | Hero, about, services, pricing, contact, policies |
 | `connect.html` | Step-by-step Wi‑Fi onboarding; embeds `Mikrotik pages/login-preview.html` |
 | `assets/tesnet-logo.png` | Logo used by the marketing page |
+| `privacy.html` | Privacy notice (draft; confirm data retention and legal operator details) |
+| `terms.html` | Website and service terms (draft; add contracting legal entity/address) |
+| `cookies.html` | Browser storage and external preview choices |
+| `refunds.html` | Refund and cancellation policy for hotspot bundle purchases |
 
 Nav links: **Get started** → `connect.html`. Payment links point to **`https://pay.tesnet.xyz`**.
 

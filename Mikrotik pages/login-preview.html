@@ -71,6 +71,7 @@
                         </form>
 
                         <p class="login-hint">Preview only — join STARLINK@053885022 Wi‑Fi to use the live portal.</p>
+                        <a class="portal-link" data-lookup-link href="https://pay.tesnet.xyz/lookup.php">Lost your code? Look it up</a>
                     </div>
 
                     <div class="view-panel" id="view-buy" role="tabpanel" aria-labelledby="tab-buy" hidden>
@@ -95,6 +96,7 @@
                         <p class="payment-status" id="paymentStatus" role="status" aria-live="polite" hidden></p>
 
                         <p class="login-hint" id="buyTapHint" hidden>Tap a package above to pay with MoMo or card.</p>
+                        <a class="portal-link" data-lookup-link href="https://pay.tesnet.xyz/lookup.php">Lost your code? Look it up</a>
 
                         <p class="login-switch-label">Already have an account?</p>
                         <button type="button" class="portal-btn portal-btn--ghost portal-btn--icon" data-portal-view="login">
@@ -213,6 +215,13 @@
             var params = new URLSearchParams(window.location.search);
             var code = params.get('code');
             if (code) document.getElementById('code').value = code;
+
+            var lookupHref = String(PAY_BASE || '').replace(/\/$/, '') + '/lookup.php';
+            var lookupLinks = document.querySelectorAll('[data-lookup-link]');
+            var li;
+            for (li = 0; li < lookupLinks.length; li += 1) {
+                lookupLinks[li].href = lookupHref;
+            }
 
             if (window.TesnetPortalCatalog) {
                 window.TesnetPortalCatalog.mount({ payBase: PAY_BASE, siteSlug: SITE_SLUG });

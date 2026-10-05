@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="How TesNet uses browser cookies, local storage, and related technologies on its website and hotspot portal.">
+  <title>Cookies Policy — TesNet</title>
+  <link rel="stylesheet" href="assets/site.css">
+  <link rel="stylesheet" href="assets/privacy.css">
+</head>
+<body class="policy-page">
+  <header class="site-header"><div class="wrap"><a class="logo" href="index.html"><img alt="TesNet home" src="assets/tesnet-logo.png"></a></div></header>
+  <main class="policy-main">
+    <header class="policy-hero">
+      <h1>Cookies &amp; Browser Storage Policy for TesNet</h1>
+      <p>How browser storage supports the TesNet website and hotspot services.</p>
+      <p class="policy-meta">Effective date: October 5, 2026 · <a href="https://tesnet.xyz">tesnet.xyz</a></p>
+    </header>
+    <nav class="policy-toc" aria-label="Cookies policy contents">
+      <h2>On this page</h2>
+      <ul>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#technologies">Technologies in use</a></li>
+        <li><a href="#categories">Storage categories</a></li>
+        <li><a href="#external">External services</a></li>
+        <li><a href="#network-identifiers">Network identifiers</a></li>
+        <li><a href="#manage">Managing storage</a></li>
+        <li><a href="#compliance">Legal information</a></li>
+        <li><a href="#contact">Inquiries</a></li>
+      </ul>
+    </nav>
+
+    <h2 id="overview">1. Overview</h2>
+    <p>This policy describes cookies, local storage, and similar browser technologies used by the TesNet static website and the hotspot pages included in this project. The live payment service, hosting environment, and MikroTik router may use additional storage that is not visible in this codebase. Their operators and deployed configurations should be checked separately.</p>
+
+    <h2 id="technologies">2. Technologies in Use</h2>
+    <p>The website code in this repository does not directly write HTTP cookies or use session storage. It does use HTML local storage, which saves small values in your browser for later visits. The hotspot status page also uses local storage to retain a voucher-linked package expiry value for its countdown display.</p>
+
+    <h2 id="categories">3. Storage Categories</h2>
+    <div class="policy-table-wrap">
+      <table class="policy-table">
+        <thead>
+          <tr><th scope="col">Category</th><th scope="col">Purpose and example</th><th scope="col">Storage and duration</th><th scope="col">Required?</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Display preference</th>
+            <td data-label="Purpose and example">Remembers dark/light theme using <code>hp-landing-theme</code>.</td>
+            <td data-label="Storage and duration">Local storage; remains until cleared or changed.</td>
+            <td data-label="Required?">Optional functionality.</td>
+          </tr>
+          <tr>
+            <th scope="row">External-content choice</th>
+            <td data-label="Purpose and example">Remembers whether you allow Unsplash images and embedded hotspot previews using <code>tesnet-external-preview-choice</code>.</td>
+            <td data-label="Storage and duration">Local storage; remains until cleared or changed.</td>
+            <td data-label="Required?">Optional; external content stays unloaded unless allowed.</td>
+          </tr>
+          <tr>
+            <th scope="row">Hotspot expiry display</th>
+            <td data-label="Purpose and example">The hotspot status page caches a package-expiry timestamp using a key beginning <code>tesnet-pack-exp:</code> so it can display remaining time.</td>
+            <td data-label="Storage and duration">Local storage; associated with the hotspot voucher username and retained until browser storage is cleared or overwritten.</td>
+            <td data-label="Required?">Supports the status display; the router remains the source of session information.</td>
+          </tr>
+          <tr>
+            <th scope="row">Payment and router storage</th>
+            <td data-label="Purpose and example">The payment provider or live router may use cookies or other storage for checkout, login, or security.</td>
+            <td data-label="Storage and duration">Set by the relevant deployed service; names and lifetimes are not specified by this repository.</td>
+            <td data-label="Required?">Depends on the service and transaction.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="external">4. External Services and Tracking</h2>
+    <p>The buy page requests package information from <strong>pay.tesnet.xyz</strong>. The payment flow may involve Paystack or Kowri, depending on the provider shown at checkout. The Unsplash images and embedded hotspot preview are held back until you allow external content; loading them makes requests to Unsplash or TesNet services. These external services may receive technical request information and may use their own cookies or storage.</p>
+    <p>This repository contains no analytics, advertising pixel, or behavioral profiling tags. That does not establish what may be logged by the hosting provider, payment service, upstream provider, or live router. Review those services' notices for their tracking and storage practices.</p>
+
+    <h2 id="network-identifiers">5. Network Identifiers</h2>
+    <p>This website does not create a browser cookie containing a hardware MAC address. The hotspot network may process device or connection identifiers, including MAC address or assigned IP address, as part of providing and administering network access. Device operating systems may use randomized MAC addresses; network-side processing is separate from browser cookies and is controlled by the router and network configuration.</p>
+
+    <h2 id="manage">6. Managing and Disabling Storage</h2>
+    <p>You can clear this site's local storage through your browser's site settings. This removes saved theme, external-content, and hotspot expiry values; you may need to choose the theme or external-content preference again. You can change the external-content preference using the <strong>Privacy choices</strong> control in the footer of this page.</p>
+    <p>Blocking storage may prevent preferences or the hotspot's locally displayed expiry countdown from being retained. Payment or live-router behavior when cookies are blocked depends on those services; consult the provider shown at checkout or the network administrator for details.</p>
+
+    <h2 id="compliance">7. Legal Information</h2>
+    <p>This policy is intended to be read alongside applicable laws of the Republic of Ghana, including the Data Protection Act, 2012 (Act 843) and the Electronic Transactions Act, 2008 (Act 772). The actual operator should confirm the applicable legal basis and deployed data practices.</p>
+
+    <h2 id="contact">8. Inquiries</h2>
+    <p>For questions about browser storage or this policy, contact TesNet at <a href="mailto:tesnet5532@gmail.com">tesnet5532@gmail.com</a> or <a href="tel:+233247295735 / +233538850222">024 729 5735 / 053 885 0222</a>. </p>
+  </main>
+  <footer class="policy-footer"><div class="wrap"><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms &amp; Conditions</a><a href="refunds.html">Refund Policy</a><button type="button" data-privacy-preferences>Privacy choices</button></div></footer>
+  <script src="assets/site-privacy.js"></script>
+</body>
+</html>

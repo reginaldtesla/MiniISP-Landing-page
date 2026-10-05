@@ -16,6 +16,7 @@
     })();
   </script>
   <link rel="stylesheet" href="assets/site.css">
+  <link rel="stylesheet" href="assets/privacy.css">
 </head>
 
 <body>
@@ -75,11 +76,24 @@
       <div class="wrap">
         <p class="preview-label">Hotspot login preview</p>
         <div class="preview-frame">
-          <iframe src="Mikrotik%20pages/login-preview.html" title="JJKA hotspot login preview" loading="lazy"></iframe>
+          <iframe data-external-src="Mikrotik%20pages/login-preview.html" title="JJKA hotspot login preview" loading="lazy"></iframe>
         </div>
       </div>
     </section>
   </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <nav class="footer-policies" aria-label="Policies">
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+        <a href="cookies.html">Cookies</a>
+        <a href="refunds.html">Refund Policy</a>
+        <button type="button" class="privacy-preferences" data-privacy-preferences>Privacy choices</button>
+      </nav>
+      <p>TesNet · Ayeduase, Kumasi · <a href="mailto:tesnet5532@gmail.com">tesnet5532@gmail.com</a> · <a href="tel:+233247295735">024 729 5735</a></p>
+    </div>
+  </footer>
 
   <script>
     (function () {
@@ -96,6 +110,7 @@
     })();
   </script>
   <script src="assets/landing-catalog.js"></script>
+  <script src="assets/site-privacy.js"></script>
 </body>
 
 </html>

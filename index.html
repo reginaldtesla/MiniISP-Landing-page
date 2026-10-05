@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="TesNet builds Wi‑Fi for homes, hostels, and shops around Ayeduase and KNUST — and runs Hotspot Pay: MoMo packages, instant voucher codes, and a desk for each location." />
+  <meta name="description" content="TesNet plans and installs Wi‑Fi for homes, hostels, and shops around Ayeduase and KNUST, with optional Hotspot Pay voucher sales." />
   <title>TesNet — Wi‑Fi that covers the building</title>
   <link rel="icon" href="/favicon.ico" sizes="48x48">
   <link rel="icon" href="/favicon-48.png" type="image/png" sizes="48x48">
@@ -13,18 +13,20 @@
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" sizes="180x180">
   <script>
     (function () {
-      if (localStorage.getItem('hp-landing-theme') === 'dark') {
-        document.documentElement.classList.add('dark');
-      }
+      try {
+        if (localStorage.getItem('hp-landing-theme') === 'dark') document.documentElement.classList.add('dark');
+      } catch (error) {}
     })();
   </script>
   <link rel="stylesheet" href="assets/site.css">
+  <link rel="stylesheet" href="assets/privacy.css">
 </head>
 
 <body>
+  <a class="skip-link" href="#mainContent">Skip to content</a>
   <div class="nav-overlay" id="navOverlay"></div>
 
-  <nav class="mobile-nav" id="mobileNav" aria-label="Mobile navigation">
+  <nav class="mobile-nav" id="mobileNav" aria-label="Mobile navigation" aria-hidden="true" inert>
     <header>
       <img alt="TesNet" src="assets/tesnet-logo.png" height="28" />
       <button type="button" class="text-btn" id="navClose">Close</button>
@@ -35,12 +37,13 @@
     <a class="mobile-nav-link" href="#partners">For operators</a>
     <a class="mobile-nav-link" href="#how">How it works</a>
     <a class="mobile-nav-link" href="#contact">Contact</a>
+    <a class="mobile-nav-link" href="privacy.html">Privacy</a>
   </nav>
 
   <header class="site-header" id="siteHeader">
     <div class="wrap">
       <a class="logo" href="#"><img alt="TesNet" src="assets/tesnet-logo.png" /></a>
-      <nav class="nav-links">
+      <nav class="nav-links" aria-label="Main navigation">
         <a href="buy.html">Buy a code</a>
         <a href="#services">Services</a>
         <a href="#hotspot-pay">Hotspot Pay</a>
@@ -50,19 +53,19 @@
       <div class="header-actions">
         <button type="button" class="text-btn" id="themeToggle">Night</button>
         <a class="btn" href="tel:+233247295735">Get started</a>
-        <button type="button" class="text-btn menu-btn" id="navOpen">Menu</button>
+        <button type="button" class="text-btn menu-btn" id="navOpen" aria-controls="mobileNav" aria-expanded="false">Menu</button>
       </div>
     </div>
   </header>
 
-  <main>
-    <section class="hero">
+  <main id="mainContent" tabindex="-1">
+    <section class="hero" data-external-background="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&amp;fit=crop&amp;w=2000&amp;q=80">
       <div class="wrap">
         <p class="eyebrow">Ayeduase · KNUST area</p>
         <h1>TesNet</h1>
-        <p class="hero-tagline">Wi‑Fi that covers the building. Billing that sells the access.</p>
+        <p class="hero-tagline">Wi‑Fi planned around your building. Billing when you want to sell access.</p>
         <p>
-          We install fibre or Starlink, set up the network, and run Hotspot Pay so students buy with MoMo and get a voucher code instantly.
+          We help plan and install fibre or Starlink connections, set up Wi‑Fi, and offer Hotspot Pay for voucher sales after payment confirmation and stock checks.
         </p>
         <p class="phone-big">Call / WhatsApp <a href="tel:+233247295735">024 729 5735</a></p>
         <div class="hero-actions">
@@ -110,15 +113,15 @@
 
         <div class="feature-grid">
           <article class="card feature-feature">
-            <span class="chip">Most used</span>
+              <span class="chip">Hotspot billing</span>
             <strong>Hotspot Pay</strong>
             <p>
-              Students pick a package on the login page, pay with Mobile Money, and get a voucher code instantly.
+              Students select a package, pay with Mobile Money, and receive a voucher when payment is confirmed and stock is available.
               Codes already sit on your MikroTik — we hand out the next free one after payment clears.
             </p>
             <div class="feature-meta">
               <span>MoMo / card</span>
-              <span>Instant codes</span>
+              <span>Stock-checked codes</span>
               <span>Desk per site</span>
             </div>
           </article>
@@ -147,7 +150,7 @@
         <p class="section-kicker">Hotspot Pay</p>
         <h2>Sell Wi‑Fi with MoMo</h2>
         <p class="lead">
-          The same stack we run on live hotspots. Many locations on one platform — each site has its own stock and sales.
+          Hotspot Pay supports multiple locations on one platform, with separate stock and sales for each site.
         </p>
         <ul class="plain-list">
           <li>Paystack or Kowri for charges; shelf price stays yours</li>
@@ -170,7 +173,7 @@
           <div class="audience-panel">
             <h3>For homes &amp; hostels</h3>
             <ul>
-              <li>Wi‑Fi that reaches every room</li>
+              <li>Wi‑Fi planned around the building; coverage varies by layout and equipment</li>
               <li>Open shared access when internet is amenity</li>
               <li>Or Hotspot Pay if guests buy codes</li>
               <li>Shops and small offices too</li>
@@ -198,7 +201,7 @@
     <section class="block alt" id="connectivity">
       <div class="wrap">
         <p class="section-kicker">Backhaul</p>
-        <h2>Real providers. Real link.</h2>
+        <h2>Internet providers we can check</h2>
         <p class="lead">You stay the customer of MTN, Telecel, or Starlink. We get that link into the building, then build the Wi‑Fi on top.</p>
         <div class="split split-3">
           <div class="card">
@@ -286,18 +289,14 @@
               <dd><a href="mailto:tesnet5532@gmail.com">tesnet5532@gmail.com</a></dd>
             </dl>
             <div class="contact-actions">
-              <a class="btn" href="https://wa.me/233247295735" target="_blank" rel="noopener">WhatsApp us</a>
+              <a class="btn" href="https://wa.me/233200504248" target="_blank" rel="noopener">WhatsApp us</a>
               <a class="btn-ghost" href="tel:+233247295735">Call now</a>
             </div>
           </div>
-          <figure class="contact-visual">
-            <img
-              src="https://images.unsplash.com/photo-1534536281715-e28d76689b4d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80"
-              alt="Customer support on the phone"
-              width="1470"
-              height="980"
-              loading="lazy"
-            />
+          <figure class="contact-visual" aria-label="TesNet service area">
+            <img data-external-src="https://images.unsplash.com/photo-1534536281715-e28d76689b4d?ixlib=rb-4.0.3&amp;auto=format&amp;fit=crop&amp;w=1470&amp;q=80" alt="Customer support on the phone" width="1470" height="980" loading="lazy">
+            <strong>TesNet</strong>
+            <span>Connectivity setup and hotspot billing around Ayeduase, Kumasi.</span>
           </figure>
         </div>
       </div>
@@ -317,6 +316,13 @@
         <a href="#hotspot-pay">Hotspot Pay</a>
         <a href="#partners">For operators</a>
         <a href="#contact">Contact</a>
+      </nav>
+      <nav class="footer-policies" aria-label="Policies">
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+        <a href="cookies.html">Cookies</a>
+        <a href="refunds.html">Refund Policy</a>
+        <button type="button" class="privacy-preferences" data-privacy-preferences>Privacy choices</button>
       </nav>
       <p>© 2026 TesNet, Ayeduase</p>
     </div>
@@ -354,27 +360,57 @@
 
       var nav = document.getElementById('mobileNav');
       var overlay = document.getElementById('navOverlay');
+      var navOpenButton = document.getElementById('navOpen');
+      var navCloseButton = document.getElementById('navClose');
 
       function openNav() {
         nav.classList.add('is-open');
         overlay.classList.add('is-open');
+        nav.removeAttribute('inert');
+        nav.setAttribute('aria-hidden', 'false');
+        navOpenButton.setAttribute('aria-expanded', 'true');
         document.body.style.overflow = 'hidden';
+        navCloseButton.focus();
       }
 
       function closeNav() {
         nav.classList.remove('is-open');
         overlay.classList.remove('is-open');
+        nav.setAttribute('inert', '');
+        nav.setAttribute('aria-hidden', 'true');
+        navOpenButton.setAttribute('aria-expanded', 'false');
         document.body.style.overflow = '';
+        navOpenButton.focus();
       }
 
-      document.getElementById('navOpen')?.addEventListener('click', openNav);
-      document.getElementById('navClose')?.addEventListener('click', closeNav);
+      navOpenButton?.addEventListener('click', openNav);
+      navCloseButton?.addEventListener('click', closeNav);
       overlay?.addEventListener('click', closeNav);
+      document.addEventListener('keydown', function (event) {
+        if (!nav.classList.contains('is-open')) return;
+        if (event.key === 'Escape') {
+          closeNav();
+          return;
+        }
+        if (event.key === 'Tab') {
+          var focusable = nav.querySelectorAll('a[href], button:not([disabled])');
+          var first = focusable[0];
+          var last = focusable[focusable.length - 1];
+          if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+          } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+          }
+        }
+      });
       document.querySelectorAll('.mobile-nav-link').forEach(function (link) {
         link.addEventListener('click', closeNav);
       });
     })();
   </script>
+  <script src="assets/site-privacy.js"></script>
 </body>
 
 </html>
